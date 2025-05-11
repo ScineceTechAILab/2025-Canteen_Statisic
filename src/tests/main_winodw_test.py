@@ -14,6 +14,7 @@ import threading
 import shutil
 import multiprocessing
 import subprocess
+
 from PySide6.QtWidgets import QMessageBox
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
@@ -57,7 +58,7 @@ from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
 
 from config.config import FIRST_START
-
+from src.gui.utils.first_start_detect import first_start_detect
 
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
@@ -935,13 +936,8 @@ if __name__ == "__main__":
     ui.setupUi(Form)
     # 设置窗口标题
     Form.show()
-
-    # 检查是否首次启动
-    if FIRST_START :
-        QMessageBox.information(Form, "提示", "首次启动应用，请点击重导表格", QMessageBox.Ok)
-    else:
-        print("非首次启动，正常进入应用")
-
+    #  第一次启动检测
+    first_start_detect(Form)
     # 设置关闭事件
     Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     
