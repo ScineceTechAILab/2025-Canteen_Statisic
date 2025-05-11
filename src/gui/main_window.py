@@ -71,8 +71,8 @@ PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "man
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
-MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
-Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
+MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\主表\\" # 主工作表格路径
+Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\子表\\"  # 子工作表格路径
 
 MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -104,8 +104,8 @@ class Worker(QObject):
         """
         self.reply = QMessageBox.information(None, "提示", "数据写入完成,请再次打开主表和子表下的文件确认数据是否正确", QMessageBox.Ok | QMessageBox.Cancel)
         if self.reply == QMessageBox.Ok:
-            # 自动打开项目目录下的 cache 文件夹以供确认文件
-            folder_path = os.path.join(os.path.abspath(os.path.join("src", "data", "storage")), 'cache')
+            # 自动打开项目目录下的 work 文件夹以供确认文件
+            folder_path = os.path.join(os.path.abspath(os.path.join("src", "data", "storage")), 'work')
             if sys.platform.startswith('win'):
                 os.startfile(folder_path)
             elif sys.platform.startswith('darwin'):

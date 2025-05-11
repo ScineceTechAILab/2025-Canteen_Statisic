@@ -8,12 +8,14 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
+import datetime
 import sys
 import os
 import threading
 import shutil
 import multiprocessing
 import subprocess
+import time
 
 from PySide6.QtWidgets import QMessageBox
 
@@ -72,14 +74,14 @@ PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "man
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
-MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
-Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
+MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\主表\\" # 主工作表格路径
+Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\子表\\"  # 子工作表格路径
 
 MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 print(MAIN_WORK_EXCEL_PATH,Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-#这个0/1用来表示是入库出库
+# 这个0/1用来表示是入库出库
 MODE = 0
 ADD_DAY_SUMMARY = False
 ADD_MONTH_SUMMARY = False
@@ -108,8 +110,8 @@ class Worker(QObject):
         """
         self.reply = QMessageBox.information(None, "提示", "数据写入完成,请再次打开主表和子表下的文件确认数据是否正确", QMessageBox.Ok | QMessageBox.Cancel)
         if self.reply == QMessageBox.Ok:
-            # 自动打开项目目录下的 cache 文件夹以供确认文件
-            folder_path = os.path.join(os.path.abspath(os.path.join("src", "data", "storage")), 'cache')
+            # 自动打开项目目录下的 work 文件夹以供确认文件
+            folder_path = os.path.join(os.path.abspath(os.path.join("src", "data", "storage")), 'work')
             if sys.platform.startswith('win'):
                 os.startfile(folder_path)
             elif sys.platform.startswith('darwin'):
@@ -454,6 +456,7 @@ class Ui_Form(object):
         # # 创建重导表格按钮
         self.pushButton_14 = QPushButton(self.tab)
         self.pushButton_14.setObjectName("reimport_table") 
+        self.pushButton_14.clicked.connect(self.reimport_excel_data) # 绑定槽函数
         # # 创建导出表格按钮
         self.pushButton_15 = QPushButton(self.tab)
         self.pushButton_15.setObjectName("export_table_button")
@@ -486,8 +489,8 @@ class Ui_Form(object):
 
         self.gridLayout_2.addWidget(self.pushButton_14,1,2,1,1) # 添加重导表格按钮位置
         self.gridLayout_2.addWidget(self.pushButton_15,1,3,1,1) # 添加导出表格按钮位置
-        self.gridLayout_2.addWidget(self.pushButton_12,1,7,1,1) # 设置立即备份按钮位置
-        self.gridLayout_2.addWidget(self.pushButton_11,1,6,1,1) # 设置备份管理按钮位置
+        self.gridLayout_2.addWidget(self.pushButton_12,1,6,1,1) # 设置立即备份按钮位置
+        self.gridLayout_2.addWidget(self.pushButton_11,1,7,1,1) # 设置备份管理按钮位置
         
         
         
@@ -556,7 +559,7 @@ class Ui_Form(object):
         self.pushButton_10.setText(QCoreApplication.translate("Form", "条目清空", None))
 
         "TAB底部按钮"
-        self.pushButton_14.setText(QCoreApplication.translate("Form", "重导表格", None))
+        self.pushButton_14.setText(QCoreApplication.translate("Form", "导入表格", None))
         self.pushButton_15.setText(QCoreApplication.translate("Form", "导出表格", None))
         self.pushButton_12.setText(QCoreApplication.translate("Form", "立即备份", None))
         self.pushButton_11.setText(QCoreApplication.translate("Form", "备份管理", None))
@@ -703,7 +706,7 @@ class Ui_Form(object):
         elif "出库" in modeText and MODE == 0:
             print("自动切换为出库")
             MODE = 1
-            
+        
        
         
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
@@ -886,8 +889,91 @@ class Ui_Form(object):
             clear_temp_xlxs_excel()
         except Exception:
             print("Error in clear_temp_photo_import_list: 清空图片的暂存表格出错")
-        
+    
+    def reimport_excel_data(self):
+        """
+        重新导入Excel数据,按照系统时间进行备份名管理
+        :param: self
+        :return: None
+        """
+        # 获取操作系统当前的时间，精确到秒
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") # Fixed:Windows操作系统不允许创建文件夹名包含":"符号的目录
 
+        # 拼接备份文件夹名
+        backup_path = ".\\src\\data\\storage\\backup\\"+str(current_time)
+        # 拼接主、子表备份文件夹路径
+        backup_mian_excel_folder_path = backup_path+"\\主表"
+        backup_sub_excel_folder_path = backup_path+"\\子表"
+        try:
+            # 创建拼接主、子表备份文件夹
+            os.makedirs(backup_mian_excel_folder_path, exist_ok=True)
+            os.makedirs(backup_sub_excel_folder_path, exist_ok=True)
+            print(f"Notice:备份文件夹创建成功,主表路径为:{backup_mian_excel_folder_path},子表路径为:{backup_sub_excel_folder_path}")
+
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 创建备份文件夹出错,错误信息为: {e}")
+
+
+        "创建基于该时间点的三表备份"
+        # 弹窗提示用户导入主表
+        QMessageBox.information(None, "提示", "请导入主表表格", QMessageBox.Ok)
+        # 唤起文件管理器，并选择主表文件
+        main_excel_path = QFileDialog.getOpenFileName(None, "选择主表表格", "", "Excel Files (*.xls)")[0]
+        # 将选择文件复制到 ./src/data/storage/backup/主表 目录下
+        try:
+            shutil.copy(main_excel_path, backup_mian_excel_folder_path)
+            QMessageBox.information(None, "提示", "导入主表文件成功", QMessageBox.Ok)
+
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 重新导入主表表格出错,错误信息为: {e}")
+            QMessageBox.information(None, "错误", "请检查主表文件失败", QMessageBox.Ok)
+            
+
+        QMessageBox.information(None, "提示", "请导入子表主食表格", QMessageBox.Ok)
+        # 唤起文件管理器，并选择子表主食文件
+        sub_main_excel_path = QFileDialog.getOpenFileName(None, "选择子表主食表格", "", "Excel Files (*.xls)")[0]
+        try:
+            shutil.copy(sub_main_excel_path, backup_sub_excel_folder_path) # Learning3：将子表主食表格复制到 ./src/data/storage/backup/子表主食 目录下
+            QMessageBox.information(None, "提示", "导入子表主食文件成功", QMessageBox.Ok)
+
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 重新导入子表主食表格出错 {e}")
+            QMessageBox.information(None, "错误", "导入子表主食表出错", QMessageBox.Ok)
+
+        QMessageBox.information(None, "提示", "请导入子表副食表格", QMessageBox.Ok)
+        # 唤起文件管理器，并选择子表副食文件
+        sub_auxiliary_excel_path = QFileDialog.getOpenFileName(None, "选择子表副食表格", "", "Excel Files (*.xls)")[0]
+        try:
+            shutil.copy(sub_auxiliary_excel_path, backup_sub_excel_folder_path ) # Learning3：将子表副食表格复制到 ./src/data/storage/backup/子表副食 目录下
+            QMessageBox.information(None, "提示", "导入子表副食文件成功", QMessageBox.Ok)
+
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 重新导入子表副食表格出错 {e}")
+            QMessageBox.information(None, "错误", "导入子表副食表出错", QMessageBox.Ok)
+        
+        # 弹窗提示用户表格导入完成
+        QMessageBox.information(None, "提示", "表格已全部导入完成", QMessageBox.Ok)
+
+
+        "将备份拷贝到 main 目录的主表、子表目录下"
+        # 将最新备份主表拷贝到  main 目录
+        try:
+            shutil.copytree(backup_path,"./src/data/storage/main",dirs_exist_ok=True)
+            print("Notice:主表备份文件已复制到 src/data/storage/main 目录")
+
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 将主表备份文件复制到主表目录出错,错误信息为: {e}")
+
+        # 等待1s,让前面文件复制过程得以完成 
+        time.sleep(1)
+
+        "将 main 目录下的 主表文件夹、子表文件夹拷贝到 work 目录"
+        try:
+            shutil.copytree("./src/data/storage/main", "./src/data/storage/work",dirs_exist_ok=True)
+            print("Notice:主表文件已从 ./src/data/storage/main  复制到 ./src/data/storage/work 目录")
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 将主表文件复制到 work 目录出错,错误信息为: {e}")
+        
 
 class KeyEventFilter(QObject):
     def eventFilter(self, watched, event):
