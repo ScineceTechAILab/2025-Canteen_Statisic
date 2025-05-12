@@ -456,10 +456,11 @@ class Ui_Form(object):
         # # 创建重导表格按钮
         self.pushButton_14 = QPushButton(self.tab)
         self.pushButton_14.setObjectName("reimport_table") 
-        self.pushButton_14.clicked.connect(self.reimport_excel_data) # 绑定槽函数
+        self.pushButton_14.clicked.connect(self.reimport_excel_data) # 绑定导入表格函数
         # # 创建导出表格按钮
         self.pushButton_15 = QPushButton(self.tab)
         self.pushButton_15.setObjectName("export_table_button")
+        self.pushButton_15.clicked.connect(self.export_excel_data) # 绑定导出表格函数
         # # 创建立即备份按钮
         self.pushButton_12 = QPushButton(self.tab)
         self.pushButton_12.setObjectName("backup_button")
@@ -973,7 +974,26 @@ class Ui_Form(object):
             print("Notice:主表文件已从 ./src/data/storage/main  复制到 ./src/data/storage/work 目录")
         except Exception as e:
             print(f"Error in reimport_excel_data: 将主表文件复制到 work 目录出错,错误信息为: {e}")
-        
+    
+    def export_excel_data(self):
+        """
+        导出 main 目录下的 Excel 数据到桌面
+        :param: self
+        :return: None
+        """
+
+        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+
+        try:
+            shutil.copytree("./src/data/storage/main", desktop_path, dirs_exist_ok=True)
+            print("Notice:主表文件已从 ./src/data/storage/main  复制到桌面")
+            QMessageBox.information(None, "提示", "数据已全部导到桌面", QMessageBox.Ok)
+        except Exception as e:
+            print(f"Error in export_excel_data: 将主表文件复制到桌面出错,错误信息为: {e}")
+            QMessageBox.information(None, "错误", "数据导出到桌面失败", QMessageBox.Ok)
+    
+
+    
 
 class KeyEventFilter(QObject):
     def eventFilter(self, watched, event):
