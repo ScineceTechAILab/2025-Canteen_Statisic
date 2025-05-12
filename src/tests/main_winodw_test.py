@@ -460,10 +460,11 @@ class Ui_Form(object):
         # # 创建导出表格按钮
         self.pushButton_15 = QPushButton(self.tab)
         self.pushButton_15.setObjectName("export_table_button")
-        self.pushButton_15.clicked.connect(self.export_excel_data) # 绑定导出表格函数
+        self.pushButton_15.clicked.connect(self.export_excel_data)   # 绑定导出表格函数
         # # 创建立即备份按钮
         self.pushButton_12 = QPushButton(self.tab)
         self.pushButton_12.setObjectName("backup_button")
+        self.pushButton_12.clicked.connect(self.back_up_excel_data)  # 绑定备份函数
         # # 创建备份管理按钮
         self.pushButton_11 = QPushButton(self.tab)
         self.pushButton_11.setObjectName("backup_manager_button")
@@ -992,7 +993,38 @@ class Ui_Form(object):
             print(f"Error in export_excel_data: 将主表文件复制到桌面出错,错误信息为: {e}")
             QMessageBox.information(None, "错误", "数据导出到桌面失败", QMessageBox.Ok)
     
+    def back_up_excel_data(self):
+        """
+        备份 main 目录下的数据到 backup 目录
+        :param: self
+        :return: None
+        """
 
+        # 获取操作系统当前的时间，精确到秒
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") # Fixed:Windows操作系统不允许创建文件夹名包含":"符号的目录
+
+        # 拼接备份文件夹名
+        backup_path = ".\\src\\data\\storage\\backup\\"+str(current_time)
+        # 拼接主、子表备份文件夹路径
+        backup_mian_excel_folder_path = backup_path+"\\主表"
+        backup_sub_excel_folder_path = backup_path+"\\子表"
+        try:
+            # 创建拼接主、子表备份文件夹
+            os.makedirs(backup_mian_excel_folder_path, exist_ok=True)
+            os.makedirs(backup_sub_excel_folder_path, exist_ok=True)
+            print(f"Notice:备份文件夹创建成功,主表路径为:{backup_mian_excel_folder_path},子表路径为:{backup_sub_excel_folder_path}")
+
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 创建备份文件夹出错,错误信息为: {e}")
+        
+        # 将 main 目录下的 主表文件夹、子表文件夹拷贝到 backup_path 目录
+        try:
+            shutil.copytree("./src/data/storage/main", backup_path, dirs_exist_ok=True)
+            print("Notice:备份文件已从 ./src/data/storage/main  复制到 backup_path 目录")
+            QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
+            QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
     
 
 class KeyEventFilter(QObject):
