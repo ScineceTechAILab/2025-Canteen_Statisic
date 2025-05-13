@@ -46,7 +46,7 @@ class Ui_Form(object):
         self.verticalLayout.addWidget(self.scrollArea)
             # 设置滚动区域的内容
                 # 创建滚动区域内容
-        self.scrollAreaWidgetContents = QWidget()
+        self.scrollAreaWidgetContents = QWidget() # Notice:这里不用传父DOM组件
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
         self.scrollAreaWidgetContents.setEnabled(True)
         self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 692, 350))
@@ -65,8 +65,7 @@ class Ui_Form(object):
         self.verticalLayout_2.setContentsMargins(-1, 0, -1, 0)
                 # 设置滚动区域布局
         self.scrollArea.setWidget(self.scrollAreaWidgetContents) # Notice:这句很关键，少了这一句全部变空白
-        
-        
+
         # 创建滚动区域中的列表 Widget
             # 创建 widget
         self.widget = QWidget(self.scrollAreaWidgetContents)
