@@ -584,9 +584,9 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        self.line1Right.setText("2025-5-5")       # 日期
-        self.line2Right.setText("副食")           # 类别
-        self.line3Right.setText("土豆")           # 品名
+        self.line1Right.setText("2025-05-13")       # 日期
+        self.line2Right.setText("主食")           # 类别
+        self.line3Right.setText("大米")           # 品名
         self.line4Right.setText("备注")           # 备注
         self.line5Right.setText("420.0")         # 金额
         self.line6Right.setText("420")            # 数量
@@ -701,6 +701,7 @@ class Ui_Form(object):
         :return: None
         """
         global MODE
+        self.pushButton_5.setText("正在提交")
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
         if "入库" in modeText and MODE == 1:
             print("自动切换为入库")
@@ -708,9 +709,6 @@ class Ui_Form(object):
         elif "出库" in modeText and MODE == 0:
             print("自动切换为出库")
             MODE = 1
-        
-       
-        
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"

@@ -75,7 +75,6 @@ def convert_number_to_chinese(num):
 
 def find_matching_month_rows(main_excel_file_path, sheet_name, columns = [2, 3]):
     """
-    在主表中查找 B 列中等于本月月数的行数。
     :param columns 月和日所在的列数, 主表为2、3列, 子表为1、2列
     :param main_excel_file_path: 主表路径
     :param sheet_name: 工作表名称
@@ -95,9 +94,38 @@ def find_matching_month_rows(main_excel_file_path, sheet_name, columns = [2, 3])
             month_rows = [
                 row_index + 1
                 for row_index in range(sheet.used_range.rows.count)
-                if sheet.range((row_index + 1, 2)).value is not None and str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(current_month).lstrip("0")
+                if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
             ]
+            # 查找 B 列中等于上月月数的行数
+            last_month_rows = [
+                row_index + 1
+                for row_index in range(sheet.used_range.rows.count)
+                if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month - 1).lstrip("0"))
+            ]
+            
+            # 上月处理
+            new_last_month_rows = []
+            for i in last_month_rows:
+                day = int(sheet.range((i, columns[1])).value)
+                if day > 20:
+                    new_last_month_rows.append(i)
+                else:
+                    print(f"去除上月 {i} 行(日)")
+            last_month_rows = new_last_month_rows
 
+            # 本月处理
+            new_month_rows = []
+            for j in month_rows:
+                day = int(sheet.range((j, columns[1])).value)
+                if day <= 20:
+                    new_month_rows.append(j)
+                else:
+                    print(f"去除本月 {j} (行)日")
+            month_rows = new_month_rows
+
+
+            #上月末加本月20天为一个月
+            month_rows += last_month_rows
             # 打印结果
             print(f"B 列中等于本月月数的行数: {month_rows}")
 
@@ -131,18 +159,19 @@ def find_matching_today_rows(main_excel_file_path, sheet_name, columns = [2, 3])
             # for row_index in range(sheet.used_range.rows.count):
             #     print(sheet.range((row_index + 1, 3)).value, current_day)
 
+            # print(sheet.range((168, 1)).value, sheet.range((168, 2)).value)
             # 查找 C 列中等于今天日数的行数
             day_rows = [
                 row_index + 1
                 for row_index in range(sheet.used_range.rows.count)
-                if sheet.range((row_index + 1, 2)).value != None and str(sheet.range((row_index + 1, columns[1])).value).lstrip("0") == str(current_day).lstrip("0")
+                if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[1])).value).lstrip("0")))) == str(current_day).lstrip("0"))
             ]
 
             # 查找 B 列中等于本月月数的行数
             month_rows = [
                 row_index + 1
                 for row_index in range(sheet.used_range.rows.count)
-                if sheet.range((row_index + 1, 2)).value != None and str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(current_month).lstrip("0")
+                if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
             ]
 
             # 找到两个列表中相同的行数
@@ -151,7 +180,7 @@ def find_matching_today_rows(main_excel_file_path, sheet_name, columns = [2, 3])
             # 打印结果
             # print(f"C 列中等于今天日数的行数: {day_rows}")
             # print(f"B 列中等于本月月数的行数: {month_rows}")
-            print(f"相同的行数: {matching_rows}")
+            print(f"相同的行数: {matching_rows}", day_rows, month_rows)
 
             # 关闭工作簿
             workbook.close()
