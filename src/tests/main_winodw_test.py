@@ -1056,7 +1056,7 @@ class Ui_Form(object):
         self.window_layout_dom1.addWidget(self.window_scroll_area_dom2)
             # 设置滚动区域的内容容器
                 # 创建内容容器
-        self.window_scroll_area_contents_dom3 = QWidget()
+        self.window_scroll_area_contents_dom3 = QWidget() # 创建内容容器不需要传入父widget
         self.window_scroll_area_contents_dom3.setObjectName("window_scroll_area_contents_dom3")
                 # 设置内容容器大小策略
         window_scroll_area_contents_dom3_sizepolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
