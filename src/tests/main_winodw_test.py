@@ -56,7 +56,7 @@ from src.gui.utils.detail_ui_button_utils import (
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from configparser import ConfigParser
-from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel, clear_temp_image_dir # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
 
@@ -89,7 +89,9 @@ ADD_MONTH_SUMMARY = False
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
-
+#拖进来的图片目录
+DRAG_PHOTO_DIR = []
+TEMP_IMAGE_DIR = os.path.join(".", "src", "data", "input", "img") 
 
 #这个用来测试,wjwcj 0507 12:54, 13:08测试完毕
 from PySide6.QtCore import QObject, Signal
@@ -754,25 +756,43 @@ class Ui_Form(object):
         # 调用 temp_list_rollback 函数实现条目回滚
         temp_list_rollback(self)
 
+
+
     def photo_import(self):
         """
         照片导入功能实现，支持批量导入和显示多张图片
         :param: self
         :return: None
         """
-        # 1. 弹出文件选择器，支持多选图片
-        
-        file_dialog = QFileDialog()
-        file_dialog.setFileMode(QFileDialog.ExistingFiles)
-        file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg )")
-        
-        "检查选择的文件路径是否有效，加载文件到程序图片暂存文件夹，并且展示到界面上"
-        if file_dialog.exec():
-            # 获取选择的文件路径列表
-            file_paths = file_dialog.selectedFiles()
+        global DRAG_PHOTO_DIR
+        global TEMP_IMAGE_DIR
+        dest_dir = TEMP_IMAGE_DIR
+        if DRAG_PHOTO_DIR == None:
+            # 1. 弹出文件选择器，支持多选图片
+            file_dialog = QFileDialog()
+            file_dialog.setFileMode(QFileDialog.ExistingFiles)
+            file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg )")
             
+            "检查选择的文件路径是否有效，加载文件到程序图片暂存文件夹，并且展示到界面上"
+            if file_dialog.exec():
+                # 获取选择的文件路径列表
+                file_paths = file_dialog.selectedFiles()
+                
+                "将文件复制到 ./src/data/input/img 目录下"
+                os.makedirs(dest_dir, exist_ok=True)                                # 如果目标目录不存在，则创建它
+                self.copied_paths = []                                              # 用于记录复制成功的文件路径列表，保存为属性
+                for src_path in file_paths:                                         # 遍历每个文件路径
+                    dest_path = os.path.join(dest_dir, os.path.basename(src_path))  # 拼接目标路径已经文件名
+                    try: # 文件操作使用try和if进行容错考虑
+                        shutil.copy2(src_path, dest_path)                           # 复制文件到目标路径
+                        self.copied_paths.append(dest_path)                              # 记录复制成功的文件路径
+                    except Exception as e:
+                        print(f"Error: 复制文件失败: {src_path} -> {dest_path}, 错误: {e}")
+        else:
+            print("开始导入", DRAG_PHOTO_DIR)
+            file_paths = DRAG_PHOTO_DIR
+            DRAG_PHOTO_DIR = []
             "将文件复制到 ./src/data/input/img 目录下"
-            dest_dir = os.path.join(".", "src", "data", "input", "img")         # 目标目录
             os.makedirs(dest_dir, exist_ok=True)                                # 如果目标目录不存在，则创建它
             self.copied_paths = []                                              # 用于记录复制成功的文件路径列表，保存为属性
             for src_path in file_paths:                                         # 遍历每个文件路径
@@ -782,36 +802,42 @@ class Ui_Form(object):
                     self.copied_paths.append(dest_path)                              # 记录复制成功的文件路径
                 except Exception as e:
                     print(f"Error: 复制文件失败: {src_path} -> {dest_path}, 错误: {e}")
-           
-            "遍历复制后的文件路径,在父组件的容器布局中调用QLabel显示"
-            if self.copied_paths:
-                if not self.scrollAreaWidgetContents.layout():                  # 如果容器布局不存在，则创建它
-                    self.scrollAreaWidgetContents.setLayout(QVBoxLayout())      # 为scrollAreaWidgetContents组件创建垂直布局
-                layout = self.scrollAreaWidgetContents.layout()                 # 获取容器布局对象
-                # 清空之前的内容，避免多次导入重复显示
-                while layout.count():                                           # 清空布局
-                    child = layout.takeAt(0)                                    # 从布局中移除子组件
-                    if child.widget():                                          # 如果子组件是widget，则删除它
-                        child.widget().deleteLater()                            # 删除子组件
-                # 添加新图片文件名按钮，垂直紧凑排列
-                for image_path in self.copied_paths:
-                    btn = QPushButton(os.path.basename(image_path), self.scrollAreaWidgetContents)
-                    btn.setFixedHeight(24)
-                    # 增加轮廓阴影效果
-                    btn.setStyleSheet("""
-                        margin:0; 
-                        padding:0; 
-                        text-align:left; 
-                        background:transparent; 
-                        border: 1px solid #888; 
-                        border-radius: 4px;
-                        color:blue; 
-                        text-decoration:underline;
-                    """)
-                    # 绑定点击事件，弹窗预览图片
-                    btn.clicked.connect(lambda checked, path=image_path: preview_image(self,path))
-                    layout.addWidget(btn)
-                layout.addStretch(1)  # 保证紧凑排列
+
+        "遍历复制后的文件路径,在父组件的容器布局中调用QLabel显示"
+        if self.copied_paths:
+            if not self.scrollAreaWidgetContents.layout():                  # 如果容器布局不存在，则创建它
+                self.scrollAreaWidgetContents.setLayout(QVBoxLayout())      # 为scrollAreaWidgetContents组件创建垂直布局
+            layout = self.scrollAreaWidgetContents.layout()                 # 获取容器布局对象
+            # 清空之前的内容，避免多次导入重复显示
+            while layout.count():                                           # 清空布局
+                child = layout.takeAt(0)                                    # 从布局中移除子组件
+                if child.widget():                                          # 如果子组件是widget，则删除它
+                    child.widget().deleteLater()                            # 删除子组件
+            # 添加新图片文件名按钮，垂直紧凑排列
+            # for image_path in self.copied_paths:
+            # 这里改成遍历那个目录
+            files = []
+            for _, __, _files in os.walk(dest_dir):
+                for file in _files:
+                    files.append(os.path.join(dest_dir, file))  # 记录完整路径
+            for image_path in files:
+                btn = QPushButton(os.path.basename(image_path), self.scrollAreaWidgetContents)
+                btn.setFixedHeight(24)
+                # 增加轮廓阴影效果
+                btn.setStyleSheet("""
+                    margin:0; 
+                    padding:0; 
+                    text-align:left; 
+                    background:transparent; 
+                    border: 1px solid #888; 
+                    border-radius: 4px;
+                    color:blue; 
+                    text-decoration:underline;
+                """)
+                # 绑定点击事件，弹窗预览图片
+                btn.clicked.connect(lambda checked, path=image_path: preview_image(self,path))
+                layout.addWidget(btn)
+            layout.addStretch(1)  # 保证紧凑排列
             
 
     def temp_store_photo_inputs(self):
@@ -1228,6 +1254,27 @@ class ClickableImage(QLabel):
         if event.button() == Qt.LeftButton: # type: ignore
             print("图片被点击")
 
+#用于拖入图片
+def form_drag_enter(event):
+    if event.mimeData().hasUrls():
+        for url in event.mimeData().urls():
+            if url.toLocalFile().lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
+                event.acceptProposedAction()
+                return
+    event.ignore()
+#用于拖入图片
+def form_drop_event(event):
+    global DRAG_PHOTO_DIR
+    DRAG_PHOTO_DIR = []
+
+    for url in event.mimeData().urls():
+        path = url.toLocalFile()
+        if path.lower().endswith(('.png', '.jpg', '.jpeg')):
+            DRAG_PHOTO_DIR.append(path)
+    ui.photo_import()
+    
+
+
 
 
 if __name__ == "__main__":
@@ -1241,12 +1288,16 @@ if __name__ == "__main__":
     app.installEventFilter(key_filter)  # 安装到整个应用程序，而不是 Form
     # 调用setupUi方法设置UI界面
     ui.setupUi(Form)
+    # 添加拖拽(三行)
+    Form.setAcceptDrops(True)
+    Form.dragEnterEvent = form_drag_enter
+    Form.dropEvent = form_drop_event
     # 设置窗口标题
     Form.show()
     #  第一次启动检测
     first_start_detect(Form)
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), clear_temp_image_dir(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     
     sys.exit(app.exec())
 

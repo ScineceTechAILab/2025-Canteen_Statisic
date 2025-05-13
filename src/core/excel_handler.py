@@ -151,8 +151,18 @@ def clear_temp_xlxs_excel():
         # 保存工作簿
         workbook.save(temp_xlxs_excel_path)
 
-
-
+def clear_temp_image_dir():
+    """
+    清空图片导入临时目录
+    """
+    dest_dir = __main__.TEMP_IMAGE_DIR
+    files = []
+    for _, __, _files in os.walk(dest_dir):
+        for file in _files:
+            files.append(os.path.join(dest_dir, file))  # 记录完整路径
+    for i in files:
+        os.remove(i)
+    print("删除临时图片目录成功")
 
 
 def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path):
