@@ -100,7 +100,20 @@ class Worker(QObject):
     下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
     此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
     """
-    done = Signal()  # 定义一个不带参数的信号
+    done = Signal(str)  # 定义一个带字符串参数的信号
+
+    def show(self, message):
+        """
+        这个用来判断是哪个信号
+        :param 信号来源，用来判断执行哪个弹窗函数
+        """
+        if message == "image_finished":
+            #图像识别完成
+            img_excel_after_process(ui)
+        elif message == "tables_updated":
+            #所有表格更新完成
+            self.show_message()
+
 
     def show_message(self):
         """
@@ -124,7 +137,7 @@ class Ui_Form(object):
 
     def setupUi(self, Form):
         self.worker = Worker()
-        self.worker.done.connect(self.worker.show_message)  # 当信号发出时，执行 show_message()
+        self.worker.done.connect(self.worker.show)  # 当信号发出时，执行 show_message()
 
         if not Form.objectName():
             Form.setObjectName(u"Form")
@@ -804,17 +817,20 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
+        self.pushButton_4.setText("正在扫描")
+
         if hasattr(self, "copied_paths") and self.copied_paths:
-            def run_in_background(self):
+            def run_in_background():
                 pool = multiprocessing.Pool(processes=min(4, len(self.copied_paths)))
                 for path in self.copied_paths:
                     pool.apply_async(image_to_excel, args=(path,))
                 pool.close()
-                pool.join()  # 等待线程完成
-                img_excel_after_process(self)
+                pool.join()
+                # img_excel_after_process(self)
+                self.worker.done.emit("image_finished")  # 比如写完数据后调用
 
-        # 启动后台线程
-        threading.Thread(target=run_in_background(self), daemon=True).start()
+        threading.Thread(target=run_in_background, daemon=True).start()
+
             
     def check_photo_input_data(self): 
         """
