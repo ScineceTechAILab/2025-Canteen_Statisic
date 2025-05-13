@@ -26,7 +26,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform, Qt)
-from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLayout,
+from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, QFormLayout, QGridLayout,
     QGroupBox, QHBoxLayout, QLabel, QLayout,
     QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
@@ -1042,34 +1042,56 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-        # 创建窗口
+        # 创建界面
+            # 创建窗口
         self.BackUpWindow = QWidget()
         self.BackUpWindow.setWindowTitle("备份管理")
         self.BackUpWindow.resize(800, 600)
         self.BackUpWindow.setObjectName("BackUpWindow")
         self.BackUpWindow.show()
-
-        # 添加主布局
-        self.window_layout_dom1 = QVBoxLayout(self.BackUpWindow)                                          # 创建垂直布局
-        self.BackUpWindow.setLayout(self.window_layout_dom1)                                              # 应用其到窗口
-            
-        # 添加滚动区域                            
-        self.window_scroll_area_dom2 = QScrollArea(self.BackUpWindow)                                     # 创建滚动区域
-        self.window_scroll_area_dom2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.window_scroll_area_dom2.setObjectName("window_scroll_area_dom2")                             # 设置对象名称
-        self.window_scroll_area_dom2.setWidgetResizable(True)                                             # 允许内容区域大小超出滚动区域的范围
-        self.window_layout_dom1.addWidget(self.window_scroll_area_dom2)                                   # 添加到父布局管理器中
-
-        # 设置滚动区域的内容容器
-        self.window_scroll_area_contents_dom3 = QWidget(self.window_scroll_area_dom2)
-        self.window_scroll_area_contents_dom3.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) # 设置水平、垂直几何尺寸为 Expand 
-        
-        # 为内容容器添加垂直布局
+            # 添加主布局
+        self.window_layout_dom1 = QVBoxLayout(self.BackUpWindow)                                                            # 创建垂直布局
+        self.BackUpWindow.setLayout(self.window_layout_dom1)                                                                # 应用其到窗口
+                    
+        # 添加滚动区域  
+            # 创建滚动区域                                             
+        self.window_scroll_area_dom2 = QScrollArea(self.BackUpWindow)                                                       # 创建滚动区域
+        self.window_scroll_area_dom2.setObjectName("window_scroll_area_dom2")                                               # 设置对象名称                                            
+            # 设置滚动区域大小策略
+        window_scroll_area_dom2_sizepolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)        # 设置滚动区域的大小策略
+        window_scroll_area_dom2_sizepolicy.setHorizontalStretch(0)                                                          # 设置水平拉伸为0
+        window_scroll_area_dom2_sizepolicy.setVerticalStretch(0)                                                            # 设置垂直拉伸为0
+        window_scroll_area_dom2_sizepolicy.setHeightForWidth(self.window_scroll_area_dom2.sizePolicy().hasHeightForWidth()) # 设置滚动区域大小策略
+            # 应用滚动区域大小策略
+        self.window_scroll_area_dom2.setSizePolicy(window_scroll_area_dom2_sizepolicy) 
+        self.window_scroll_area_dom2.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored)    
+        self.window_scroll_area_dom2.setWidgetResizable(True) 
+            # 将滚动区域添加到主布局
+        self.window_layout_dom1.addWidget(self.window_scroll_area_dom2)
+            # 设置滚动区域的内容容器
+                # 创建内容容器
+        self.window_scroll_area_contents_dom3 = QWidget() # 创建内容容器不需要传入父widget
+        self.window_scroll_area_contents_dom3.setObjectName("window_scroll_area_contents_dom3")
+                # 设置内容容器大小策略
+        window_scroll_area_contents_dom3_sizepolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        window_scroll_area_contents_dom3_sizepolicy.setHorizontalStretch(0)
+        window_scroll_area_contents_dom3_sizepolicy.setVerticalStretch(0)
+        window_scroll_area_contents_dom3_sizepolicy.setHeightForWidth(self.window_scroll_area_contents_dom3.sizePolicy().hasHeightForWidth())
+        self.window_scroll_area_contents_dom3.setSizePolicy(window_scroll_area_contents_dom3_sizepolicy)
+                # 为内容容器创建垂直布局
         self.window_scroll_area_contents_layout_dom3 = QVBoxLayout(self.window_scroll_area_contents_dom3)
+        self.window_scroll_area_contents_layout_dom3.setObjectName("window_scroll_area_contents_layout_dom3")
+        self.window_scroll_area_contents_layout_dom3.setSpacing(0)
+        self.window_scroll_area_contents_layout_dom3.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
+        self.window_scroll_area_contents_layout_dom3.setContentsMargins(-1, 0,-1, 0)
+                # 将垂直布局应用其到内容容器
         self.window_scroll_area_contents_dom3.setLayout(self.window_scroll_area_contents_layout_dom3)
-        
+                # 将内容容器应用其到滚动区域
+        self.window_scroll_area_dom2.setWidget(self.window_scroll_area_contents_dom3) # Notice:这句如果消失界面会变空白
 
-        # 读取 backup 目录下的文件夹名，存储成一维列表
+        """
+        读取 backup 目录下的文件夹名，存储成一维列表
+        """
         backup_folder_name = [ folder_name for folder_name in os.listdir(".\\src\\data\\storage\\backup") if os.path.isdir(os.path.join(".\\src\\data\\storage\\backup", folder_name))]
         # 判断 backup 目录下是否有备份文件夹
         if backup_folder_name  != []:
@@ -1083,43 +1105,50 @@ class Ui_Form(object):
         for name_dom4 in backup_folder_name:
     
             # 从内容容器中创建存放每一个列表显示条目的 widget 
+                # 创建 widget
             self.name_dom4 = QWidget(self.window_scroll_area_contents_dom3)
-            self.name_dom4.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) # 设置该容器的尺寸策略为 Expand
-            self.name_dom4.setObjectName(name_dom4)
-            self.window_scroll_area_contents_layout_dom3.addWidget(self.name_dom4)     #
-            
-            # 为该 widget 创建一个布局
+            self.name_dom4.setObjectName(name_dom4) 
+                # 设置 widget 大小策略
+            name_dom4_sizepolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            name_dom4_sizepolicy.setHorizontalStretch(0)
+            name_dom4_sizepolicy.setVerticalStretch(0)
+            name_dom4_sizepolicy.setHeightForWidth(self.name_dom4.sizePolicy().hasHeightForWidth())
+            self.name_dom4.setSizePolicy(name_dom4_sizepolicy)
+                # 为该 widget 创建一个布局
             self.back_up_item_layout_dom4 = QHBoxLayout(self.name_dom4)
             self.name_dom4.setLayout(self.back_up_item_layout_dom4)
+                # 将 widget 应用其到父内容容器的垂直布局中
+            self.window_scroll_area_contents_layout_dom3.addWidget(self.name_dom4)     #
+                
 
             # 创建文件夹名标签
             self.back_up_item_label_dom5 = QLabel(name_dom4, self.name_dom4)
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_label_dom5)               # 加入到布局
 
-            # 创建查看备份按钮
+            # 创建查看备份按钮 
             self.back_up_item_check_button_dom5 = QPushButton("查看备份", self.name_dom4)
-            self.back_up_item_check_button_dom5.clicked.connect(view_backup)
+            self.back_up_item_check_button_dom5.setObjectName(f"{name_dom4}")
+            self.back_up_item_check_button_dom5.clicked.connect(lambda:view_backup(self,self.back_up_item_check_button_dom5.objectName())) # 使用lambda函数，避免按钮点击时，参数被提前执行，同时也能够进行传参操作
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_check_button_dom5)             # 加入到布局
 
             # 创建还原备份按钮
             self.back_up_item_restore_button_dom5 = QPushButton("还原备份", self.name_dom4)
-            self.back_up_item_restore_button_dom5.clicked.connect(restore_backup)
+            self.back_up_item_restore_button_dom5.setObjectName(f"{name_dom4}")
+            self.back_up_item_restore_button_dom5.clicked.connect(lambda:restore_backup(self,self.back_up_item_restore_button_dom5.objectName()))
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_restore_button_dom5)             # 加入到布局
   
             # 创建删除备份按钮
             self.back_up_item_delete_button_dom5 = QPushButton("删除备份", self.name_dom4)
-            self.back_up_item_delete_button_dom5.clicked.connect(delete_backup)
+            self.back_up_item_delete_button_dom5.setObjectName(f"{name_dom4}")
+            self.back_up_item_delete_button_dom5.clicked.connect(lambda:delete_backup(self,self.back_up_item_delete_button_dom5.objectName()))
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_delete_button_dom5)             # 加入到布局
-
-            
         
-
-
-
-def view_backup(self, folder_name):
-    print(f"查看备份: {folder_name}")
+def view_backup(self,objectname):
+    # 获取触发按钮的objectName
+    parent_object_name = objectname
+    print(f"Notice:查看备份: {parent_object_name}")
     # 打开文件资源管理器定位到该备份路径
-    path = os.path.join(".\\src\\data\\storage\\backup", folder_name)
+    path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
     if sys.platform == "win32":
         os.startfile(path)
     elif sys.platform == "darwin":
@@ -1127,12 +1156,21 @@ def view_backup(self, folder_name):
     else:
         subprocess.Popen(["xdg-open", path])
 
-def restore_backup(self, folder_name):
-    print(f"还原备份: {folder_name}")
-    # 实现还原逻辑，例如复制文件夹到 main/work 目录等
-    pass
+def restore_backup(self,objectname):
+    parent_object_name = objectname
+    print(f"Notice:还原备份 {parent_object_name} 到 main 目录")
+    path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
+    # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
+    try:
+        shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
+        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
+        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
+    except Exception as e:
+        print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
+        QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
 
-def delete_backup(self, folder_name):
+def delete_backup(self,objectname):
+    folder_name = objectname
     reply = QMessageBox.question(None, "确认删除", f"确定要删除备份 {folder_name} 吗？", 
                                 QMessageBox.Yes | QMessageBox.No)
     if reply == QMessageBox.Yes:
@@ -1142,7 +1180,6 @@ def delete_backup(self, folder_name):
             print(f"已删除备份: {folder_name}")
             # 可以重新刷新界面或弹窗提示成功
             QMessageBox.information(None, "提示", f"{folder_name} 已被删除", QMessageBox.Ok)
-            self.BackUpWindow.close()
             self.back_up_manager()  # 刷新窗口
         except Exception as e:
             print(f"删除失败: {e}")
@@ -1233,4 +1270,5 @@ if __name__ == "__main__":
 # [x] 2025.5.4 实现导入图片区的暂存按钮功能
 # [x] 2025.5.6 解决多线程识别图片时候主线程未响应的问题
 # [x] 2025.5.6 解决多线程识别图片功能对图片的覆写问题
-# [ ] 2025.5.13 实现备份预览窗口
+# [x] 2025.5.13 实现备份预览窗口
+# [ ] 2025.5.14 修复删除备份只删除对象不是选中行的 Bug 
