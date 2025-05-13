@@ -1036,14 +1036,15 @@ class Ui_Form(object):
         self.BackUpWindow.show()
 
         # 添加主布局
-        self.window_layout_dom1 = QVBoxLayout(self.BackUpWindow) # 创建垂直布局
-        self.BackUpWindow.setLayout(self.window_layout_dom1)     # 应用其到窗口
-
-        # 添加滚动区域
-        self.window_scroll_area_dom2 = QScrollArea(self.BackUpWindow)          # 创建滚动区域
-        self.window_scroll_area_dom2.setObjectName("window_scroll_area_dom2")  # 设置对象名称
-        self.window_scroll_area_dom2.setWidgetResizable(True)                  # 允许内容区域大小超出滚动区域的范围
-        self.window_layout_dom1.addWidget(self.window_scroll_area_dom2)        # 添加到父布局管理器中
+        self.window_layout_dom1 = QVBoxLayout(self.BackUpWindow)                                          # 创建垂直布局
+        self.BackUpWindow.setLayout(self.window_layout_dom1)                                              # 应用其到窗口
+            
+        # 添加滚动区域                            
+        self.window_scroll_area_dom2 = QScrollArea(self.BackUpWindow)                                     # 创建滚动区域
+        self.window_scroll_area_dom2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.window_scroll_area_dom2.setObjectName("window_scroll_area_dom2")                             # 设置对象名称
+        self.window_scroll_area_dom2.setWidgetResizable(True)                                             # 允许内容区域大小超出滚动区域的范围
+        self.window_layout_dom1.addWidget(self.window_scroll_area_dom2)                                   # 添加到父布局管理器中
 
         # 设置滚动区域的内容容器
         self.window_scroll_area_contents_dom3 = QWidget(self.window_scroll_area_dom2)
@@ -1071,6 +1072,7 @@ class Ui_Form(object):
             self.name_dom4 = QWidget(self.window_scroll_area_contents_dom3)
             self.name_dom4.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) # 设置该容器的尺寸策略为 Expand
             self.name_dom4.setObjectName(name_dom4)
+            self.window_scroll_area_contents_layout_dom3.addWidget(self.name_dom4)     #
             
             # 为该 widget 创建一个布局
             self.back_up_item_layout_dom4 = QHBoxLayout(self.name_dom4)
@@ -1078,25 +1080,24 @@ class Ui_Form(object):
 
             # 创建文件夹名标签
             self.back_up_item_label_dom5 = QLabel(name_dom4, self.name_dom4)
-            # 加入到布局
-            self.back_up_item_layout_dom4.addWidget(self.back_up_item_label_dom5)
+            self.back_up_item_layout_dom4.addWidget(self.back_up_item_label_dom5)               # 加入到布局
 
             # 创建查看备份按钮
-            self.back_up_item_button_dom5 = QPushButton("查看备份", self.name_dom4)
-            self.back_up_item_button_dom5.clicked.connect(view_backup)
-            self.back_up_item_layout_dom4.addWidget(self.back_up_item_button_dom5)             # 加入到布局
+            self.back_up_item_check_button_dom5 = QPushButton("查看备份", self.name_dom4)
+            self.back_up_item_check_button_dom5.clicked.connect(view_backup)
+            self.back_up_item_layout_dom4.addWidget(self.back_up_item_check_button_dom5)             # 加入到布局
 
             # 创建还原备份按钮
-            self.back_up_item_button_dom5 = QPushButton("还原备份", self.name_dom4)
-            self.back_up_item_button_dom5.clicked.connect(restore_backup)
-            self.back_up_item_layout_dom4.addWidget(self.back_up_item_button_dom5)             # 加入到布局
+            self.back_up_item_restore_button_dom5 = QPushButton("还原备份", self.name_dom4)
+            self.back_up_item_restore_button_dom5.clicked.connect(restore_backup)
+            self.back_up_item_layout_dom4.addWidget(self.back_up_item_restore_button_dom5)             # 加入到布局
   
             # 创建删除备份按钮
-            self.back_up_item_button_dom5 = QPushButton("删除备份", self.name_dom4)
-            self.back_up_item_button_dom5.clicked.connect(delete_backup)
-            self.back_up_item_layout_dom4.addWidget(self.back_up_item_button_dom5)             # 加入到布局
+            self.back_up_item_delete_button_dom5 = QPushButton("删除备份", self.name_dom4)
+            self.back_up_item_delete_button_dom5.clicked.connect(delete_backup)
+            self.back_up_item_layout_dom4.addWidget(self.back_up_item_delete_button_dom5)             # 加入到布局
 
-            # 将存放每一个列表显示条目的 widget 添加到滚动区域
+            
         
 
 
