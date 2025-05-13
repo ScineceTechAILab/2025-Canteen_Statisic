@@ -50,7 +50,8 @@ from src.gui.utils.detail_ui_button_utils import (
     close_setting_window,
     convert_place_holder_to_text,
     cancel_input_focus,
-    mode_not_right
+    mode_not_right,
+    modify_data_in_image_excel
 )
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
@@ -714,6 +715,8 @@ class Ui_Form(object):
         :return: None
         """
         global MODE
+        if self.pushButton_5.text() == "正在提交":
+            return
         self.pushButton_5.setText("正在提交")
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
         if "入库" in modeText and MODE == 1:
@@ -817,6 +820,8 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
+        if self.pushButton_4.text() == "正在扫描":
+            return
         self.pushButton_4.setText("正在扫描")
 
         if hasattr(self, "copied_paths") and self.copied_paths:
@@ -827,6 +832,8 @@ class Ui_Form(object):
                 pool.close()
                 pool.join()
                 # img_excel_after_process(self)
+                #修正识别结果数据
+                modify_data_in_image_excel(self)
                 self.worker.done.emit("image_finished")  # 比如写完数据后调用
 
         threading.Thread(target=run_in_background, daemon=True).start()
