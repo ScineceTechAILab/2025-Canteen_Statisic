@@ -199,6 +199,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
     #等所有表格都更新完了才日计和月计
     add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path)
 
+    self.pushButton_5.setText("提交数据")
     # 调用弹窗显示保存完成信息，终端同步显示信息
     print(f"Notice: 文件读取保存工作完成")
     self.worker.done.emit()  # 比如写完数据后调用
@@ -208,9 +209,9 @@ def add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_p
         return
     #添加主表
     summary_main_table(self, main_excel_file_path)
-    #添加子表主食表
+    #添加子表主食表, wjwcj: 2025/05/13 12:43 测试没问题
     summary_sub_main_table(self, sub_main_food_excel_file_path)
-    #添加子表副食表
+    #添加子表副食表, wjwcj: 2025/05/13 12:43 测试没问题
     summary_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path)
 
 def summary_main_table(self, main_excel_file_path):
@@ -245,12 +246,10 @@ def summary_main_table(self, main_excel_file_path):
                 # 求出总金额后加一行
                 row_index = find_the_first_empty_line_in_main_excel(sheet)
                 print(f"在{row_index + 1}写入日计")
-                #要不重新创建一个sheet?
-                sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
                 try:
-                    #这里死活写不进去，不浪费时间了，先把大框架做好 wjwcj: 250510 15:32
-                    sheet.range((row_index + 1, 1)).value = 1  # 在A列写入“日计”
+                    sheet.range((row_index + 1, 1)).value = "日计"  # 在A列写入“日计”
                     sheet.range((row_index + 1, 10)).value = total_amount  # 在J列写入总金额
+                    workbook.save()
                     print("Notice: ", f"主表sheet {sheet_name} 日计添加完成")
                 except Exception as e:
                     print(f"Error: 无法写入日计数据到主表sheet {sheet_name}, 错误信息: {e}")
@@ -280,8 +279,9 @@ def summary_main_table(self, main_excel_file_path):
                 sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
                 try:
                     #这里也死活写不进去
-                    sheet.range((row_index + 1, 1)).value = 1  # 在A列写入“月计”
+                    sheet.range((row_index + 1, 1)).value = "月计"  # 在A列写入“月计”
                     sheet.range((row_index + 1, 10)).value = total_amount  # 在J列写入总金额
+                    workbook.save()
                     print("Notice: ", f"主表sheet {sheet_name} 月计添加完成")
                 except Exception as e:
                     print(f"Error: 无法写入月计数据到主表sheet {sheet_name}, 错误信息: {e}")
@@ -330,10 +330,10 @@ def summary_sub_main_table(self, sub_main_food_excel_file_path):
                 out_quantity = 0
                 out_amount = 0
                 for row in matching_rows:
-                    in_quantity += round(float(sheet.range((row, 6)).value), 2)  # F列
-                    in_amount += round(float(sheet.range((row, 7)).value), 2)    # G列
-                    out_quantity += round(float(sheet.range((row, 8)).value), 2)  # H列
-                    out_amount += round(float(sheet.range((row, 9)).value), 2)    # I列
+                    in_quantity += round(float(sheet.range((row, 6)).value) if sheet.range((row, 6)).value is not None else 0, 2)  # F列
+                    in_amount += round(float(sheet.range((row, 7)).value) if sheet.range((row, 7)).value is not None else 0, 2)    # G列
+                    out_quantity += round(float(sheet.range((row, 8)).value) if sheet.range((row, 8)).value is not None else 0, 2)  # H列
+                    out_amount += round(float(sheet.range((row, 9)).value) if sheet.range((row, 9)).value is not None else 0, 2)    # I列
                 # 求出总金额后加一行
                 row_index = find_the_first_empty_line_in_sub_main_excel(sheet)
                 print(f"在{row_index}写入日计")
@@ -342,10 +342,11 @@ def summary_sub_main_table(self, sub_main_food_excel_file_path):
                     sheet.range((row_index, 4)).value = "日计"  # 在D列写入“日计”
                     data = [in_quantity, in_amount, out_quantity, out_amount]
                     for i in range(len(data)):
-                        sheet.range((row_index + 1, 6 + i)).value = data[i]
+                        sheet.range((row_index, 6 + i)).value = data[i]
                     #抄写库存数量与金额
-                    sheet.range((row_index + 1, 10)).value = sheet.range((row_index, 10)).value
-                    sheet.range((row_index + 1, 11)).value = sheet.range((row_index, 11)).value
+                    sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
+                    sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
+                    main_workbook.save()
                     print("Notice: ", f"主表sheet {sheet_name} 日计添加完成")
                 except Exception as e:
                     print(f"Error: 无法写入日计数据到子表sheet {sheet_name}, 错误信息: {e}")
@@ -381,10 +382,10 @@ def summary_sub_main_table(self, sub_main_food_excel_file_path):
                 out_quantity = 0
                 out_amount = 0
                 for row in matching_rows:
-                    in_quantity += round(float(sheet.range((row, 6)).value), 2)  # F列
-                    in_amount += round(float(sheet.range((row, 7)).value), 2)    # G列
-                    out_quantity += round(float(sheet.range((row, 8)).value), 2)  # H列
-                    out_amount += round(float(sheet.range((row, 9)).value), 2)    # I列
+                    in_quantity += round(float(sheet.range((row, 6)).value) if sheet.range((row, 6)).value is not None else 0, 2)  # F列
+                    in_amount += round(float(sheet.range((row, 7)).value) if sheet.range((row, 7)).value is not None else 0, 2)    # G列
+                    out_quantity += round(float(sheet.range((row, 8)).value) if sheet.range((row, 8)).value is not None else 0, 2)  # H列
+                    out_amount += round(float(sheet.range((row, 9)).value) if sheet.range((row, 9)).value is not None else 0, 2)    # I列
                 # 求出总金额后加一行
                 row_index = find_the_first_empty_line_in_sub_main_excel(sheet)
                 print(f"在{row_index}写入月计")
@@ -393,10 +394,11 @@ def summary_sub_main_table(self, sub_main_food_excel_file_path):
                     sheet.range((row_index, 4)).value = "月计"  # 在D列写入“月计”
                     data = [in_quantity, in_amount, out_quantity, out_amount]
                     for i in range(len(data)):
-                        sheet.range((row_index + 1, 6 + i)).value = data[i]
+                        sheet.range((row_index, 6 + i)).value = data[i]
                     #抄写库存数量与金额
-                    sheet.range((row_index + 1, 10)).value = sheet.range((row_index, 10)).value
-                    sheet.range((row_index + 1, 11)).value = sheet.range((row_index, 11)).value
+                    sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
+                    sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
+                    main_workbook.save()
                     print("Notice: ", f"主表sheet {sheet_name} 月计添加完成")
                 except Exception as e:
                     print(f"Error: 无法写入月计数据到子表sheet {sheet_name}, 错误信息: {e}")
@@ -418,6 +420,7 @@ def summary_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path):
     if __main__.ADD_DAY_SUMMARY:
         for product_name in sheets_to_add:
             #这里查找正确的sheet名
+            sheet_name = ""
             with xw.App(visible=False) as app:
                 print(sub_auxiliary_food_excel_file_path)
                 main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
@@ -445,26 +448,28 @@ def summary_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path):
                 out_quantity = 0
                 out_amount = 0
                 for row in matching_rows:
-                    in_quantity += round(float(sheet.range((row, 6)).value), 2)  # F列
-                    in_amount += round(float(sheet.range((row, 7)).value), 2)    # G列
-                    out_quantity += round(float(sheet.range((row, 8)).value), 2)  # H列
-                    out_amount += round(float(sheet.range((row, 9)).value), 2)    # I列
+                    in_quantity += (round(float(sheet.range((row, 6)).value), 2) if sheet.range((row, 6)).value is not None else 0)  # F列
+                    in_amount += (round(float(sheet.range((row, 7)).value), 2) if sheet.range((row, 7)).value is not None else 0)    # G列
+                    out_quantity += (round(float(sheet.range((row, 8)).value), 2) if sheet.range((row, 8)).value is not None else 0)  # H列
+                    out_amount += (round(float(sheet.range((row, 9)).value), 2) if sheet.range((row, 9)).value is not None else 0)    # I列
                 # 求出总金额后加一行(这个函数里已经加了)
                 row_index = find_the_first_empty_line_in_sub_auxiliary_excel(sheet)
                 print(f"在{row_index}写入日计")
                 try:
-                    #这里也死活写不进去
+                    sheet = main_workbook.sheets[sheet_name]
+                    print(f"在{sheet_name}写入日计")
                     sheet.range((row_index, 4)).value = "日计"  # 在D列写入“日计”
                     data = [in_quantity, in_amount, out_quantity, out_amount]
                     for i in range(len(data)):
-                        sheet.range((row_index + 1, 6 + i)).value = data[i]
+                        sheet.range((row_index, 6 + i)).value = data[i]
                     #抄写库存数量与金额
-                    sheet.range((row_index + 1, 10)).value = sheet.range((row_index, 10)).value
-                    sheet.range((row_index + 1, 11)).value = sheet.range((row_index, 11)).value
+                    sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
+                    sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
+                    main_workbook.save()
                     print("Notice: ", f"子表副食表sheet {sheet_name} 日计添加完成")
                 except Exception as e:
                     print(f"Error: 无法写入日计数据到子表副食表sheet {sheet_name}, 错误信息: {e}")
-            print("NOtice: ", "子表副食表日计全部添加完成")
+                print("NOtice: ", "子表副食表日计全部添加完成")
     
     if __main__.ADD_MONTH_SUMMARY:
         for product_name in sheets_to_add:
@@ -496,10 +501,10 @@ def summary_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path):
                 out_quantity = 0
                 out_amount = 0
                 for row in matching_rows:
-                    in_quantity += round(float(sheet.range((row, 6)).value), 2)  # F列
-                    in_amount += round(float(sheet.range((row, 7)).value), 2)    # G列
-                    out_quantity += round(float(sheet.range((row, 8)).value), 2)  # H列
-                    out_amount += round(float(sheet.range((row, 9)).value), 2)    # I列
+                    in_quantity += round(float(sheet.range((row, 6)).value) if sheet.range((row, 6)).value is not None else 0, 2)  # F列
+                    in_amount += round(float(sheet.range((row, 7)).value) if sheet.range((row, 7)).value is not None else 0, 2)    # G列
+                    out_quantity += round(float(sheet.range((row, 8)).value) if sheet.range((row, 8)).value is not None else 0, 2)  # H列
+                    out_amount += round(float(sheet.range((row, 9)).value) if sheet.range((row, 9)).value is not None else 0, 2)    # I列
                 # 求出总金额后加一行
                 row_index = find_the_first_empty_line_in_sub_auxiliary_excel(sheet)
                 print(f"在{row_index}写入月计")
@@ -508,10 +513,11 @@ def summary_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path):
                     sheet.range((row_index, 4)).value = "月计"  # 在D列写入“月计”
                     data = [in_quantity, in_amount, out_quantity, out_amount]
                     for i in range(len(data)):
-                        sheet.range((row_index + 1, 6 + i)).value = data[i]
+                        sheet.range((row_index, 6 + i)).value = data[i]
                     #抄写库存数量与金额
-                    sheet.range((row_index + 1, 10)).value = sheet.range((row_index, 10)).value
-                    sheet.range((row_index + 1, 11)).value = sheet.range((row_index, 11)).value
+                    sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
+                    sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
+                    main_workbook.save()
                     print("Notice: ", f"子副食表sheet {sheet_name} 月计添加完成")
                 except Exception as e:
                     print(f"Error: 无法写入月计数据到子副食表sheet {sheet_name}, 错误信息: {e}")
