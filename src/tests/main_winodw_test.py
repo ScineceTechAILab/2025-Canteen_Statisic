@@ -789,7 +789,7 @@ class Ui_Form(object):
                     except Exception as e:
                         print(f"Error: 复制文件失败: {src_path} -> {dest_path}, 错误: {e}")
         else:
-            print("开始导入", DRAG_PHOTO_DIR)
+            print("Notice:开始导入", DRAG_PHOTO_DIR)
             file_paths = DRAG_PHOTO_DIR
             DRAG_PHOTO_DIR = []
             "将文件复制到 ./src/data/input/img 目录下"
@@ -949,6 +949,8 @@ class Ui_Form(object):
         # 拼接主、子表备份文件夹路径
         backup_mian_excel_folder_path = backup_path+"\\主表"
         backup_sub_excel_folder_path = backup_path+"\\子表"
+        import_state = True
+
         try:
             # 创建拼接主、子表备份文件夹
             os.makedirs(backup_mian_excel_folder_path, exist_ok=True)
@@ -970,6 +972,7 @@ class Ui_Form(object):
             QMessageBox.information(None, "提示", "导入主表文件成功", QMessageBox.Ok)
 
         except Exception as e:
+            import_state = False
             print(f"Error in reimport_excel_data: 重新导入主表表格出错,错误信息为: {e}")
             QMessageBox.information(None, "错误", "请检查主表文件失败", QMessageBox.Ok)
             
@@ -982,6 +985,7 @@ class Ui_Form(object):
             QMessageBox.information(None, "提示", "导入子表主食文件成功", QMessageBox.Ok)
 
         except Exception as e:
+            import_state = False
             print(f"Error in reimport_excel_data: 重新导入子表主食表格出错 {e}")
             QMessageBox.information(None, "错误", "导入子表主食表出错", QMessageBox.Ok)
 
@@ -989,17 +993,23 @@ class Ui_Form(object):
         # 唤起文件管理器，并选择子表副食文件
         sub_auxiliary_excel_path = QFileDialog.getOpenFileName(None, "选择子表副食表格", "", "Excel Files (*.xls)")[0]
         try:
+            
             shutil.copy(sub_auxiliary_excel_path, backup_sub_excel_folder_path ) # Learning3：将子表副食表格复制到 ./src/data/storage/backup/子表副食 目录下
             QMessageBox.information(None, "提示", "导入子表副食文件成功", QMessageBox.Ok)
 
         except Exception as e:
+            import_state = False
             print(f"Error in reimport_excel_data: 重新导入子表副食表格出错 {e}")
             QMessageBox.information(None, "错误", "导入子表副食表出错", QMessageBox.Ok)
         
-        # 弹窗提示用户表格导入完成
-        QMessageBox.information(None, "提示", "表格已全部导入完成", QMessageBox.Ok)
-
-
+        if import_state:
+            # 弹窗提示用户表格导入完成
+            QMessageBox.information(None, "提示", "表格已全部导入完成", QMessageBox.Ok)
+        else:
+            # 弹窗提示用户表格导入失败
+            QMessageBox.information(None, "错误", "表格导入失败,请重新导入", QMessageBox.Ok)
+            return
+        
         "将备份拷贝到 main 目录的主表、子表目录下"
         # 将最新备份主表拷贝到  main 目录
         try:
@@ -1136,6 +1146,7 @@ class Ui_Form(object):
 
         # 为读取到的每个子文件夹名创建一个widget，包含 文件夹名和查看备份-还原备份-删除备份 3 个按钮
         for name_dom4 in backup_folder_name:
+            
     
             # 从内容容器中创建存放每一个列表显示条目的 widget 
                 # 创建 widget
@@ -1161,19 +1172,19 @@ class Ui_Form(object):
             # 创建查看备份按钮 
             self.back_up_item_check_button_dom5 = QPushButton("查看备份", self.name_dom4)
             self.back_up_item_check_button_dom5.setObjectName(f"{name_dom4}")
-            self.back_up_item_check_button_dom5.clicked.connect(lambda:view_backup(self,self.back_up_item_check_button_dom5.objectName())) # 使用lambda函数，避免按钮点击时，参数被提前执行，同时也能够进行传参操作
+            self.back_up_item_check_button_dom5.clicked.connect(lambda _, name=name_dom4: view_backup(self, name)) # 使用lambda函数，避免按钮点击时，参数被提前执行，同时也能够进行传参操作
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_check_button_dom5)             # 加入到布局
 
             # 创建还原备份按钮
             self.back_up_item_restore_button_dom5 = QPushButton("还原备份", self.name_dom4)
             self.back_up_item_restore_button_dom5.setObjectName(f"{name_dom4}")
-            self.back_up_item_restore_button_dom5.clicked.connect(lambda:restore_backup(self,self.back_up_item_restore_button_dom5.objectName()))
+            self.back_up_item_restore_button_dom5.clicked.connect(lambda _, name=name_dom4: restore_backup(self, name)) # Fixed:修复了 Python 中常见的闭包陷阱问题
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_restore_button_dom5)             # 加入到布局
   
             # 创建删除备份按钮
             self.back_up_item_delete_button_dom5 = QPushButton("删除备份", self.name_dom4)
             self.back_up_item_delete_button_dom5.setObjectName(f"{name_dom4}")
-            self.back_up_item_delete_button_dom5.clicked.connect(lambda:delete_backup(self,self.back_up_item_delete_button_dom5.objectName()))
+            self.back_up_item_delete_button_dom5.clicked.connect(lambda _, name=name_dom4: delete_backup(self, name))
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_delete_button_dom5)             # 加入到布局
         
 def view_backup(self,objectname):
@@ -1199,7 +1210,7 @@ def restore_backup(self,objectname):
         print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
         QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
     except Exception as e:
-        print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
+        print(f"Error:将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
         QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
 
 def delete_backup(self,objectname):
@@ -1210,12 +1221,12 @@ def delete_backup(self,objectname):
         path = os.path.join(".\\src\\data\\storage\\backup", folder_name)
         try:
             shutil.rmtree(path)
-            print(f"已删除备份: {folder_name}")
+            print(f"Notice:已删除备份: {folder_name}")
             # 可以重新刷新界面或弹窗提示成功
             QMessageBox.information(None, "提示", f"{folder_name} 已被删除", QMessageBox.Ok)
             self.back_up_manager()  # 刷新窗口
         except Exception as e:
-            print(f"删除失败: {e}")
+            print(f"Warning:删除失败: {e}")
             QMessageBox.critical(None, "错误", f"无法删除 {folder_name}", QMessageBox.Ok)
 
 
