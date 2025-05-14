@@ -59,7 +59,7 @@ from configparser import ConfigParser
 from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel, clear_temp_image_dir # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
-
+from src.gui.utils.backup_window_button_func import view_backup,delete_backup,restore_backup
 from config.config import FIRST_START
 from src.gui.utils.first_start_detect import first_start_detect
 
@@ -1187,47 +1187,6 @@ class Ui_Form(object):
             self.back_up_item_delete_button_dom5.clicked.connect(lambda _, name=name_dom4: delete_backup(self, name))
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_delete_button_dom5)             # 加入到布局
         
-def view_backup(self,objectname):
-    # 获取触发按钮的objectName
-    parent_object_name = objectname
-    print(f"Notice:查看备份: {parent_object_name}")
-    # 打开文件资源管理器定位到该备份路径
-    path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
-    if sys.platform == "win32":
-        os.startfile(path)
-    elif sys.platform == "darwin":
-        subprocess.Popen(["open", path])
-    else:
-        subprocess.Popen(["xdg-open", path])
-
-def restore_backup(self,objectname):
-    parent_object_name = objectname
-    print(f"Notice:还原备份 {parent_object_name} 到 main 目录")
-    path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
-    # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
-    try:
-        shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
-        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
-        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
-    except Exception as e:
-        print(f"Error:将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
-        QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
-
-def delete_backup(self,objectname):
-    folder_name = objectname
-    reply = QMessageBox.question(None, "确认删除", f"确定要删除备份 {folder_name} 吗？", 
-                                QMessageBox.Yes | QMessageBox.No)
-    if reply == QMessageBox.Yes:
-        path = os.path.join(".\\src\\data\\storage\\backup", folder_name)
-        try:
-            shutil.rmtree(path)
-            print(f"Notice:已删除备份: {folder_name}")
-            # 可以重新刷新界面或弹窗提示成功
-            QMessageBox.information(None, "提示", f"{folder_name} 已被删除", QMessageBox.Ok)
-            self.back_up_manager()  # 刷新窗口
-        except Exception as e:
-            print(f"Warning:删除失败: {e}")
-            QMessageBox.critical(None, "错误", f"无法删除 {folder_name}", QMessageBox.Ok)
 
 
 
@@ -1340,4 +1299,4 @@ if __name__ == "__main__":
 # [x] 2025.5.6 解决多线程识别图片时候主线程未响应的问题
 # [x] 2025.5.6 解决多线程识别图片功能对图片的覆写问题
 # [x] 2025.5.13 实现备份预览窗口
-# [ ] 2025.5.14 修复删除备份只删除对象不是选中行的 Bug 
+# [x] 2025.5.14 修复删除备份只删除对象不是选中行的 Bug 
