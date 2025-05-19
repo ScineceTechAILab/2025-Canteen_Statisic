@@ -138,11 +138,10 @@ def show_error_window(self):
     :param: None
     :return: None
     """
-
     
     if hasattr(self, 'Form') and self.PopWindowApplicationForm.isVisible():
         return  # 如果弹窗已经存在且可见，则不重复创建
-
+    
     # 检验self是否有名为app的属性
     self.PopWindowApplication = QApplication.instance()
     if not self.PopWindowApplication:

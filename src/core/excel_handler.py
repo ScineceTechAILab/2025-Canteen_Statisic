@@ -207,11 +207,17 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         update_main_table(self,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
         # 在子表中更新信息
         update_sub_tables(self,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+        #等所有表格都更新完了才日计和月计
+        add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path)
+        self.pushButton_5.setText("提交数据")
+        # 调用弹窗显示保存完成信息，终端同步显示信息
+        print(f"Notice: 文件读取保存工作完成")
+        self.worker.done.emit("tables_updated")  # 比如写完数据后调用
     else:
         # 在福利表中更新信息
         try:
             # 调用xlwings打开 excel 应用对象
-            with xw.App(visible=True) as app:
+            with xw.App(visible=False) as app:
                 
                 # 读取福利表表格
                 try:
@@ -263,24 +269,23 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                         # 从已有的行中查找第一行空行，记录下空行行标（从表格的第二行开始）
                         for row_index in range(0, sheet.used_range.rows.count):
                             if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
-                                "从空行开始写,若按照下方逻辑"
-                                # # 检查前一行是否包含“领导”二字
-                                # if row_index > 0:
-                                #     previous_row_values = [
-                                #     str(sheet.range((row_index, col)).value).strip()
-                                #     for col in range(1, sheet.used_range.columns.count + 1)
-                                #     if sheet.range((row_index, col)).value is not None
-                                #     ]
-                                #     if any("领导" in value for value in previous_row_values):
-                                #         print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
-                                #         continue
+                                # 检查前一行是否包含“领导”二字
+                                if row_index > 0:
+                                    previous_row_values = [
+                                    str(sheet.range((row_index, col)).value).strip()
+                                    for col in range(1, sheet.used_range.columns.count + 1)
+                                    if sheet.range((row_index, col)).value is not None
+                                    ]
+                                    if any("领导" in value for value in previous_row_values):
+                                        print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
+                                        continue
 
-                                # # 检查当前列的前几行是否包含“序号”二字
-                                # column_values = [str(sheet.range((row, 1)).value).strip() for row in range(1, row_index + 1) if sheet.range((row, 1)).value is not None]
-                                # if not any("序号" in value for value in column_values):
-                                #     print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
-                                #     continue
-                                # break
+                                # 检查当前列的前几行是否包含“序号”二字
+                                column_values = [str(sheet.range((row, 1)).value).strip() for row in range(1, row_index + 1) if sheet.range((row, 1)).value is not None]
+                                if not any("序号" in value for value in column_values):
+                                    print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
+                                    continue
+                                break
 
                         # 尝试写入一行数据
                         try:
@@ -289,24 +294,26 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                             for i in range(row_index):
                                 box_value = sheet.range((i + 1, 1)).value
                                 # 判定 box_value 是否为整型
-                                if  isinstance(box_value, int): 
-                                    try:
+                                try:
+                                    if box_value == '日计':
+                                        existing_numbers = [0]
+                                    else:
                                         box_value = int(box_value)  # 尝试将值转换为整数
                                         if str(box_value).isdigit():
                                             existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
-                                    except:
-                                        continue
+                                except:
+                                    continue
                                     
                             # 计算新的序号值
                             new_number = max(existing_numbers) + 1 if existing_numbers else 1
                             # 写入序号数据
                             sheet.range((row_index + 1, 1)).value = new_number
-                            print(f"Notice: 在主表为入/出库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
+                            print(f"Notice: 在福利表表为入库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
 
                             # 为B、C列写入月份日期数据
                             sheet.range((row_index + 1, 2)).value = month
                             sheet.range((row_index + 1, 3)).value = day
-                            print(f"Notice: 在主表为入/出库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
+                            print(f"Notice: 在福利表表为入库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
 
                             #动态获取表头行行数
                             name_row = 0
@@ -337,7 +344,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                                         if cell_attribute == "计量单位":
                                             # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
                                             sheet.range((row_index + 1, col_index)).value = unit_name
-                                            print(f"Notice: 在主表为入/出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
+                                            print(f"Notice: 在福利表表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
 
                                         else:
                                             # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
@@ -345,7 +352,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                                             if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
                                                 row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
                                             sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
-                                            print(f"Notice: 在主表为入/出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+                                            print(f"Notice: 在福利表表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
 
                                     except KeyError:
                                         print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
@@ -393,21 +400,24 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                             for i in range(row_index):
                                 box_value = sheet.range((i + 1, 1)).value
                                 try:
-                                    box_value = int(box_value)  # 尝试将值转换为整数
-                                    if str(box_value).isdigit():
-                                        existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
+                                    if box_value == '日计':
+                                        existing_numbers = [0]
+                                    else:
+                                        box_value = int(box_value)  # 尝试将值转换为整数
+                                        if str(box_value).isdigit():
+                                            existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
                                 except:
                                     continue
                             # 计算新的序号值
                             new_number = max(existing_numbers) + 1 if existing_numbers else 1
                             # 写入序号数据
                             sheet.range((row_index + 1, 1)).value = new_number
-                            print(f"Notice: 在主表为入/出库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
+                            print(f"Notice: 在福利表表为出库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
 
                             # 为B、C列写入月份日期数据
                             sheet.range((row_index + 1, 2)).value = month
                             sheet.range((row_index + 1, 3)).value = day
-                            print(f"Notice: 在主表为入/出库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
+                            print(f"Notice: 在福利表表为出库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
 
                             #动态获取表头行行数
                             name_row = 0
@@ -438,7 +448,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                                         if cell_attribute == "计量单位":
                                             # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
                                             sheet.range((row_index + 1, col_index)).value = unit_name
-                                            print(f"Notice: 在主表为入/出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
+                                            print(f"Notice: 在福利表表为出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
 
                                         else:
                                             # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
@@ -446,7 +456,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                                             if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
                                                 row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
                                             sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
-                                            print(f"Notice: 在主表为入/出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+                                            print(f"Notice: 在福利表表为出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
 
                                     except KeyError:
                                         print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
@@ -454,29 +464,23 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                             print(f"Error: 出库时写入数据时发生错误 {e}")
                     
 
-
-            try:
-                # 保存福利表工作簿
-                main_workbook.save()
-                # 关闭福利表工作簿
-                main_workbook.close()
-                # 关闭应用对象
-                app.quit() # Learning：切记关闭应用对象，否则会造成下次创建一个同名应用对象时候发生对象名重复的冲突造成进程卡死
                 
-            except Exception as e:
-                print(f"Error: 保存主表时出错 {e}")
+                try:
+                    # 保存福利表工作簿 
+                    main_workbook.save() #Fixed：这个语句必须在 with 作用域内，否则就会报错 The RPC server is unavailable.
+                    # 关闭福利表工作簿
+                    main_workbook.close()
+                    # 关闭应用对象
+                    app.quit() # Learning：切记关闭应用对象，否则会造成下次创建一个同名应用对象时候发生对象名重复的冲突造成进程卡死
+                    
+                except Exception as e:
+                    print(f"Error: 保存主表时出错 {e}")
                 
         except Exception as e:
-             print(f"Error: 打开或处理该表 {excel_file_path} 出错,出错信息{e}")
+             print(f"Error: 打开或处理该表 {welfare_food_excel_file_path} 出错,出错信息{e}")
 
 
-    #等所有表格都更新完了才日计和月计
-    add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path)
 
-    self.pushButton_5.setText("提交数据")
-    # 调用弹窗显示保存完成信息，终端同步显示信息
-    print(f"Notice: 文件读取保存工作完成")
-    self.worker.done.emit("tables_updated")  # 比如写完数据后调用
 
 def add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path):
     if (not __main__.ADD_DAY_SUMMARY) and (not __main__.ADD_MONTH_SUMMARY):
@@ -1005,9 +1009,13 @@ def updata_import_sheet(main_workbook, single_name, row_data, header_index, mont
             for i in range(row_index):
                 box_value = sheet.range((i + 1, 1)).value
                 try:
-                    box_value = int(box_value)  # 尝试将值转换为整数
-                    if str(box_value).isdigit():
-                        existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
+                    # 判断 box_value 是否是"日记"，是则清空已有序号数据
+                    if box_value == '日计':
+                        existing_numbers = [0]
+                    else:
+                        box_value = int(box_value)  # 尝试将值转换为整数
+                        if str(box_value).isdigit():
+                            existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
                 except:
                     continue
             # 计算新的序号值
