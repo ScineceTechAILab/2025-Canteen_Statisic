@@ -151,8 +151,18 @@ def clear_temp_xlxs_excel():
         # 保存工作簿
         workbook.save(temp_xlxs_excel_path)
 
-
-
+def clear_temp_image_dir():
+    """
+    清空图片导入临时目录
+    """
+    dest_dir = __main__.TEMP_IMAGE_DIR
+    files = []
+    for _, __, _files in os.walk(dest_dir):
+        for file in _files:
+            files.append(os.path.join(dest_dir, file))  # 记录完整路径
+    for i in files:
+        os.remove(i)
+    print("删除临时图片目录成功")
 
 
 def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path):
@@ -202,7 +212,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
     self.pushButton_5.setText("提交数据")
     # 调用弹窗显示保存完成信息，终端同步显示信息
     print(f"Notice: 文件读取保存工作完成")
-    self.worker.done.emit()  # 比如写完数据后调用
+    self.worker.done.emit("tables_updated")  # 比如写完数据后调用
 
 def add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path):
     if (not __main__.ADD_DAY_SUMMARY) and (not __main__.ADD_MONTH_SUMMARY):
@@ -1833,6 +1843,7 @@ def export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, r
 
 def img_excel_after_process(self,img_to_excel_file_path:str = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")):
     # 弹窗提示表格初步转录完成
+    self.pushButton_4.setText("暂存该条")
     self.reply = QMessageBox.information(None, "提示", "图片转表格完成", QMessageBox.Ok | QMessageBox.Cancel)
     if self.reply == QMessageBox.Ok:
 

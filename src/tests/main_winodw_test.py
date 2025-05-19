@@ -50,15 +50,16 @@ from src.gui.utils.detail_ui_button_utils import (
     close_setting_window,
     convert_place_holder_to_text,
     cancel_input_focus,
-    mode_not_right
+    mode_not_right,
+    modify_data_in_image_excel
 )
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from configparser import ConfigParser
-from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel, clear_temp_image_dir # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
-
+from src.gui.utils.backup_window_button_func import view_backup,delete_backup,restore_backup
 from config.config import FIRST_START
 from src.gui.utils.first_start_detect import first_start_detect
 
@@ -88,7 +89,9 @@ ADD_MONTH_SUMMARY = False
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
-
+#拖进来的图片目录
+DRAG_PHOTO_DIR = []
+TEMP_IMAGE_DIR = os.path.join(".", "src", "data", "input", "img") 
 
 #这个用来测试,wjwcj 0507 12:54, 13:08测试完毕
 from PySide6.QtCore import QObject, Signal
@@ -100,7 +103,20 @@ class Worker(QObject):
     下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
     此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
     """
-    done = Signal()  # 定义一个不带参数的信号
+    done = Signal(str)  # 定义一个带字符串参数的信号
+
+    def show(self, message):
+        """
+        这个用来判断是哪个信号
+        :param 信号来源，用来判断执行哪个弹窗函数
+        """
+        if message == "image_finished":
+            #图像识别完成
+            img_excel_after_process(ui)
+        elif message == "tables_updated":
+            #所有表格更新完成
+            self.show_message()
+
 
     def show_message(self):
         """
@@ -124,7 +140,7 @@ class Ui_Form(object):
 
     def setupUi(self, Form):
         self.worker = Worker()
-        self.worker.done.connect(self.worker.show_message)  # 当信号发出时，执行 show_message()
+        self.worker.done.connect(self.worker.show)  # 当信号发出时，执行 show_message()
 
         if not Form.objectName():
             Form.setObjectName(u"Form")
@@ -701,6 +717,8 @@ class Ui_Form(object):
         :return: None
         """
         global MODE
+        if self.pushButton_5.text() == "正在提交":
+            return
         self.pushButton_5.setText("正在提交")
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
         if "入库" in modeText and MODE == 1:
@@ -738,25 +756,43 @@ class Ui_Form(object):
         # 调用 temp_list_rollback 函数实现条目回滚
         temp_list_rollback(self)
 
+
+
     def photo_import(self):
         """
         照片导入功能实现，支持批量导入和显示多张图片
         :param: self
         :return: None
         """
-        # 1. 弹出文件选择器，支持多选图片
-        
-        file_dialog = QFileDialog()
-        file_dialog.setFileMode(QFileDialog.ExistingFiles)
-        file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg )")
-        
-        "检查选择的文件路径是否有效，加载文件到程序图片暂存文件夹，并且展示到界面上"
-        if file_dialog.exec():
-            # 获取选择的文件路径列表
-            file_paths = file_dialog.selectedFiles()
+        global DRAG_PHOTO_DIR
+        global TEMP_IMAGE_DIR
+        dest_dir = TEMP_IMAGE_DIR
+        if DRAG_PHOTO_DIR == None:
+            # 1. 弹出文件选择器，支持多选图片
+            file_dialog = QFileDialog()
+            file_dialog.setFileMode(QFileDialog.ExistingFiles)
+            file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg )")
             
+            "检查选择的文件路径是否有效，加载文件到程序图片暂存文件夹，并且展示到界面上"
+            if file_dialog.exec():
+                # 获取选择的文件路径列表
+                file_paths = file_dialog.selectedFiles()
+                
+                "将文件复制到 ./src/data/input/img 目录下"
+                os.makedirs(dest_dir, exist_ok=True)                                # 如果目标目录不存在，则创建它
+                self.copied_paths = []                                              # 用于记录复制成功的文件路径列表，保存为属性
+                for src_path in file_paths:                                         # 遍历每个文件路径
+                    dest_path = os.path.join(dest_dir, os.path.basename(src_path))  # 拼接目标路径已经文件名
+                    try: # 文件操作使用try和if进行容错考虑
+                        shutil.copy2(src_path, dest_path)                           # 复制文件到目标路径
+                        self.copied_paths.append(dest_path)                              # 记录复制成功的文件路径
+                    except Exception as e:
+                        print(f"Error: 复制文件失败: {src_path} -> {dest_path}, 错误: {e}")
+        else:
+            print("Notice:开始导入", DRAG_PHOTO_DIR)
+            file_paths = DRAG_PHOTO_DIR
+            DRAG_PHOTO_DIR = []
             "将文件复制到 ./src/data/input/img 目录下"
-            dest_dir = os.path.join(".", "src", "data", "input", "img")         # 目标目录
             os.makedirs(dest_dir, exist_ok=True)                                # 如果目标目录不存在，则创建它
             self.copied_paths = []                                              # 用于记录复制成功的文件路径列表，保存为属性
             for src_path in file_paths:                                         # 遍历每个文件路径
@@ -766,36 +802,42 @@ class Ui_Form(object):
                     self.copied_paths.append(dest_path)                              # 记录复制成功的文件路径
                 except Exception as e:
                     print(f"Error: 复制文件失败: {src_path} -> {dest_path}, 错误: {e}")
-           
-            "遍历复制后的文件路径,在父组件的容器布局中调用QLabel显示"
-            if self.copied_paths:
-                if not self.scrollAreaWidgetContents.layout():                  # 如果容器布局不存在，则创建它
-                    self.scrollAreaWidgetContents.setLayout(QVBoxLayout())      # 为scrollAreaWidgetContents组件创建垂直布局
-                layout = self.scrollAreaWidgetContents.layout()                 # 获取容器布局对象
-                # 清空之前的内容，避免多次导入重复显示
-                while layout.count():                                           # 清空布局
-                    child = layout.takeAt(0)                                    # 从布局中移除子组件
-                    if child.widget():                                          # 如果子组件是widget，则删除它
-                        child.widget().deleteLater()                            # 删除子组件
-                # 添加新图片文件名按钮，垂直紧凑排列
-                for image_path in self.copied_paths:
-                    btn = QPushButton(os.path.basename(image_path), self.scrollAreaWidgetContents)
-                    btn.setFixedHeight(24)
-                    # 增加轮廓阴影效果
-                    btn.setStyleSheet("""
-                        margin:0; 
-                        padding:0; 
-                        text-align:left; 
-                        background:transparent; 
-                        border: 1px solid #888; 
-                        border-radius: 4px;
-                        color:blue; 
-                        text-decoration:underline;
-                    """)
-                    # 绑定点击事件，弹窗预览图片
-                    btn.clicked.connect(lambda checked, path=image_path: preview_image(self,path))
-                    layout.addWidget(btn)
-                layout.addStretch(1)  # 保证紧凑排列
+
+        "遍历复制后的文件路径,在父组件的容器布局中调用QLabel显示"
+        if self.copied_paths:
+            if not self.scrollAreaWidgetContents.layout():                  # 如果容器布局不存在，则创建它
+                self.scrollAreaWidgetContents.setLayout(QVBoxLayout())      # 为scrollAreaWidgetContents组件创建垂直布局
+            layout = self.scrollAreaWidgetContents.layout()                 # 获取容器布局对象
+            # 清空之前的内容，避免多次导入重复显示
+            while layout.count():                                           # 清空布局
+                child = layout.takeAt(0)                                    # 从布局中移除子组件
+                if child.widget():                                          # 如果子组件是widget，则删除它
+                    child.widget().deleteLater()                            # 删除子组件
+            # 添加新图片文件名按钮，垂直紧凑排列
+            # for image_path in self.copied_paths:
+            # 这里改成遍历那个目录
+            files = []
+            for _, __, _files in os.walk(dest_dir):
+                for file in _files:
+                    files.append(os.path.join(dest_dir, file))  # 记录完整路径
+            for image_path in files:
+                btn = QPushButton(os.path.basename(image_path), self.scrollAreaWidgetContents)
+                btn.setFixedHeight(24)
+                # 增加轮廓阴影效果
+                btn.setStyleSheet("""
+                    margin:0; 
+                    padding:0; 
+                    text-align:left; 
+                    background:transparent; 
+                    border: 1px solid #888; 
+                    border-radius: 4px;
+                    color:blue; 
+                    text-decoration:underline;
+                """)
+                # 绑定点击事件，弹窗预览图片
+                btn.clicked.connect(lambda checked, path=image_path: preview_image(self,path))
+                layout.addWidget(btn)
+            layout.addStretch(1)  # 保证紧凑排列
             
 
     def temp_store_photo_inputs(self):
@@ -804,17 +846,24 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
+        if self.pushButton_4.text() == "正在扫描":
+            return
+        self.pushButton_4.setText("正在扫描")
+
         if hasattr(self, "copied_paths") and self.copied_paths:
-            def run_in_background(self):
+            def run_in_background():
                 pool = multiprocessing.Pool(processes=min(4, len(self.copied_paths)))
                 for path in self.copied_paths:
                     pool.apply_async(image_to_excel, args=(path,))
                 pool.close()
-                pool.join()  # 等待线程完成
-                img_excel_after_process(self)
+                pool.join()
+                # img_excel_after_process(self)
+                #修正识别结果数据
+                modify_data_in_image_excel(self)
+                self.worker.done.emit("image_finished")  # 比如写完数据后调用
 
-        # 启动后台线程
-        threading.Thread(target=run_in_background(self), daemon=True).start()
+        threading.Thread(target=run_in_background, daemon=True).start()
+
             
     def check_photo_input_data(self): 
         """
@@ -900,6 +949,8 @@ class Ui_Form(object):
         # 拼接主、子表备份文件夹路径
         backup_mian_excel_folder_path = backup_path+"\\主表"
         backup_sub_excel_folder_path = backup_path+"\\子表"
+        import_state = True
+
         backup_welfare_excel_folder_path = backup_path+"\\福利表"
         try:
             # 创建拼接主、子表备份文件夹
@@ -922,6 +973,7 @@ class Ui_Form(object):
             QMessageBox.information(None, "提示", "导入主表文件成功", QMessageBox.Ok)
 
         except Exception as e:
+            import_state = False
             print(f"Error in reimport_excel_data: 重新导入主表表格出错,错误信息为: {e}")
             QMessageBox.information(None, "错误", "请检查主表文件失败", QMessageBox.Ok)
             
@@ -935,6 +987,7 @@ class Ui_Form(object):
             QMessageBox.information(None, "提示", "导入子表主食文件成功", QMessageBox.Ok)
 
         except Exception as e:
+            import_state = False
             print(f"Error in reimport_excel_data: 重新导入子表主食表格出错 {e}")
             QMessageBox.information(None, "错误", "导入子表主食表出错", QMessageBox.Ok)
 
@@ -944,12 +997,23 @@ class Ui_Form(object):
         sub_auxiliary_excel_path = QFileDialog.getOpenFileName(None, "选择子表副食表格", "", "Excel Files (*.xls)")[0]
         # 将选择文件复制到 ./src/data/storage/backup/备份时间/子表 目录下
         try:
+            
             shutil.copy(sub_auxiliary_excel_path, backup_sub_excel_folder_path ) # Learning3：将子表副食表格复制到 ./src/data/storage/backup/子表副食 目录下
             QMessageBox.information(None, "提示", "导入子表副食文件成功", QMessageBox.Ok)
 
         except Exception as e:
+            import_state = False
             print(f"Error in reimport_excel_data: 重新导入子表副食表格出错 {e}")
             QMessageBox.information(None, "错误", "导入子表副食表出错", QMessageBox.Ok)
+        
+        if import_state:
+            # 弹窗提示用户表格导入完成
+            QMessageBox.information(None, "提示", "表格已全部导入完成", QMessageBox.Ok)
+        else:
+            # 弹窗提示用户表格导入失败
+            QMessageBox.information(None, "错误", "表格导入失败,请重新导入", QMessageBox.Ok)
+            return
+        
         
 
         QMessageBox.information(None, "提示", "请导入年福利表格", QMessageBox.Ok)
@@ -1104,6 +1168,7 @@ class Ui_Form(object):
 
         # 为读取到的每个子文件夹名创建一个widget，包含 文件夹名和查看备份-还原备份-删除备份 3 个按钮
         for name_dom4 in backup_folder_name:
+            
     
             # 从内容容器中创建存放每一个列表显示条目的 widget 
                 # 创建 widget
@@ -1129,62 +1194,21 @@ class Ui_Form(object):
             # 创建查看备份按钮 
             self.back_up_item_check_button_dom5 = QPushButton("查看备份", self.name_dom4)
             self.back_up_item_check_button_dom5.setObjectName(f"{name_dom4}")
-            self.back_up_item_check_button_dom5.clicked.connect(lambda:view_backup(self,self.back_up_item_check_button_dom5.objectName())) # 使用lambda函数，避免按钮点击时，参数被提前执行，同时也能够进行传参操作
+            self.back_up_item_check_button_dom5.clicked.connect(lambda _, name=name_dom4: view_backup(self, name)) # 使用lambda函数，避免按钮点击时，参数被提前执行，同时也能够进行传参操作
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_check_button_dom5)             # 加入到布局
 
             # 创建还原备份按钮
             self.back_up_item_restore_button_dom5 = QPushButton("还原备份", self.name_dom4)
             self.back_up_item_restore_button_dom5.setObjectName(f"{name_dom4}")
-            self.back_up_item_restore_button_dom5.clicked.connect(lambda:restore_backup(self,self.back_up_item_restore_button_dom5.objectName()))
+            self.back_up_item_restore_button_dom5.clicked.connect(lambda _, name=name_dom4: restore_backup(self, name)) # Fixed:修复了 Python 中常见的闭包陷阱问题
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_restore_button_dom5)             # 加入到布局
   
             # 创建删除备份按钮
             self.back_up_item_delete_button_dom5 = QPushButton("删除备份", self.name_dom4)
             self.back_up_item_delete_button_dom5.setObjectName(f"{name_dom4}")
-            self.back_up_item_delete_button_dom5.clicked.connect(lambda:delete_backup(self,self.back_up_item_delete_button_dom5.objectName()))
+            self.back_up_item_delete_button_dom5.clicked.connect(lambda _, name=name_dom4: delete_backup(self, name))
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_delete_button_dom5)             # 加入到布局
         
-def view_backup(self,objectname):
-    # 获取触发按钮的objectName
-    parent_object_name = objectname
-    print(f"Notice:查看备份: {parent_object_name}")
-    # 打开文件资源管理器定位到该备份路径
-    path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
-    if sys.platform == "win32":
-        os.startfile(path)
-    elif sys.platform == "darwin":
-        subprocess.Popen(["open", path])
-    else:
-        subprocess.Popen(["xdg-open", path])
-
-def restore_backup(self,objectname):
-    parent_object_name = objectname
-    print(f"Notice:还原备份 {parent_object_name} 到 main 目录")
-    path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
-    # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
-    try:
-        shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
-        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
-        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
-    except Exception as e:
-        print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
-        QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
-
-def delete_backup(self,objectname):
-    folder_name = objectname
-    reply = QMessageBox.question(None, "确认删除", f"确定要删除备份 {folder_name} 吗？", 
-                                QMessageBox.Yes | QMessageBox.No)
-    if reply == QMessageBox.Yes:
-        path = os.path.join(".\\src\\data\\storage\\backup", folder_name)
-        try:
-            shutil.rmtree(path)
-            print(f"已删除备份: {folder_name}")
-            # 可以重新刷新界面或弹窗提示成功
-            QMessageBox.information(None, "提示", f"{folder_name} 已被删除", QMessageBox.Ok)
-            self.back_up_manager()  # 刷新窗口
-        except Exception as e:
-            print(f"删除失败: {e}")
-            QMessageBox.critical(None, "错误", f"无法删除 {folder_name}", QMessageBox.Ok)
 
 
 
@@ -1222,6 +1246,27 @@ class ClickableImage(QLabel):
         if event.button() == Qt.LeftButton: # type: ignore
             print("图片被点击")
 
+#用于拖入图片
+def form_drag_enter(event):
+    if event.mimeData().hasUrls():
+        for url in event.mimeData().urls():
+            if url.toLocalFile().lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
+                event.acceptProposedAction()
+                return
+    event.ignore()
+#用于拖入图片
+def form_drop_event(event):
+    global DRAG_PHOTO_DIR
+    DRAG_PHOTO_DIR = []
+
+    for url in event.mimeData().urls():
+        path = url.toLocalFile()
+        if path.lower().endswith(('.png', '.jpg', '.jpeg')):
+            DRAG_PHOTO_DIR.append(path)
+    ui.photo_import()
+    
+
+
 
 
 if __name__ == "__main__":
@@ -1235,12 +1280,16 @@ if __name__ == "__main__":
     app.installEventFilter(key_filter)  # 安装到整个应用程序，而不是 Form
     # 调用setupUi方法设置UI界面
     ui.setupUi(Form)
+    # 添加拖拽(三行)
+    Form.setAcceptDrops(True)
+    Form.dragEnterEvent = form_drag_enter
+    Form.dropEvent = form_drop_event
     # 设置窗口标题
     Form.show()
     #  第一次启动检测
     first_start_detect(Form)
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), clear_temp_image_dir(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     
     sys.exit(app.exec())
 
@@ -1272,4 +1321,4 @@ if __name__ == "__main__":
 # [x] 2025.5.6 解决多线程识别图片时候主线程未响应的问题
 # [x] 2025.5.6 解决多线程识别图片功能对图片的覆写问题
 # [x] 2025.5.13 实现备份预览窗口
-# [ ] 2025.5.14 修复删除备份只删除对象不是选中行的 Bug 
+# [x] 2025.5.14 修复删除备份只删除对象不是选中行的 Bug 
