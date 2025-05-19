@@ -127,7 +127,7 @@ class Worker(QObject):
         :param: self
         :return: None
         """
-        self.reply = QMessageBox.information(None, "提示", "数据写入完成,请再次打开主表和子表下的文件确认数据是否正确", QMessageBox.Ok | QMessageBox.Cancel)
+        self.reply = QMessageBox.information(None, "提示", "数据写入完成,请再次确认数据是否正确", QMessageBox.Ok | QMessageBox.Cancel)
         if self.reply == QMessageBox.Ok:
             # 自动打开项目目录下的 work 文件夹以供确认文件
             folder_path = os.path.join(os.path.abspath(os.path.join("src", "data", "storage")), 'work')
