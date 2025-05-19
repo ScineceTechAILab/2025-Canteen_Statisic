@@ -900,6 +900,7 @@ class Ui_Form(object):
         # 拼接主、子表备份文件夹路径
         backup_mian_excel_folder_path = backup_path+"\\主表"
         backup_sub_excel_folder_path = backup_path+"\\子表"
+        backup_welfare_excel_folder_path = backup_path+"\\福利表"
         try:
             # 创建拼接主、子表备份文件夹
             os.makedirs(backup_mian_excel_folder_path, exist_ok=True)
@@ -915,7 +916,7 @@ class Ui_Form(object):
         QMessageBox.information(None, "提示", "请导入主表表格", QMessageBox.Ok)
         # 唤起文件管理器，并选择主表文件
         main_excel_path = QFileDialog.getOpenFileName(None, "选择主表表格", "", "Excel Files (*.xls)")[0]
-        # 将选择文件复制到 ./src/data/storage/backup/主表 目录下
+        # 将选择文件复制到 ./src/data/storage/backup/备份时间/主表 目录下
         try:
             shutil.copy(main_excel_path, backup_mian_excel_folder_path)
             QMessageBox.information(None, "提示", "导入主表文件成功", QMessageBox.Ok)
@@ -928,6 +929,7 @@ class Ui_Form(object):
         QMessageBox.information(None, "提示", "请导入子表主食表格", QMessageBox.Ok)
         # 唤起文件管理器，并选择子表主食文件
         sub_main_excel_path = QFileDialog.getOpenFileName(None, "选择子表主食表格", "", "Excel Files (*.xls)")[0]
+        # 将选择文件复制到 ./src/data/storage/backup/备份时间/子表 目录下
         try:
             shutil.copy(sub_main_excel_path, backup_sub_excel_folder_path) # Learning3：将子表主食表格复制到 ./src/data/storage/backup/子表主食 目录下
             QMessageBox.information(None, "提示", "导入子表主食文件成功", QMessageBox.Ok)
@@ -936,9 +938,11 @@ class Ui_Form(object):
             print(f"Error in reimport_excel_data: 重新导入子表主食表格出错 {e}")
             QMessageBox.information(None, "错误", "导入子表主食表出错", QMessageBox.Ok)
 
+
         QMessageBox.information(None, "提示", "请导入子表副食表格", QMessageBox.Ok)
         # 唤起文件管理器，并选择子表副食文件
         sub_auxiliary_excel_path = QFileDialog.getOpenFileName(None, "选择子表副食表格", "", "Excel Files (*.xls)")[0]
+        # 将选择文件复制到 ./src/data/storage/backup/备份时间/子表 目录下
         try:
             shutil.copy(sub_auxiliary_excel_path, backup_sub_excel_folder_path ) # Learning3：将子表副食表格复制到 ./src/data/storage/backup/子表副食 目录下
             QMessageBox.information(None, "提示", "导入子表副食文件成功", QMessageBox.Ok)
@@ -947,12 +951,25 @@ class Ui_Form(object):
             print(f"Error in reimport_excel_data: 重新导入子表副食表格出错 {e}")
             QMessageBox.information(None, "错误", "导入子表副食表出错", QMessageBox.Ok)
         
+
+        QMessageBox.information(None, "提示", "请导入年福利表格", QMessageBox.Ok)
+        # 唤起文件管理器，并选择年福利表文件
+        sub_welfare_excel_path = QFileDialog.getOpenFileName(None, "选择年福利表格", "", "Excel Files (*.xls)")[0]
+        try:
+            shutil.copy(sub_welfare_excel_path, backup_welfare_excel_folder_path)
+            QMessageBox.information(None, "提示", "导入年福利文件成功", QMessageBox.Ok)
+        
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 重新导入年福利表格出错 {e}")
+            QMessageBox.information(None, "错误", "导入年福利表出错", QMessageBox.Ok)
+
+
         # 弹窗提示用户表格导入完成
         QMessageBox.information(None, "提示", "表格已全部导入完成", QMessageBox.Ok)
 
 
         "将备份拷贝到 main 目录的主表、子表目录下"
-        # 将最新备份主表拷贝到  main 目录
+        # 将最新时间备份拷贝到  main 目录
         try:
             shutil.copytree(backup_path,"./src/data/storage/main",dirs_exist_ok=True)
             print("Notice:主表备份文件已复制到 src/data/storage/main 目录")
@@ -963,7 +980,7 @@ class Ui_Form(object):
         # 等待1s,让前面文件复制过程得以完成 
         time.sleep(1)
 
-        "将 main 目录下的 主表文件夹、子表文件夹拷贝到 work 目录"
+        "将 main 目录下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 work 目录"
         try:
             shutil.copytree("./src/data/storage/main", "./src/data/storage/work",dirs_exist_ok=True)
             print("Notice:主表文件已从 ./src/data/storage/main  复制到 ./src/data/storage/work 目录")
