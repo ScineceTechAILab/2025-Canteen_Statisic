@@ -77,18 +77,21 @@ TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回
 
 MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\主表\\" # 主工作表格路径
 Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\子表\\"  # 子工作表格路径
+WELFARE_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\福利表\\" # 福利工作表格路径
 
 MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
-print(MAIN_WORK_EXCEL_PATH,Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+WELFARE_WORK_EXCEL_PATH = os.path.join(project_root, WELFARE_WORK_EXCEL_PATH)
 
 # 这个0/1用来表示是入库出库
 MODE = 0
 ADD_DAY_SUMMARY = False
 ADD_MONTH_SUMMARY = False
+ONLY_WELFARE_TABLE = False # 是否开启只登记福利表
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
+
 #拖进来的图片目录
 DRAG_PHOTO_DIR = []
 TEMP_IMAGE_DIR = os.path.join(".", "src", "data", "input", "img") 
@@ -371,12 +374,17 @@ class Ui_Form(object):
         # 创建复选框
         self.checkbox1 = QCheckBox("添加日计")
         self.checkbox2 = QCheckBox("添加月计")
+        self.checkbox3 = QCheckBox("只登记福利表")
         self.checkbox1.toggled.connect(self.on_checkbox_toggled)
         self.checkbox2.toggled.connect(self.on_checkbox_toggled)
+        self.checkbox3.toggled.connect(self.on_checkbox_toggled)
+
         # 添加复选框到左下角布局，排成同一行
         checkbox_layout = QHBoxLayout()
         checkbox_layout.addWidget(self.checkbox1)
         checkbox_layout.addWidget(self.checkbox2)
+        checkbox_layout.addWidget(self.checkbox3)
+
         self.gridLayout_3.addLayout(checkbox_layout, 1, 0, Qt.AlignLeft | Qt.AlignBottom)  # 左下角对齐
 
         self.horizontalLayout.addWidget(self.label)
@@ -623,10 +631,13 @@ class Ui_Form(object):
         """
         global ADD_DAY_SUMMARY
         global ADD_MONTH_SUMMARY
+        global ONLY_WELFARE_TABLE
         #添加日计
         ADD_DAY_SUMMARY = self.checkbox1.isChecked()
         #添加月计
         ADD_MONTH_SUMMARY = self.checkbox2.isChecked()
+        # 只登记福利表
+        ONLY_WELFARE_TABLE = self.checkbox3.isChecked()
 
     def on_tab_clicked(self, index):
         """
@@ -730,8 +741,9 @@ class Ui_Form(object):
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
         model = "manual"
-        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
 
     def clear_temp_manual_list(self):
@@ -904,8 +916,9 @@ class Ui_Form(object):
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
         model = 'photo'
-        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
     def show_settings(self):
         """
@@ -1039,7 +1052,7 @@ class Ui_Form(object):
             print("Notice:主表备份文件已复制到 src/data/storage/main 目录")
 
         except Exception as e:
-            print(f"Error in reimport_excel_data: 将主表备份文件复制到主表目录出错,错误信息为: {e}")
+            print(f"Error in reimport_excel_data: 将主表备份文件复制到 main 目录出错,错误信息为: {e}")
 
         # 等待1s,让前面文件复制过程得以完成 
         time.sleep(1)
@@ -1084,10 +1097,13 @@ class Ui_Form(object):
         # 拼接主、子表备份文件夹路径
         backup_mian_excel_folder_path = backup_path+"\\主表"
         backup_sub_excel_folder_path = backup_path+"\\子表"
+        backup_welfare_excel_folder_path = backup_path+"\\福利表"
+        
         try:
             # 创建拼接主、子表备份文件夹
             os.makedirs(backup_mian_excel_folder_path, exist_ok=True)
             os.makedirs(backup_sub_excel_folder_path, exist_ok=True)
+            os.makedirs(backup_welfare_excel_folder_path, exist_ok=True)
             print(f"Notice:备份文件夹创建成功,主表路径为:{backup_mian_excel_folder_path},子表路径为:{backup_sub_excel_folder_path}")
 
         except Exception as e:

@@ -73,10 +73,11 @@ TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回
 
 MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\主表\\" # 主工作表格路径
 Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\子表\\"  # 子工作表格路径
+WELFARE_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\福利表\\" # 福利工作表格路径
 
 MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
-print(MAIN_WORK_EXCEL_PATH,Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+
 
 #这个0/1用来表示是入库出库
 MODE = 0
@@ -668,12 +669,14 @@ class Ui_Form(object):
             MODE = 1
             
        
-        
+        # TODO:更改动态获取主表下的xls文件
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        welfare_food_workbook = Sub_WORK_EXCEL_PATH + "704班2025年福利.xls"
+
         model = "manual"
-        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
 
     def clear_temp_manual_list(self):
@@ -819,6 +822,8 @@ class Ui_Form(object):
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        welfare_food_workbook = 
+
         model = 'photo'
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
@@ -926,4 +931,5 @@ if __name__ == "__main__":
 #    [x] 2025.5.3. 实现点击滚动窗口中的文件条目实现以弹出的方式预览图片
 # [x] 2025.5.4 实现导入图片区的暂存按钮功能
 # [x] 2025.5.6 解决多线程识别图片时候主线程未响应的问题
-# [ ] 2025.5.6 解决多线程识别图片功能对图片的覆写问题
+# [x] 2025.5.6 解决多线程识别图片功能对图片的覆写问题
+# [ ] 2025.5.19 更改动态获取主表下的xls文件

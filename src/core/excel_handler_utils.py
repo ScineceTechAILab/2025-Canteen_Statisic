@@ -236,10 +236,10 @@ def find_the_first_empty_line_in_sub_main_excel(sheet):
 
             # 向前检查是否是“过次页 + 空行 + 空行”的模式
             if is_previous_rows_after_page_break(sheet, sub_row_index + 1):
-                print(f"忽略第 {sub_row_index + 1} 行（前面是‘过次页’+连续空行）")
+                print(f"Warning: 忽略第 {sub_row_index + 1} 行（前面是‘过次页’+连续空行）")
                 continue
 
-            print("这里开始执行", str(sub_row_index + 1))   
+            print("Notice: 这里开始执行", str(sub_row_index + 1))   
 
             # 检查前一行是否符合某些条件（仅包含空格或单个标点符号）
             if sub_row_index > 0 and all(
