@@ -59,7 +59,7 @@ from configparser import ConfigParser
 from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel, clear_temp_image_dir # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
-from src.gui.utils.backup_window_button_func import view_backup,delete_backup,restore_backup
+
 from config.config import FIRST_START
 from src.gui.utils.first_start_detect import first_start_detect
 
@@ -949,20 +949,24 @@ class Ui_Form(object):
         # 拼接主、子表备份文件夹路径
         backup_mian_excel_folder_path = backup_path+"\\主表"
         backup_sub_excel_folder_path = backup_path+"\\子表"
+        backup_welfare_excel_folder_path = backup_path+"\\福利表"
         import_state = True
 
-        backup_welfare_excel_folder_path = backup_path+"\\福利表"
+        
         try:
             # 创建拼接主、子表备份文件夹
             os.makedirs(backup_mian_excel_folder_path, exist_ok=True)
             os.makedirs(backup_sub_excel_folder_path, exist_ok=True)
-            print(f"Notice:备份文件夹创建成功,主表路径为:{backup_mian_excel_folder_path},子表路径为:{backup_sub_excel_folder_path}")
+            os.makedirs(backup_welfare_excel_folder_path, exist_ok=True)
+            print(f"Notice:备份文件夹创建成功,主表路径为:{backup_mian_excel_folder_path},子表路径为:{backup_sub_excel_folder_path}\n")
 
         except Exception as e:
             print(f"Error in reimport_excel_data: 创建备份文件夹出错,错误信息为: {e}")
 
 
         "创建基于该时间点的三表备份"
+
+        "导入主表"
         # 弹窗提示用户导入主表
         QMessageBox.information(None, "提示", "请导入主表表格", QMessageBox.Ok)
         # 唤起文件管理器，并选择主表文件
@@ -977,7 +981,7 @@ class Ui_Form(object):
             print(f"Error in reimport_excel_data: 重新导入主表表格出错,错误信息为: {e}")
             QMessageBox.information(None, "错误", "请检查主表文件失败", QMessageBox.Ok)
             
-
+        "导入子表主食表"
         QMessageBox.information(None, "提示", "请导入子表主食表格", QMessageBox.Ok)
         # 唤起文件管理器，并选择子表主食文件
         sub_main_excel_path = QFileDialog.getOpenFileName(None, "选择子表主食表格", "", "Excel Files (*.xls)")[0]
@@ -990,14 +994,13 @@ class Ui_Form(object):
             import_state = False
             print(f"Error in reimport_excel_data: 重新导入子表主食表格出错 {e}")
             QMessageBox.information(None, "错误", "导入子表主食表出错", QMessageBox.Ok)
-
-
+            
+        "导入子表副食表"
         QMessageBox.information(None, "提示", "请导入子表副食表格", QMessageBox.Ok)
         # 唤起文件管理器，并选择子表副食文件
         sub_auxiliary_excel_path = QFileDialog.getOpenFileName(None, "选择子表副食表格", "", "Excel Files (*.xls)")[0]
         # 将选择文件复制到 ./src/data/storage/backup/备份时间/子表 目录下
         try:
-            
             shutil.copy(sub_auxiliary_excel_path, backup_sub_excel_folder_path ) # Learning3：将子表副食表格复制到 ./src/data/storage/backup/子表副食 目录下
             QMessageBox.information(None, "提示", "导入子表副食文件成功", QMessageBox.Ok)
 
@@ -1005,17 +1008,8 @@ class Ui_Form(object):
             import_state = False
             print(f"Error in reimport_excel_data: 重新导入子表副食表格出错 {e}")
             QMessageBox.information(None, "错误", "导入子表副食表出错", QMessageBox.Ok)
-        
-        if import_state:
-            # 弹窗提示用户表格导入完成
-            QMessageBox.information(None, "提示", "表格已全部导入完成", QMessageBox.Ok)
-        else:
-            # 弹窗提示用户表格导入失败
-            QMessageBox.information(None, "错误", "表格导入失败,请重新导入", QMessageBox.Ok)
-            return
-        
-        
-
+            
+        "导入年福利表"
         QMessageBox.information(None, "提示", "请导入年福利表格", QMessageBox.Ok)
         # 唤起文件管理器，并选择年福利表文件
         sub_welfare_excel_path = QFileDialog.getOpenFileName(None, "选择年福利表格", "", "Excel Files (*.xls)")[0]
@@ -1027,12 +1021,18 @@ class Ui_Form(object):
             print(f"Error in reimport_excel_data: 重新导入年福利表格出错 {e}")
             QMessageBox.information(None, "错误", "导入年福利表出错", QMessageBox.Ok)
 
+        "检测所有文件是否完成导入"
+        if import_state:
+            # 弹窗提示用户表格导入完成
+            QMessageBox.information(None, "提示", "表格已全部导入完成", QMessageBox.Ok)
+        else:
+            # 弹窗提示用户表格导入失败
+            QMessageBox.information(None, "错误", "表格导入失败,可能部分表有残缺,请重新导入", QMessageBox.Ok)
+            # 将空的备份文件夹删除
+            shutil.rmtree(backup_path)
+            return
 
-        # 弹窗提示用户表格导入完成
-        QMessageBox.information(None, "提示", "表格已全部导入完成", QMessageBox.Ok)
-
-
-        "将备份拷贝到 main 目录的主表、子表目录下"
+        "将刚导进来的最新备份拷贝到 main 目录的主表、子表目录下"
         # 将最新时间备份拷贝到  main 目录
         try:
             shutil.copytree(backup_path,"./src/data/storage/main",dirs_exist_ok=True)
@@ -1043,6 +1043,7 @@ class Ui_Form(object):
 
         # 等待1s,让前面文件复制过程得以完成 
         time.sleep(1)
+
 
         "将 main 目录下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 work 目录"
         try:
