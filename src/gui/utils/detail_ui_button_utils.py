@@ -107,24 +107,22 @@ def manual_temp_storage(self,input_fields):
             self.line9Right.setPlaceholderText(input_fields['公司'])
             self.line10Right.setPlaceholderText(input_fields['单名'])
             
-
-            
+            "更新信息栏信息"
             try:
-                self.storageNum.setText(str(__main__.TEMP_STORAGED_NUMBER_LISTS-1))  # 更新存储数量的标签文本
+                self.storageNum.setText(str(__main__.TEMP_STORAGED_NUMBER_LISTS))  # 更新存储数量的标签文本
+                self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS+1)           # 更新正在编辑第 xx 项目的 xx 数值
+                __main__.TEMP_STORAGED_NUMBER_LISTS +=1                              # type: ignore # Learning5：形式参数传参进来的变量
             except Exception as e:
                 print(f"Error: {e}")
                 return None
             
-            # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
             print("Notice: 暂存数据为", temp_storage)
+            
             # 调用 store_single_entry_to_excel 函数存储数据到Excel文件,以xls方式存储
-
             store_single_entry_to_temple_excel(temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-            data_save_success(self)                            # 显示保存成功的消息提示弹窗
-            
-            self.spinBox.setValue(int(self.storageNum.text())) # 更新正在编辑第 xx 项目的 xx 数值
-            __main__.TEMP_STORAGED_NUMBER_LISTS +=1            # type: ignore # Learning5：形式参数传参进来的变量
-            
+            # 显示保存成功的消息提示弹窗
+            data_save_success(self)     
+            # 暂存列表展示回滚                       
             temp_list_rollback(self)
             return temp_storage
         
@@ -222,8 +220,8 @@ def temp_list_rollback(self):
                 app = xl.App(visible=False)
                 workbook = xl.Book()
                 sheet = workbook.sheets[0]
-                # 为sheet  添加表头 ['日期', '类别', '品名', '金额', '数量', '单价', '单位', '公司', '单名','备注']
-                sheet.range('A1').value = ['日期', '类别', '品名', '金额', '数量', '单价', '单位', '公司', '单名','备注']
+                # 为sheet  添加表头 ['日期', '类别', '品名', '单位', '单价', '数量', '金额', '备注', '公司','单名']
+                sheet.range('A1').value = ['日期', '类别', '品名', '单位', '单价', '数量', '金额', '备注', '公司','单名']
                 workbook.save(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
                 workbook.close()
                 app.quit()
@@ -267,7 +265,7 @@ def temp_list_rollback(self):
             else:
                 print("Notice: 条目超出范围，请检查条目索引号")
                 # 重置条目索引到报错前
-                self.spinBox.setValue(int(self.storageNum.text())) # 更新SpinBox的值为存储数量
+                self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS) # 更新SpinBox的值为存储数量
                 # 弹窗报错
                 # 为self追加创建一个Form属性,继承自QWidget
                 self.PopWindowApplicationForm = QWidget()
