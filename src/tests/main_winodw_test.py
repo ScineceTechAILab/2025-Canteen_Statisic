@@ -591,7 +591,6 @@ class Ui_Form(object):
         self.pushButton_11.setText(QCoreApplication.translate("Form", "备份管理", None))
         
         
-
         "TAB名称"        
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", "入库/切换", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
@@ -608,16 +607,16 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        self.line1Right.setText("2025-05-20")       # 日期
-        self.line2Right.setText("主食入库")           # 类别
+        self.line1Right.setText("2025-05-13")       # 日期
+        self.line2Right.setText("主食")           # 类别
         self.line3Right.setText("大米")           # 品名
-        self.line4Right.setText("福利测试")           # 备注
+        self.line4Right.setText("备注")           # 备注
         self.line5Right.setText("420.0")         # 金额
         self.line6Right.setText("420")            # 数量
         self.line7Right.setText("1")              # 单价
         self.line8Right.setText("斤")             # 单位
         self.line9Right.setText("嘉亿格")       # 公司
-        self.line10Right.setText("过年福利入")  # 单名
+        self.line10Right.setText("自购主食入库等")  # 单名
 
     # retranslateUi
 
