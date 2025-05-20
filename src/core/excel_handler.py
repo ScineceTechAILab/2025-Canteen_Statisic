@@ -809,6 +809,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                 
     except Exception as e:
         print(f"Error: 打开或处理该表 {excel_file_path} 出错,出错信息{e}")
+        __main__.SAVE_OK_SIGNAL = False
 
 def update_main_food_detail_sheet(main_workbook, single_name, category_name, amount):
     """
@@ -1398,7 +1399,7 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
             print(f"Notice: 子表副食表保存成功，文件路径: {sub_auxiliary_food_excel_file_path}")
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: 打开或处理该表 {sub_auxiliary_food_excel_file_path},出错信息 {e}")
             return  
 
 def update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
@@ -1533,7 +1534,7 @@ def update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_storage
             print(f"Notice: 子表主食表保存成功，文件路径: {_sub_main_food_excel_file_path}")
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: 打开或处理该表  {_sub_main_food_excel_file_path} 出错,出错信息{e}")
             return  
 
 def update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers):
