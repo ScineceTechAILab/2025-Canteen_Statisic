@@ -609,15 +609,15 @@ class Ui_Form(object):
         "开发测试数据，注释掉即取消开发模式"
         
         self.line1Right.setText("2025-05-20")       # 日期
-        self.line2Right.setText("主食入库")           # 类别
+        self.line2Right.setText("主食")           # 类别
         self.line3Right.setText("大米")           # 品名
-        self.line4Right.setText("福利测试")           # 备注
-        self.line5Right.setText("420.0")         # 金额
-        self.line6Right.setText("420")            # 数量
+        self.line4Right.setText("备注")           # 备注
+        self.line5Right.setText("891")         # 金额
+        self.line6Right.setText("891")            # 数量
         self.line7Right.setText("1")              # 单价
         self.line8Right.setText("斤")             # 单位
         self.line9Right.setText("嘉亿格")       # 公司
-        self.line10Right.setText("过年福利入")  # 单名
+        self.line10Right.setText("食堂主食出库")  # 单名
 
     # retranslateUi
 
@@ -779,7 +779,9 @@ class Ui_Form(object):
         global DRAG_PHOTO_DIR
         global TEMP_IMAGE_DIR
         dest_dir = TEMP_IMAGE_DIR
-        if DRAG_PHOTO_DIR == None:
+        print(DRAG_PHOTO_DIR)
+        #判断列表是否为空不应该写 "== None"
+        if len(DRAG_PHOTO_DIR) == 0:
             # 1. 弹出文件选择器，支持多选图片
             file_dialog = QFileDialog()
             file_dialog.setFileMode(QFileDialog.ExistingFiles)
