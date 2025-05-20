@@ -215,11 +215,15 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             return
 
     # 获取暂存输入表表头数据
-    read_temp_storage_workbook_headers = read_temp_storage_workbook.sheet_by_index(0).row_values(0)  # 获取表头的第一行数据
-    # 确保表头是一个扁平的列表
-    if not all(isinstance(header, str) for header in read_temp_storage_workbook_headers):
-        raise ValueError("Error: 暂存表头必须是字符串类型")
-    
+    try:
+        read_temp_storage_workbook_headers = read_temp_storage_workbook.sheet_by_index(0).row_values(0)  # 获取表头的第一行数据
+        # 确保表头是一个扁平的列表
+        if not all(isinstance(header, str) for header in read_temp_storage_workbook_headers):
+            raise ValueError("Error: 暂存表头必须是字符串类型")
+    except Exception as e:
+        print(f"Error: 获取暂存表表头出错 {e}")
+        return
+
     "在 main 文件夹中更新表信息"
     if __main__.ONLY_WELFARE_TABLE == False:
         # 在主表中更新信息
