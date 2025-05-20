@@ -233,10 +233,14 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         #等所有表格都更新完了才日计和月计
         add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
         self.pushButton_5.setText("提交数据")
-        # 调用弹窗显示保存完成信息，终端同步显示信息
-        print(f"Notice: 文件读取保存工作完成")
-        self.worker.done.emit("tables_updated")  # 比如写完数据后调用
-    
+        
+        if __main__.SAVE_OK_SIGNAL:
+            # 调用弹窗显示保存完成信息，终端同步显示信息
+            print(f"Notice: 主子表文件读取保存工作完成")
+            self.worker.done.emit("tables_updated")  # 比如写完数据后调用
+        else:
+            print(f"Error: 主子表文件读取保存工作失败")
+
     else:
         # 在福利表中更新信息
         update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
@@ -771,7 +775,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                 single_name = row_data[header_index["单名"]]
 
                 if not __main__.MODE:
-                    print("Notice: 正在入库")
+                    print(f"\n\nNotice: 品名{product_name}正在入库")
                     # 更新指定公司sheet中的金额数据
                     # 这个好像只在入库的时候用到
                     update_company_sheet(main_workbook, company_name, amount)
@@ -784,7 +788,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                     # 更新主副食明细账中的条目信息
                     update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
                 else:
-                    print("Notice: 正在出库")
+                    print(f"\n\nNotice: 品名{product_name}正在出库")
                     #搞定
                     #此函数不带"export"头，没打错
                     updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
@@ -850,7 +854,7 @@ def update_main_food_detail_sheet(main_workbook, single_name, category_name, amo
             print(f"Error: 查找 '自购主食入库' sheet时未找到对应的类别信息，请检查类别")
             return
     else:
-        print(f"Error: 未找到入库类型名为 `自购主食入库等` 的sheet,可能存在空字符")
+        print(f"\nError: 未找到入库类型名为 `自购主食入库等` 的sheet,可能存在空字符\n")
         return
 
     # 调用Excel API 进行行索引名匹配
@@ -898,7 +902,7 @@ def update_company_sheet(main_workbook, company_name, amount):
     :param amount: 要增加的金额
     :return: None
     """
-    print(f"Notice: 正在表中名为查询 {company_name} 公司的Sheet页")
+    print(f"Notice: 正在更新公司 {company_name} Sheet 页以更新其金额数据")
     
     # 查找对应的公司sheet
     try:
@@ -914,6 +918,10 @@ def update_company_sheet(main_workbook, company_name, amount):
         if amount is None or amount == "":
             amount = 0
         try:
+            # 去掉金额字符中的空字符，防止出现类似 '10. 56' 的字符造成强制类型转换报错
+            if isinstance(amount, str):  # 确保 amount 是字符串
+                amount = amount.replace(" ", "")  # 去掉字符串首尾的空字符
+            
             amount = float(amount)
         except Exception:
             print(f"Error: 公司 Sheet 的传入金额数据格式错误，请检查输入金额是否正确")
@@ -929,7 +937,7 @@ def update_company_sheet(main_workbook, company_name, amount):
                 new_value = amount
         
         new_value = round(new_value, 2)  # 保留两位小数
-        print("当前值", current_value, "新值", new_value)
+        print("Notice: 公司金额当前值", current_value, "新值", new_value)
         
         # 写入新值
         sheet.range("D8").value = new_value
@@ -961,17 +969,19 @@ def updata_import_sheet(main_workbook, single_name, row_data, header_index, mont
     主表各种杂表
     wjwcj 2025/05/05 13:47 测试没问题
     """
+    print(f"Notice: 正在查询入库类型名为 {single_name} 的sheet页以更新其数据")
     try:
         # 检查目标Sheet名是否存在
         if single_name in [s.name for s in main_workbook.sheets]:
             sheet = main_workbook.sheets[single_name]
-            print(f"Notice: 找到入/出库类型名为 `{single_name}` 的sheet")
+            print(f"Notice: 在主表中找到入库类型名为 `{single_name}` 的sheet")
         
         elif single_name+" " in [s.name for s in main_workbook.sheets]:
             sheet = main_workbook.sheets[f"{single_name} "]
-            print(f"Notice: 找到入/出库类型名为 `{single_name} ` 的sheet")
+            print(f"Notice: 在主表中找到入库类型名为 `{single_name} ` 的sheet")
         else:
-            print(f"Error: 未找到入/出库类型名为 `{single_name}` 的sheet,可能存在空字符,已跳过写入")
+            print(f"Error: 未在主表中找到入库类型名为 `{single_name}` 的sheet,可能存在空字符,已跳过写入指定入库类型 sheet 中步骤")
+            #QMessageBox.warning(None, "警告", f"未在主表中找到入库类型名为 `{single_name}` 的sheet,可能存在空字符,已跳过写入指定入库类型 sheet 中步骤")
             return
 
         
@@ -1074,7 +1084,7 @@ def updata_import_sheet(main_workbook, single_name, row_data, header_index, mont
             print(f"Error: 写入主表时出错 {e}")
 
     except Exception:
-        print(f"Warning: 未找到入/出库类型名为 {single_name} 的sheet,已跳过将数据写入指定的入库类型sheet中")
+        print(f"Warning: 未找到入库类型名为 {single_name} 的sheet,已跳过将数据写入指定的入库类型sheet中")
 
 def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark):
     """
@@ -1115,6 +1125,14 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
 
             # 判断quantity、price、amount的值是否为数值
             try:
+                # 去掉金额字符中的空字符，防止出现类似 '10. 56' 的字符造成强制类型转换报错
+                if isinstance(amount, str):
+                    amount = amount.replace(" ", "")
+                if isinstance(quantity, str):
+                    quantity = quantity.replace(" ", "")
+                if isinstance(price, str):
+                    price = price.replace(" ", "")
+
                 quantity = float(quantity)
                 price = float(price)
                 amount = float(amount)
@@ -1157,6 +1175,14 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
 
             try:
                 # 将quantity、price、amount转换为浮点数
+                # 去掉金额字符中的空字符，防止出现类似 '10. 56' 的字符造成强制类型转换报错
+                if isinstance(amount, str):
+                    amount = amount.replace(" ", "")
+                if isinstance(quantity, str):
+                    quantity = quantity.replace(" ", "")
+                if isinstance(price, str):
+                    price = price.replace(" ", "")
+
                 quantity = float(quantity)
                 price = float(price)
                 amount = float(amount)
@@ -1183,12 +1209,7 @@ def update_receipt_storage_sheet(main_workbook, single_name, category_name, amou
     :param amount: 金额数据
     :return: None
     """
-    print("""
-
-收发存表皮
-          
-
-""")
+    print(f"Notice: 正在更新主表收发存表皮 Sheet 信息,该条目单名为 '{single_name}'")
     # 尝试打开名为收发存表皮的 sheet
     if "收发存表皮" in [s.name for s in main_workbook.sheets]:
         sheet = main_workbook.sheets["收发存表皮"]
@@ -1218,9 +1239,9 @@ def update_receipt_storage_sheet(main_workbook, single_name, category_name, amou
         elif "副食" in category_name:
             row_index_name = "正常厂副食"
         else:
-            print("Error: 场调面食入库 未找到类别信息，请检查输入数据")
+            print("\nError: 场调面食入库 未找到类别信息，请检查输入数据\n")
     else:
-        print("Error: 未找到入库类型信息，请检查输入数据")
+        print(f"\nError: 未找到入库类型名为 {single_name} 的sheet,可能存在空字符,已跳过写入\n")
         return
 
     # 调用Excel API用行索引名匹配行索引
@@ -1857,6 +1878,14 @@ def export_update_inventory_sheet(main_workbook, product_name, unit_name, quanti
 
             # 判断quantity、price、amount的值是否为数值
             try:
+                # 去掉金额字符中的空字符，防止出现类似 '10. 56' 的字符造成强制类型转换报错
+                if isinstance(amount, str):
+                    amount = amount.replace(" ", "")
+                if isinstance(quantity, str):
+                    quantity = quantity.replace(" ", "")
+                if isinstance(price, str):
+                    price = price.replace(" ", "")
+
                 quantity = float(quantity)
                 price = float(price)
                 amount = float(amount)

@@ -9,9 +9,6 @@ from paddleocr import PaddleOCR, PPStructure
 def image_to_excel(
     image_path: str,
     save_folder: str = "./src/data/input/manual",
-    det_model_dir: str = 'best_accuracy',
-    rec_model_dir: str = 'best_accuracy',
-    structure_model_dir: str = 'best_accuracy'
 ):
     """
     使用PaddleOCR和PPStructure识别图片中的表格并导出为Excel文件（支持追加写入）。
@@ -27,7 +24,7 @@ def image_to_excel(
     excel_path = os.path.join(save_folder, f"temp_img_input.xlsx")
 
     # 初始化表格结构识别引擎
-    table_engine = PPStructure(det_model_dir=det_model_dir, structure_model_dir=structure_model_dir)
+    table_engine = PPStructure() # 注意：此处我修改了库中 BASE_DIR 变量。使得其以项目目录作为识别数据库存放位
 
     # 进行表格结构识别
     result = table_engine(image_path)

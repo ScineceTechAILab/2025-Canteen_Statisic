@@ -89,6 +89,7 @@ MODE = 0
 ADD_DAY_SUMMARY = False
 ADD_MONTH_SUMMARY = False
 ONLY_WELFARE_TABLE = False # 是否开启只登记福利表
+SAVE_OK_SIGNAL = True
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
@@ -609,16 +610,16 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        self.line1Right.setText("2025-05-20")       # 日期
-        self.line2Right.setText("主食")           # 类别
-        self.line3Right.setText("大米")           # 品名
-        self.line4Right.setText("备注")           # 备注
-        self.line5Right.setText("891")         # 金额
-        self.line6Right.setText("891")            # 数量
-        self.line7Right.setText("1")              # 单价
-        self.line8Right.setText("斤")             # 单位
-        self.line9Right.setText("嘉亿格")       # 公司
-        self.line10Right.setText("食堂主食出库")  # 单名
+        self.line1Right.setText("2025-05-20")      # 日期
+        self.line2Right.setText("主食")            # 类别
+        self.line3Right.setText("大米")            # 品名
+        self.line4Right.setText("备注")            # 备注
+        self.line5Right.setText("891")             # 金额
+        self.line6Right.setText("891")             # 数量
+        self.line7Right.setText("1")               # 单价
+        self.line8Right.setText("斤")              # 单位
+        self.line9Right.setText("嘉亿格")           # 公司
+        self.line10Right.setText("食堂主食出库")    # 单名
 
     # retranslateUi
 
@@ -872,7 +873,7 @@ class Ui_Form(object):
 
         if hasattr(self, "copied_paths") and self.copied_paths:
             def run_in_background():
-                pool = multiprocessing.Pool(processes=min(4, len(self.copied_paths)))
+                pool = multiprocessing.Pool(processes=min(1, len(self.copied_paths)))
                 for path in self.copied_paths:
                     pool.apply_async(image_to_excel, args=(path,))
                 pool.close()
@@ -943,7 +944,15 @@ class Ui_Form(object):
                 if widget:
                     widget.deleteLater()
         try:
+            # 清空临存 Excel 表
             clear_temp_xlxs_excel()
+            # 调用 shutil 库格式化导入图片 img 文件夹 .\src\data\input\img
+            try:
+                shutil.rmtree("./src/data/input/img/")
+            except Exception:
+                print("Error: in clear_temp_photo_import_list: 删除图片文件目录失败")
+
+            
         except Exception:
             print("Error in clear_temp_photo_import_list: 清空图片的暂存表格出错")
     
