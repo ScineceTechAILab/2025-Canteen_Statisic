@@ -663,11 +663,11 @@ class Ui_Form(object):
         """
         global MODE
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
-        if "入库" in modeText and MODE == 1:
-            print("自动切换为入库")
+        if "入库" in modeText and MODE == 0:
+            print("Notice:自动切换为入库")
             MODE = 0
-        elif "出库" in modeText and MODE == 0:
-            print("自动切换为出库")
+        elif "出库" in modeText and MODE == 1:
+            print("Notice:自动切换为出库")
             MODE = 1
             
        

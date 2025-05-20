@@ -733,12 +733,16 @@ class Ui_Form(object):
             return
         self.pushButton_5.setText("正在提交")
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
+        
+        print("Notice:当前模式", modeText, str(MODE))
+        
         if "入库" in modeText and MODE == 1:
-            print("自动切换为入库")
-            MODE = 0
-        elif "出库" in modeText and MODE == 0:
-            print("自动切换为出库")
+            print("Notice:自动切换为入库")
             MODE = 1
+        elif "出库" in modeText and MODE == 0:
+            print("Notice: 自动切换为出库")
+            MODE = 0
+        
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
@@ -908,12 +912,15 @@ class Ui_Form(object):
         global MODE
         #global TEMP_SINGLE_STORAGE_EXCEL_PATH
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
+        
+        print("Notice:当前模式", modeText, str(MODE))
+        
         if "入库" in modeText and MODE == 1:
-            print("自动切换为入库")
-            MODE = 0
-        elif "出库" in modeText and MODE == 0:
-            print("自动切换为出库")
+            print("Notice:自动切换为入库")
             MODE = 1
+        elif "出库" in modeText and MODE == 0:
+            print("Notice: 自动切换为出库")
+            MODE = 0
         
 
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
