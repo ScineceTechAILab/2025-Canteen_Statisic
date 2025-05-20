@@ -14,7 +14,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform, Qt)
-from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, QFormLayout, QGridLayout,
+from PySide6.QtWidgets import (QMessageBox,QAbstractScrollArea,QApplication, QButtonGroup, QFormLayout, QGridLayout,
     QGroupBox, QHBoxLayout, QLabel, QLayout,
     QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
@@ -1199,15 +1199,8 @@ def update_receipt_storage_sheet(main_workbook, single_name, category_name, amou
 
     elif single_name == "扶贫副食入库":
         row_index_name = "副食（帮扶食品）"
-<<<<<<< HEAD
     elif single_name in ["自购主食入库", "自购主食入库等"]:
         if "主食" in category_name:
-=======
-
-    elif single_name == "自购主食入库":
-        
-        if category_name == "主食":
->>>>>>> 754692f153d3dc39c452f24d169c0bd8b0fda20e
             row_index_name = "主食（自购）"
         elif "副食" in category_name:
             row_index_name = "副食（自购）"
