@@ -88,7 +88,10 @@ def find_matching_month_rows(main_excel_file_path, sheet_name, columns = [2, 3])
         # 打开 Excel 文件
         with xw.App(visible=False) as app:
             workbook = app.books.open(main_excel_file_path)
-            sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+            try:
+                sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+            except:
+                print("sheet名不存在")
 
             # 查找 B 列中等于本月月数的行数
             month_rows = [
@@ -154,7 +157,10 @@ def find_matching_today_rows(main_excel_file_path, sheet_name, columns = [2, 3])
         # 打开 Excel 文件
         with xw.App(visible=False) as app:
             workbook = app.books.open(main_excel_file_path)
-            sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+            try:
+                sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+            except:
+                print("sheet名不存在")
 
             # for row_index in range(sheet.used_range.rows.count):
             #     print(sheet.range((row_index + 1, 3)).value, current_day)
@@ -301,6 +307,7 @@ def get_all_sheets_todo_for_main_table():
         print(f"Error: 无法读取手动模式: {e}")
 
     try:
+        #wjwcj: 2025/05/20 这个在调试时我还疑惑"单名"在图片导入暂存表中的哪列，其实根本就不需要在图片暂存表里面找
         with xw.App(visible=False) as app:
             photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
             photo_sheet = photo_workbook.sheets[0]
@@ -310,6 +317,36 @@ def get_all_sheets_todo_for_main_table():
             sheets_to_add.update(filter(None, values))
     except Exception as e:
         print(f"Error: 无法读取图片模式: {e}")
+
+    return list(sheets_to_add)
+
+
+def get_all_sheets_todo_for_sub_table():
+    sheets_to_add = set()
+    try:
+        with xw.App(visible=False) as app:
+            manual_workbook = app.books.open(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            manual_sheet = manual_workbook.sheets[0]
+            values = manual_sheet.range("B2:B" + str(manual_sheet.used_range.rows.count)).value
+            if not isinstance(values, list):
+                values = [values]
+            sheets_to_add.update(filter(None, values))
+
+    except Exception as e:
+        print(f"Error: 读取手动模式临时表失败: {e}")
+
+    try:
+        with xw.App(visible=False) as app:
+            photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            photo_sheet = photo_workbook.sheets[0]
+            #图片导入的话品名在C列
+            values = photo_sheet.range("C2:C" + str(photo_sheet.used_range.rows.count)).value
+            if not isinstance(values, list):
+                values = [values]
+            sheets_to_add.update(filter(None, values))
+
+    except Exception as e:
+        print(f"Error: 读取图片模式临时表失败: {e}")
 
     return list(sheets_to_add)
 
