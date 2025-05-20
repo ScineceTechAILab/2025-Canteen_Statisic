@@ -538,7 +538,7 @@ class Ui_Form(object):
         This method is automatically generated and is used to support internationalization.
         """
         Form.setWindowTitle(QCoreApplication.translate("Form", "食品管理系统", None))         # 设置窗口标题：食品管理系统
-        self.groupBox_3.setTitle(QCoreApplication.translate("Form","手动导入", None))         # 设置组框标题：手动导入
+        self.groupBox_3.setTitle(QCoreApplication.translate("Form","手动录入", None))         # 设置组框标题：手动录入
         self.groupBox.setTitle(QCoreApplication.translate("Form", "录入信息", None))          # 设置组框标题：录入信息
 
         "输入框左侧Label名"
@@ -576,7 +576,7 @@ class Ui_Form(object):
         self.label_4.setText(QCoreApplication.translate("Form", u"\u9879", None))
         
         "照片导入右侧按钮命名"
-        self.groupBox_4.setTitle(QCoreApplication.translate("Form", "照片导入", None))
+        self.groupBox_4.setTitle(QCoreApplication.translate("Form", "照片录入", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("Form", "照片列表", None))
         
         "照片导入按钮命名"
@@ -594,7 +594,7 @@ class Ui_Form(object):
         
         
         "TAB名称"        
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", "入库/切换", None))
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", "入库模式", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
 
 
@@ -647,7 +647,7 @@ class Ui_Form(object):
         :return: None
         """
         global MODE
-        text = ["入库/切换", "出库/切换"]
+        text = ["入库模式", "出库模式"]
         t = text.index(self.tabWidget_2.tabText(index), 0)
         MODE = 1 - t
         print("当前模式", text[MODE], str(MODE))
@@ -1364,7 +1364,7 @@ if __name__ == "__main__":
 # 3. 对于函数内部来讲，如果产生形参名与实参名撞名的情况，则在函数内访问该变量，实际上实在访问
 #    传入的形参名，如果形参未传入则返回的是布尔值 False
 # 4. Qtcreator 生成的ui代码块默认张这样的格式：
-# 5.
+# 5. 
 # 6. 
 # 7. 
 # 8.

@@ -551,10 +551,12 @@ class Ui_Form(object):
         :return: None
         """
         global MODE
-        text = ["入库/切换", "出库/切换"]
+        text = ["入库模式", "出库模式"]
+
         t = text.index(self.tabWidget_2.tabText(index), 0)
+        
         MODE = 1 - t
-        print("当前模式", text[MODE], str(MODE))
+        print("Notice:当前模式", text[MODE], str(MODE))
         newText = text[1 - t]
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", newText, None))
 

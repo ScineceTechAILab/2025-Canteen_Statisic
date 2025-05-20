@@ -96,16 +96,18 @@ def manual_temp_storage(self,input_fields):
             self.line9Right.setText("")
             self.line10Right.setText("")
 
+            "重置输入框提示文本为上一次的输入"
             self.line1Right.setPlaceholderText(input_fields['日期'])
-            self.line2Right.setPlaceholderText(input_fields['类别'])
-            self.line3Right.setPlaceholderText(input_fields['品名'])
-            self.line4Right.setPlaceholderText(input_fields['备注'])
-            self.line5Right.setPlaceholderText(input_fields['金额'])
-            self.line6Right.setPlaceholderText(input_fields['数量'])
-            self.line7Right.setPlaceholderText(input_fields['单价'])
+            self.line2Right.setPlaceholderText(input_fields['品名'])
+            self.line3Right.setPlaceholderText(input_fields['类别'])
             self.line8Right.setPlaceholderText(input_fields['单位'])
+            self.line7Right.setPlaceholderText(input_fields['单价'])
+            self.line6Right.setPlaceholderText(input_fields['数量'])
+            self.line5Right.setPlaceholderText(input_fields['金额'])
+            self.line4Right.setPlaceholderText(input_fields['备注'])
             self.line9Right.setPlaceholderText(input_fields['公司'])
             self.line10Right.setPlaceholderText(input_fields['单名'])
+            
             
             "更新信息栏信息"
             try:

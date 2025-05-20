@@ -1253,13 +1253,13 @@ def update_sub_tables(self,sub_main_food_excel_file_path, sub_auxiliary_food_exc
     :return: None
     """
     if not __main__.MODE:
-        print("Notice:入库更新子表")
+        print(f"Notice: 入库更新子表,MODE 值为{__main__.MODE}")
         # 在子表主食表中更新信息
         update_sub_main_food_sheet(sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
         # 在子表副食表中更新信息
         update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
     else:
-        print("出库更新子表")
+        print(f"Notice: 出库更新子表,MODE 值为{__main__.MODE}")
         # 在子表主食表中更新信息
         export_update_sub_main_food_sheet(sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
         # 在子表副食表中更新信息
