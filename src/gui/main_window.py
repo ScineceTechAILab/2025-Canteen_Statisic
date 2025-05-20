@@ -689,7 +689,7 @@ class Ui_Form(object):
         for i in range(1, 11):
             eval(f"self.line{i}Right.setText(\"\")")
         print("清空输入项目成功")
-        clear_temp_xls_excel()
+        clear_temp_xls_excel(self)
 
 
     def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
@@ -902,7 +902,7 @@ if __name__ == "__main__":
     # 设置窗口标题
     Form.show()
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_xls_excel(self),clear_temp_xlxs_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     sys.exit(app.exec())
 
 # Summerize:

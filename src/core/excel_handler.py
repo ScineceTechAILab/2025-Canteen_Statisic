@@ -146,7 +146,8 @@ def clear_temp_xls_excel(self, quit_flag= False):
             self.storageNum.setText(QCoreApplication.translate("Form","0", None))
             # 设定正在编辑项为 1 项
             self.spinBox.setValue(1)
-
+            # 复位 TEMP_STORAGED_NUMBER_LISTS
+            __main__.TEMP_STORAGED_NUMBER_LISTS = 1
     except Exception as e:
         print(f"Error: 清空暂存表格时出错: {e}")
 

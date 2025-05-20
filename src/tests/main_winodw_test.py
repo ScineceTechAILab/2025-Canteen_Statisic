@@ -696,8 +696,8 @@ class Ui_Form(object):
 
         input_fields = {
             "日期": self.line1Right.text(),
-            "品名": self.line3Right.text(),
-            "类别": self.line2Right.text(),
+            "类别": self.line3Right.text(),
+            "品名": self.line2Right.text(),
             "单位": self.line8Right.text(),
             "单价": self.line7Right.text(),
             "数量": self.line6Right.text(),
@@ -745,6 +745,7 @@ class Ui_Form(object):
         model = "manual"
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
+
 
     def clear_temp_manual_list(self):
         """
