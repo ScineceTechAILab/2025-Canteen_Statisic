@@ -218,12 +218,11 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         try:
             # 调用xlwings打开 excel 应用对象
             with xw.App(visible=False) as app:
-                
                 # 读取福利表表格
                 try:
                     # 打开福利表簿对象
                     main_workbook = app.books.open(welfare_food_excel_file_path)
-                    print(f"Notice: 福利表表加载成功，文件路径: {welfare_food_excel_file_path}")
+                    print(f"Notice: 福利表加载成功，文件路径: {welfare_food_excel_file_path}")
                 except Exception as e:
                     print(f"Error: {e}")
                     return    
@@ -475,9 +474,13 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                     
                 except Exception as e:
                     print(f"Error: 保存主表时出错 {e}")
-                
+        
         except Exception as e:
              print(f"Error: 打开或处理该表 {welfare_food_excel_file_path} 出错,出错信息{e}")
+        self.pushButton_5.setText("提交数据")
+        # 调用弹窗显示保存完成信息，终端同步显示信息
+        print(f"Notice: 文件读取保存工作完成")
+        self.worker.done.emit("tables_updated")  # 比如写完数据后调用
 
 
 
