@@ -27,6 +27,7 @@ from src.gui.check_window import ExcelCheckWindow               # Learning2:顶�
 from src.gui.data_save_dialog import data_save_success
 from src.core.excel_handler import store_single_entry_to_temple_excel  # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.excel_handler import commit_data_to_storage_excel
+import xlwings as xl
 
 import __main__                                                 # Learning5:__main__模块的引用，访问主模块变量
 
@@ -107,7 +108,7 @@ def manual_temp_storage(self,input_fields):
             self.line10Right.setPlaceholderText(input_fields['单名'])
             
 
-            __main__.TEMP_STORAGED_NUMBER_LISTS +=1 # type: ignore # Learning5：形式参数传参进来的变量
+            
             try:
                 self.storageNum.setText(str(__main__.TEMP_STORAGED_NUMBER_LISTS-1))  # 更新存储数量的标签文本
             except Exception as e:
@@ -115,14 +116,18 @@ def manual_temp_storage(self,input_fields):
                 return None
             
             # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
-            print("暂存数据:", temp_storage)
+            print("Notice: 暂存数据为", temp_storage)
             # 调用 store_single_entry_to_excel 函数存储数据到Excel文件,以xls方式存储
 
             store_single_entry_to_temple_excel(temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-            data_save_success(self)             # 显示保存成功的消息提示弹窗
-            self.spinBox.setValue(int(self.storageNum.text())) # 更新SpinBox的值为存储数量
+            data_save_success(self)                            # 显示保存成功的消息提示弹窗
+            
+            self.spinBox.setValue(int(self.storageNum.text())) # 更新正在编辑第 xx 项目的 xx 数值
+            __main__.TEMP_STORAGED_NUMBER_LISTS +=1            # type: ignore # Learning5：形式参数传参进来的变量
+            
             temp_list_rollback(self)
             return temp_storage
+        
         else:
             print("Warning: Not all fields are filled.")
             show_error_window(self) # 显示错误窗口
@@ -209,10 +214,25 @@ def temp_list_rollback(self):
     print(f"Notice:当前编辑条目为第{self.spinBox.value()}项,条目切换信号为{__main__.TEMP_LIST_ROLLBACK_SIGNAL}")
 
     if self.spinBox.value()>0 and __main__.TEMP_LIST_ROLLBACK_SIGNAL == True: # Learning6：py的与符号是and关键字而不是&，&是位运算符
+        
         try:
+            # 如果目标表格不存在则调用xlwings创建一份 TEMP_SINGLE_STORAGE_EXCEL_PATH 文件
+            if not os.path.exists(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH): # Learning4：判断文件是否存在
+                # 创建一个空的Excel文件
+                app = xl.App(visible=False)
+                workbook = xl.Book()
+                sheet = workbook.sheets[0]
+                # 为sheet  添加表头 ['日期', '类别', '品名', '金额', '数量', '单价', '单位', '公司', '单名','备注']
+                sheet.range('A1').value = ['日期', '类别', '品名', '金额', '数量', '单价', '单位', '公司', '单名','备注']
+                workbook.save(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+                workbook.close()
+                app.quit()
+                print(f"Warning: temp_manual_input_data.xls 不存在，已自动创建")
+            
             temp_storage = pd.read_excel(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-            print(temp_storage)
+            print(f"Notice: {temp_storage}")
             index = self.spinBox.value()
+            
     
             # 如果目标条目索引号在已存储列表范围内，则切换到阅览已存储条目模式
             if 0 < index <= len(temp_storage):#这里左边改成开区间了, 不能为0, 下同
@@ -246,20 +266,15 @@ def temp_list_rollback(self):
             # 如果目标编辑条目索引号超出已存储列表范围+1，则提示错误，并且返回最后改动的条目上
             else:
                 print("Notice: 条目超出范围，请检查条目索引号")
-
                 # 重置条目索引到报错前
                 self.spinBox.setValue(int(self.storageNum.text())) # 更新SpinBox的值为存储数量
-
                 # 弹窗报错
                 # 为self追加创建一个Form属性,继承自QWidget
                 self.PopWindowApplicationForm = QWidget()
                 # 为self追加一个ui属性,继承自TagNumShortage
                 self.PopWindowApplicationUi = IndexOutOfRange() # Learning7：不要误用成self.IndexOutOfRange(self)，因为IndexOutOfRange是一个类，而不是一个函数
-                #
-                self.PopWindowApplicationUi.setupUi(self.PopWindowApplicationForm)
-                
+                self.PopWindowApplicationUi.setupUi(self.PopWindowApplicationForm)     
                 self.PopWindowApplicationForm.show()
-                
                 return None
                 
         except Exception as e:
