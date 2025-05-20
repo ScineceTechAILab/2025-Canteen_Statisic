@@ -6,9 +6,19 @@
 # @Software: VsCode
 
 
-from PySide6.QtWidgets import QMessageBox
 
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt, QEvent)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform, Qt)
+from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, QFormLayout, QGridLayout,
+    QGroupBox, QHBoxLayout, QLabel, QLayout,
+    QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
+    QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
+    QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
 
 
 from openpyxl import load_workbook
@@ -26,6 +36,7 @@ from xlwt.Style import  XFStyle
 from xlwt import Workbook
 import xlwings as xw
 import re
+import __main__
 
 from src.core.excel_handler_utils import (
     is_single_punctuation,
@@ -99,13 +110,13 @@ def store_single_entry_to_temple_excel(data, file_path):
             # 保存文件
             workbook.save(file_path)
             # 打印信息
-            print(f"Notice:暂存表格不存在,重新创建暂存表格,路径为{file_path}")
+            print(f"Warning:暂存表格不存在,重新创建暂存表格,路径为{file_path}")
 
-        print("数据已成功追加存储到Excel文件中。")
+        print("Notice:数据已成功追加存储到Excel文件中。")
     except Exception as e: # Leraning2：不能操作Excel正在打开的表
-        print(f"写入Excel文件时出错: {e}")
+        print(f"Error:写入Excel文件时出错: {e}")
 
-def clear_temp_xls_excel():
+def clear_temp_xls_excel(self, quit_flag= False):
     """
     清空暂存的 Excel 表格内容
     
@@ -113,8 +124,8 @@ def clear_temp_xls_excel():
     :return: None
     """
     try:
-        for i in [__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH, __main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH]:
-            print("正在清空" + i)
+        for i in [__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH, __main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2]:
+            print("Notice:正在清空" + i)
             if os.path.exists(i) :
                 # 打开现有文件
                 workbook = xlrd.open_workbook(i, formatting_info=True)
@@ -126,11 +137,18 @@ def clear_temp_xls_excel():
                 for row_index in range(1, original_sheet.nrows):
                     for col_index in range(original_sheet.ncols):
                         sheet.write(row_index, col_index, "")  # 清空单元格内容
-
                 # 保存文件
                 writable_workbook.save(i)
+        
+        # 触发清空事件若非程序关闭事件，则调整界面显示信息
+        if quit_flag == False: 
+            # 重新设定暂存项为 0 项
+            self.storageNum.setText(QCoreApplication.translate("Form","0", None))
+            # 设定正在编辑项为 1 项
+            self.spinBox.setValue(1)
+
     except Exception as e:
-        print(f"清空暂存表格时出错: {e}")
+        print(f"Error: 清空暂存表格时出错: {e}")
 
 def clear_temp_xlxs_excel():
     """
@@ -162,7 +180,7 @@ def clear_temp_image_dir():
             files.append(os.path.join(dest_dir, file))  # 记录完整路径
     for i in files:
         os.remove(i)
-    print("删除临时图片目录成功")
+    print("Notice:删除临时图片目录成功")
 
 
 def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path):
@@ -1142,15 +1160,19 @@ def update_receipt_storage_sheet(main_workbook, single_name, category_name, amou
     row_index_name = None
     if single_name == "扶贫主食入库":
         row_index_name = "主食（帮扶食品）"
+
     elif single_name == "扶贫副食入库":
         row_index_name = "副食（帮扶食品）"
+
     elif single_name == "自购主食入库":
+        
         if category_name == "主食":
             row_index_name = "主食（自购）"
         elif category_name == "副食":
             row_index_name = "副食（自购）"
         else:
             print("Error: 自购主食入库 未找到类别信息，请检查输入数据")
+    
     elif single_name == "场调面食入库":
         if category_name == "主食":
             row_index_name = "正常厂主食"

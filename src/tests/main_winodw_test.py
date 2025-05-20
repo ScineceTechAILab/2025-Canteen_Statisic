@@ -564,12 +564,13 @@ class Ui_Form(object):
         
         self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"信息栏", None))         # 设置组框标题：信息栏
         self.label.setText(QCoreApplication.translate("Form", u"正在编辑第", None))           # 设置标签文本：正在编辑第
+        self.spinBox.setValue(1)                                                             # 重置SpinBox的值为1
         self.label_2.setText(QCoreApplication.translate("Form", u"项目", None))               # 设置标签文本：项目
 
         self.label_3.setText(QCoreApplication.translate("Form", "已暂存", None))
 
-        self.spinBox.setValue(1)  # 重置SpinBox的值为1
-        self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS-1), None))
+        
+        self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS-1), None)) # 已暂存项的暂存显示数字
         
         self.label_4.setText(QCoreApplication.translate("Form", u"\u9879", None))
         
@@ -754,8 +755,8 @@ class Ui_Form(object):
         """
         for i in range(1, 11):
             eval(f"self.line{i}Right.setText(\"\")")
-        print("清空输入项目成功")
-        clear_temp_xls_excel()
+        print("Notice:清空输入项目成功")
+        clear_temp_xls_excel(self)
 
 
     def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
@@ -1228,8 +1229,6 @@ class Ui_Form(object):
 
 
 
-
-
 class KeyEventFilter(QObject):
     def eventFilter(self, watched, event):
         if event.type() == QEvent.KeyPress:
@@ -1305,7 +1304,7 @@ if __name__ == "__main__":
     #  第一次启动检测
     first_start_detect(Form)
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), clear_temp_image_dir(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_xls_excel(self=None,quit_flag=True),clear_temp_xlxs_excel(), clear_temp_image_dir(), close_setting_window(ui), event.accept())
     
     sys.exit(app.exec())
 
