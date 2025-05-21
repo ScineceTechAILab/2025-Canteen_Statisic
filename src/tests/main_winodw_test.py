@@ -1000,7 +1000,8 @@ class Ui_Form(object):
         except Exception as e:
             import_state = False
             print(f"Error in reimport_excel_data: 重新导入主表表格出错,错误信息为: {e}")
-            QMessageBox.information(None, "错误", "请检查主表文件失败", QMessageBox.Ok)
+            QMessageBox.information(None, "错误", "导入主表文件出错,终止本次导入", QMessageBox.Ok)
+            return
             
         "导入子表主食表"
         QMessageBox.information(None, "提示", "请导入子表主食表格", QMessageBox.Ok)
@@ -1014,7 +1015,8 @@ class Ui_Form(object):
         except Exception as e:
             import_state = False
             print(f"Error in reimport_excel_data: 重新导入子表主食表格出错 {e}")
-            QMessageBox.information(None, "错误", "导入子表主食表出错", QMessageBox.Ok)
+            QMessageBox.information(None, "错误", "导入子表主食表出错,终止本次导入", QMessageBox.Ok)
+            return
             
         "导入子表副食表"
         QMessageBox.information(None, "提示", "请导入子表副食表格", QMessageBox.Ok)
@@ -1028,7 +1030,8 @@ class Ui_Form(object):
         except Exception as e:
             import_state = False
             print(f"Error in reimport_excel_data: 重新导入子表副食表格出错 {e}")
-            QMessageBox.information(None, "错误", "导入子表副食表出错", QMessageBox.Ok)
+            QMessageBox.information(None, "错误", "导入子表副食表出错,终止本次导入", QMessageBox.Ok)
+            return
             
         "导入年福利表"
         QMessageBox.information(None, "提示", "请导入年福利表格", QMessageBox.Ok)
@@ -1040,7 +1043,8 @@ class Ui_Form(object):
         
         except Exception as e:
             print(f"Error in reimport_excel_data: 重新导入年福利表格出错 {e}")
-            QMessageBox.information(None, "错误", "导入年福利表出错", QMessageBox.Ok)
+            QMessageBox.information(None, "错误", "导入年福利表出错,终止本次导入", QMessageBox.Ok)
+            return
 
         "检测所有文件是否完成导入"
         if import_state:
