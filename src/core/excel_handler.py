@@ -7,6 +7,9 @@
 
 
 
+from glob import glob 
+import shutil
+import time
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt, QEvent)
@@ -224,14 +227,21 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         print(f"Error: 获取暂存表表头出错,可能 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 表格为空 {e}")
         return
 
-    "在 main 文件夹中更新表信息"
+    
     if __main__.ONLY_WELFARE_TABLE == False:
-        # 在主表中更新信息
-        update_main_table(self,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-        # 在子表中更新信息
-        update_sub_tables(self,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-        #等所有表格都更新完了才日计和月计
-        add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+        "在更新主表、子表信息"
+        try:
+            # 在主表中更新信息
+            update_main_table(self,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+            # 在子表中更新信息
+            update_sub_tables(self,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+            #等所有表格都更新完了才日计和月计
+            add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+
+        except Exception as e:
+            __main__.SAVE_OK_SIGNAL = False
+            print(f"Error: 更新主表/副表/日记月计数据出错 {e}")
+
         self.pushButton_5.setText("提交数据")
         self.pushButton_9.setText("提交数据")
         
@@ -239,17 +249,46 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             # 调用弹窗显示保存完成信息，终端同步显示信息
             print(f"Notice: 主子表文件读取保存工作完成")
             self.worker.done.emit("tables_updated","None")  # 比如写完数据后调用
+        
         else:
             print(f"Error: 主子表文件读取保存工作失败，有条目未识别")
-            self.worker.done.emit("tables_updated_filed","None")  # 比如写完数据后调用
+
+            "依次复原 main、work 目录下的文件"
+            # 遍历src\data\storage\backup下的文件夹，找到备份时间最新的一份
+            backup_dir = os.path.join('src', 'data', 'storage', 'backup')
+            backup_folders = [f for f in glob(os.path.join(backup_dir, '*')) if os.path.isdir(f)]
+            backup_folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+            if backup_folders:
+                backup_path = backup_folders[0]
+                print(f"Notice: 尝试将最新备份备份 {backup_path} 还原至 main 目录")
+            # 还原 backup 目录中的文件到 main、work 目录
+            try:
+                shutil.rmtree("./src/data/storage/main")
+                shutil.copytree(backup_path, "./src/data/storage/main",dirs_exist_ok=True)
+                print(f"Notice:文件已从{backup_path}还原到 ./src/data/storage/work 目录")
+                shutil.rmtree("./src/data/storage/work")
+                shutil.copytree(backup_path, "./src/data/storage/work",dirs_exist_ok=True)
+                print(f"Notice: 文件已从{backup_path}还原到 ./src/data/storage/work 目录")
+            
+            except Exception as e:
+                print(f"Error: 将主表文件复制到 work 目录出错,错误信息为: {e}")            
+            # 弹出入库失败通知
+            self.worker.done.emit("tables_updated_filed","None")  
 
     else:
-        # 在福利表中更新信息
-        update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
-        #等所有表格都更新完了才日计和月计
-        add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+        "只登记福利表"
+        try:
+            # 在福利表中更新信息
+            update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
+            #等所有表格都更新完了才日计和月计
+            add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+        except Exception as e:
+            __main__.SAVE_OK_SIGNAL = False
+            print(f"Error: 福利表文件读取保存工作失败 {e}")
+        
         self.pushButton_5.setText("提交数据")
         self.pushButton_9.setText("提交数据")
+        
         # 调用弹窗显示保存完成信息，终端同步显示信息
         print(f"Notice: 文件读取保存工作完成")
 
@@ -259,8 +298,28 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             self.worker.done.emit("tables_updated","None")  # 比如写完数据后调用
         else:
             print(f"Error: 主子表文件读取保存工作失败")
-            self.worker.done.emit("tables_updated_filed","None")  # 比如写完数据后调用
-
+            
+            "依次复原 main、work 目录下的文件"
+            # 遍历src\data\storage\backup下的文件夹，找到备份时间最新的一份
+            backup_dir = os.path.join('src', 'data', 'storage', 'backup')
+            backup_folders = [f for f in glob(os.path.join(backup_dir, '*')) if os.path.isdir(f)]
+            backup_folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+            if backup_folders:
+                backup_path = backup_folders[0]
+                print(f"Notice: 尝试将最新备份备份 {backup_path} 还原至 main 目录")
+            # 还原 back 目录中的文件到 main、work 目录
+            try:
+                shutil.rmtree("./src/data/storage/main")
+                shutil.copytree(backup_path, "./src/data/storage/main",dirs_exist_ok=True)
+                print(f"Notice:文件已从{backup_path}还原到 ./src/data/storage/work 目录")
+                shutil.rmtree("./src/data/storage/work")
+                shutil.copytree(backup_path, "./src/data/storage/work",dirs_exist_ok=True)
+                print(f"Notice: 文件已从{backup_path}还原到 ./src/data/storage/work 目录")
+            
+            except Exception as e:
+                print(f"Error: 将主表文件复制到 main 目录出错,错误信息为: {e}")            
+            # 弹出入库失败通知
+            self.worker.done.emit("tables_updated_filed","None")    
 
 def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
@@ -315,7 +374,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
 
                 try:
                     if not __main__.MODE:
-                        print(f"\n\nNotice: 品名{product_name}正在入库")
+                        print(f"\n\nNotice: {product_name}正在入库")
                         # 更新指定公司sheet中的金额数据
                         update_company_sheet(self,main_workbook,product_name ,company_name, amount) # 只在入库的时候用到
                         # 更新入库相关表中的条目信息
@@ -338,8 +397,6 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                         export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
 
                 except Exception as e:
-                    print(f"Error: 条目{product_name}入库\出库更新数据时出错，跳过该条目 {e}")
-                    self.worker.done.emit("list_updated_filed",product_name)
                     continue
 
 
@@ -356,7 +413,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                 
     except Exception as e:
         print(f"Error: 打开或处理该表 {excel_file_path} 出错,出错信息{e}")
-        __main__.SAVE_OK_SIGNAL = False
+
 
 
 def update_company_sheet(self,main_workbook, product_name ,company_name, amount):
@@ -459,9 +516,8 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
             sheet = main_workbook.sheets[f"{single_name} "]
             print(f"Notice: 在主表中找到入库类型名为 `{single_name} ` 的sheet")
         else:
-            print(f"Error: 未在主表中找到入库类型名为 `{single_name}` 的sheet,可能存在空字符,已跳过写入指定入库类型 sheet 中步骤")
+            print(f"Error: 将数据写入指定的入库类型sheet中时未在主表中找到入库类型名为 `{single_name}` 的sheet")
             #QMessageBox.warning(None, "警告", f"未在主表中找到入库类型名为 `{single_name}` 的sheet,可能存在空字符,已跳过写入指定入库类型 sheet 中步骤")
-
             return
 
         
@@ -703,7 +759,8 @@ def update_receipt_storage_sheet(self,main_workbook, product_name,single_name, c
         sheet = main_workbook.sheets["收发存表皮"]
         print(f"Notice: 找到入库类型名为 `收发存表皮` 的sheet")
     else:
-        print(f"Error: 未找到入库类型名为 `收发存表皮` 的sheet,可能存在空字符")
+        __main__.SAVE_OK_SIGNAL = False
+        print(f"Error: 更新收发存表皮表数据时，未在主表找到名为 `收发存表皮` 的sheet,可能存在空字符")
         return
 
     # 提取输入数据的单名信息和类别信息进行行索引词匹配
@@ -729,7 +786,8 @@ def update_receipt_storage_sheet(self,main_workbook, product_name,single_name, c
         else:
             print("\nError: 场调面食入库 未找到类别信息，请检查输入数据\n")
     else:
-        print(f"\nError: 未找到入库类型名为 {single_name} 的sheet,可能存在空字符,已跳过写入\n")
+        __main__.SAVE_OK_SIGNAL = False
+        print(f"Error: 在更新收发存表皮时规则为匹配到表名 `{single_name}` ,可能存在空字符,已跳过写入")
         return
 
     # 调用Excel API用行索引名匹配行索引
@@ -777,7 +835,8 @@ def update_main_food_detail_sheet(self,product_name,main_workbook, single_name, 
         sheet = main_workbook.sheets["主副食品明细账"]
         print(f"Notice: 找到入库类型名为 `主副食品明细账` 的sheet")
     else:
-        print(f"Error: 未找到入库类型名为 `主副食品明细账` 的sheet,可能存在空字符")
+        __main__.SAVE_OK_SIGNAL = False
+        print(f"Error: 更新主副食品明细账时未在主表找名为 `主副食品明细账` 的sheet,可能存在空字符")
         return
 
     # 提取输入数据的单名信息和类别信息进行行列索引词匹配
@@ -798,7 +857,8 @@ def update_main_food_detail_sheet(self,product_name,main_workbook, single_name, 
             print(f"Error: 查找 '自购主食入库' sheet时未找到对应的类别信息，请检查类别")
             return
     else:
-        print(f"\nError: 未找到入库类型名为 `自购主食入库等` 的sheet,可能存在空字符\n")
+        __main__.SAVE_OK_SIGNAL = False
+        print(f"Error: 更新主副食品明细账时未在主表找名为 `{single_name}` 的sheet,可能存在空字符")
         return
 
     # 调用Excel API 进行行索引名匹配
@@ -849,19 +909,28 @@ def update_sub_tables(self,sub_main_food_excel_file_path, sub_auxiliary_food_exc
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
-    if not __main__.MODE:
-        print(f"Notice: 入库更新子表,MODE 值为{__main__.MODE}")
-        # 在子表主食表中更新信息
-        update_sub_main_food_sheet(sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-        # 在子表副食表中更新信息
-        update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-    else:
-        print(f"Notice: 出库更新子表,MODE 值为{__main__.MODE}")
-        # 在子表主食表中更新信息
-        export_update_sub_main_food_sheet(sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-        # 在子表副食表中更新信息
-        export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
 
+    
+    if not __main__.MODE:
+        try:
+            print(f"\n\n\nNotice: 入库更新子表")
+            # 在子表主食表中更新信息
+            update_sub_main_food_sheet(sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+            # 在子表副食表中更新信息
+            update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+        except Exception as e:
+
+            print(f"Error: 更新子表主食表或副食表出错 {e}")
+
+    else:
+        try:
+            print(f"\n\n\nNotice: 出库更新子表")
+            # 在子表主食表中更新信息
+            export_update_sub_main_food_sheet(sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+            # 在子表副食表中更新信息
+            export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+        except Exception as e:
+            print(f"Error: 输出子表主食表或副食表出错 {e}")
 
 def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
@@ -876,7 +945,7 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
         try:
             # 打开主工作簿对象
             main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-            print(f"Notice: 子表副食表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
+            print(f"\nNotice: 子表副食表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
             
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -1153,6 +1222,7 @@ def update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storag
                 main_workbook = app.books.open(welfare_food_excel_file_path)
                 print(f"Notice: 福利表表加载成功，文件路径: {welfare_food_excel_file_path}")
             except Exception as e:
+                __main__.SAVE_OK_SIGNAL = False
                 print(f"Error: {e}")
                 return    
 
@@ -1283,8 +1353,10 @@ def update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storag
                                         print(f"Notice: 在福利表表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
 
                                 except KeyError:
+                                    __main__.SAVE_OK_SIGNAL = False
                                     print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
                     except Exception as e:
+                        __main__.SAVE_OK_SIGNAL = False
                         print(f"Error: 出库时写入数据时发生错误 {e}")
                 else:
                     print("Notice: 正在出库")
@@ -1293,6 +1365,7 @@ def update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storag
                         sheet = main_workbook.sheets["过年福利出 (2)"]
                         print(f"Notice: 找到入库类型名为 `过年福利出 (2)` 的sheet")
                     else:
+                        __main__.SAVE_OK_SIGNAL = False
                         print(f"Error: 未找到入库类型名为 `过年福利出 (2)` 的sheet,可能存在空字符")
                         return
                             
@@ -1387,8 +1460,10 @@ def update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storag
                                         print(f"Notice: 在福利表表为出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
 
                                 except KeyError:
+                                    __main__.SAVE_OK_SIGNAL = False
                                     print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
                     except Exception as e:
+                        __main__.SAVE_OK_SIGNAL = False
                         print(f"Error: 出库时写入数据时发生错误 {e}")
                 
 
@@ -1798,7 +1873,7 @@ def export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, r
         try:
             # 打开主工作簿对象
             main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-            print(f"Notice: 子表副食表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
+            print(f"\nNotice: 子表副食表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
             
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -1921,16 +1996,21 @@ def export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, r
 def add_day_month_summary(self, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_excel_file_path):
     if (not __main__.ADD_DAY_SUMMARY) and (not __main__.ADD_MONTH_SUMMARY):
         return
-    if __main__.ONLY_WELFARE_TABLE == False:
-        #添加主表
-        summary_main_table(self, main_excel_file_path)
-        #添加子表主食表, wjwcj: 2025/05/13 12:43 测试没问题
-        summary_sub_main_table(self, sub_main_food_excel_file_path)
-        #添加子表副食表, wjwcj: 2025/05/13 12:43 测试没问题
-        summary_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path)
-    else:
-        #添加福利表
-        summary_welfare_table(self,welfare_excel_file_path)
+
+    try:
+        if __main__.ONLY_WELFARE_TABLE == False:
+            #添加主表
+            summary_main_table(self, main_excel_file_path)
+            #添加子表主食表, wjwcj: 2025/05/13 12:43 测试没问题
+            summary_sub_main_table(self, sub_main_food_excel_file_path)
+            #添加子表副食表, wjwcj: 2025/05/13 12:43 测试没问题
+            summary_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path)
+        else:
+            #添加福利表
+            summary_welfare_table(self,welfare_excel_file_path)
+
+    except Exception as e:
+        print(f"Error:添加日记月记出错 {e}")
 
 def summary_main_table(self, main_excel_file_path):
     """

@@ -98,8 +98,8 @@ def manual_temp_storage(self,input_fields):
 
             "重置输入框提示文本为上一次的输入"
             self.line1Right.setPlaceholderText(input_fields['日期'])
-            self.line2Right.setPlaceholderText(input_fields['品名'])
-            self.line3Right.setPlaceholderText(input_fields['类别'])
+            self.line3Right.setPlaceholderText(input_fields['品名'])
+            self.line2Right.setPlaceholderText(input_fields['类别'])
             self.line8Right.setPlaceholderText(input_fields['单位'])
             self.line7Right.setPlaceholderText(input_fields['单价'])
             self.line6Right.setPlaceholderText(input_fields['数量'])

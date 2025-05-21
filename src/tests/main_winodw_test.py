@@ -124,8 +124,6 @@ class Worker(QObject):
         elif message == "tables_updated_filed":
             #所有表格更新失败
             self.tables_updated_filed()
-        elif message == 'list_updated_filed':
-            self.list_updated_filed(list_name)
 
     def data_writing_finished(self):
         """
@@ -152,14 +150,7 @@ class Worker(QObject):
         """
         self.reply = QMessageBox.information(None, "提示", "表格更新失败,本次提交取消，请重新进行输入检查", QMessageBox.Ok | QMessageBox.Cancel)
 
-    def list_updated_filed(self,list_name):
-        """
-        列表条目更新失败提醒
-        :param: self
-        :return: None
-        """
-        self.reply = QMessageBox.information(None, "提示", f"{list_name}条目入库/出库出现问题,已跳过自动入库，请稍后手动入库", QMessageBox.Ok | QMessageBox.Cancel)
-        
+
 
 
 class Ui_Form(object):
@@ -717,10 +708,13 @@ class Ui_Form(object):
         """
         # 定义输入框的字典
 
+        
+        
+        
         input_fields = {
             "日期": self.line1Right.text(),
-            "类别": self.line3Right.text(),
-            "品名": self.line2Right.text(),
+            "类别": self.line2Right.text(),
+            "品名": self.line3Right.text(),
             "单位": self.line8Right.text(),
             "单价": self.line7Right.text(),
             "数量": self.line6Right.text(),
@@ -1171,10 +1165,18 @@ class Ui_Form(object):
         except Exception as e:
             print(f"Error in reimport_excel_data: 创建备份文件夹出错,错误信息为: {e}")
         
+
+        # 将 work 文件下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 main 目录
+        try:
+            shutil.copytree("./src/data/storage/work", "./src/data/storage/main",dirs_exist_ok=True)
+            print("Notice:文件已从 ./src/data/storage/work  复制到 ./src/data/storage/main 目录")
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 将主表文件复制到 main 目录出错,错误信息为: {e}")
+
         # 将 main 目录下的 主表文件夹、子表文件夹拷贝到 backup_path 目录
         try:
             shutil.copytree("./src/data/storage/main", backup_path, dirs_exist_ok=True)
-            print("Notice:备份文件已从 ./src/data/storage/main  复制到 backup_path 目录")
+            print("Notice:文件已从 ./src/data/storage/main  复制到 backup_path 目录")
             QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
         except Exception as e:
             print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
