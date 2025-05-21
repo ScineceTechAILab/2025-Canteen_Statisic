@@ -249,7 +249,13 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         self.pushButton_5.setText("提交数据")
         # 调用弹窗显示保存完成信息，终端同步显示信息
         print(f"Notice: 文件读取保存工作完成")
-        self.worker.done.emit("tables_updated")  # 比如写完数据后调用
+
+        if __main__.SAVE_OK_SIGNAL:
+            # 调用弹窗显示保存完成信息，终端同步显示信息
+            print(f"Notice: 主子表文件读取保存工作完成")
+            self.worker.done.emit("tables_updated")  # 比如写完数据后调用
+        else:
+            print(f"Error: 主子表文件读取保存工作失败")
 
 
 
@@ -777,8 +783,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                 if not __main__.MODE:
                     print(f"\n\nNotice: 品名{product_name}正在入库")
                     # 更新指定公司sheet中的金额数据
-                    # 这个好像只在入库的时候用到
-                    update_company_sheet(main_workbook, company_name, amount)
+                    update_company_sheet(main_workbook, company_name, amount) # 只在入库的时候用到
                     # 更新入库相关表中的条目信息
                     updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
                     # 更新食品收发库存表中的条目信息
@@ -789,8 +794,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                     update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
                 else:
                     print(f"\n\nNotice: 品名{product_name}正在出库")
-                    #搞定
-                    #此函数不带"export"头，没打错
+                    # 此函数不带"export"头，没打错
                     updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
                     #搞定
                     export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
@@ -924,8 +928,9 @@ def update_company_sheet(main_workbook, company_name, amount):
             
             amount = float(amount)
         except Exception:
-            print(f"Error: 公司 Sheet 的传入金额数据格式错误，请检查输入金额是否正确")
+            print(f"Error: 公司 Sheet 的传入金额数据格式错误，请检查输入金额是否正确，已跳过公司金额数据的写入")
             amount = 0
+            return
 
         # 计算新值
         if isinstance(current_value, (int, float)):
@@ -951,7 +956,7 @@ def update_company_sheet(main_workbook, company_name, amount):
 
 
     except Exception: # KeyError 会造成直接退出该函数步骤
-        print(f"Warning: 未找到公司名为 {company_name} 的sheet,已跳过公司Sheet写入")
+        print(f"Warning: 更新指定公司 {company_name} Sheet 失败")
 
 def updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name):
     """
