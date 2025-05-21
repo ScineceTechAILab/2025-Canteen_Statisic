@@ -238,9 +238,10 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         if __main__.SAVE_OK_SIGNAL:
             # 调用弹窗显示保存完成信息，终端同步显示信息
             print(f"Notice: 主子表文件读取保存工作完成")
-            self.worker.done.emit("tables_updated")  # 比如写完数据后调用
+            self.worker.done.emit("tables_updated","None")  # 比如写完数据后调用
         else:
             print(f"Error: 主子表文件读取保存工作失败，有条目未识别")
+            self.worker.done.emit("tables_updated_filed","None")  # 比如写完数据后调用
 
     else:
         # 在福利表中更新信息
@@ -255,9 +256,10 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         if __main__.SAVE_OK_SIGNAL:
             # 调用弹窗显示保存完成信息，终端同步显示信息
             print(f"Notice: 主子表文件读取保存工作完成")
-            self.worker.done.emit("tables_updated")  # 比如写完数据后调用
+            self.worker.done.emit("tables_updated","None")  # 比如写完数据后调用
         else:
             print(f"Error: 主子表文件读取保存工作失败")
+            self.worker.done.emit("tables_updated_filed","None")  # 比如写完数据后调用
 
 
 def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
@@ -280,6 +282,8 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
             except Exception as e:
                 print(f"Error: {e}")
                 return    
+
+
 
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -309,28 +313,34 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                 # 获取行中单名称列单元中单名数据
                 single_name = row_data[header_index["单名"]]
 
-                if not __main__.MODE:
-                    print(f"\n\nNotice: 品名{product_name}正在入库")
-                    # 更新指定公司sheet中的金额数据
-                    update_company_sheet(self,main_workbook,product_name ,company_name, amount) # 只在入库的时候用到
-                    # 更新入库相关表中的条目信息
-                    updata_import_sheet(self,main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name)
-                    # 更新食品收发库存表中的条目信息
-                    update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity, price, amount, remark)
-                    # 更新收发存表皮中的条目信息
-                    update_receipt_storage_sheet(self,main_workbook, product_name,single_name, category_name, amount)
-                    # 更新主副食明细账中的条目信息
-                    update_main_food_detail_sheet(self,main_workbook, product_name,single_name, category_name, amount)
-                else:
-                    print(f"\n\nNotice: 品名{product_name}正在出库")
-                    # 此函数不带"export"头，没打错
-                    updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
-                    #搞定
-                    export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
-                    #搞定
-                    export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
-                    #搞定
-                    export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
+                try:
+                    if not __main__.MODE:
+                        print(f"\n\nNotice: 品名{product_name}正在入库")
+                        # 更新指定公司sheet中的金额数据
+                        update_company_sheet(self,main_workbook,product_name ,company_name, amount) # 只在入库的时候用到
+                        # 更新入库相关表中的条目信息
+                        updata_import_sheet(self,main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name)
+                        # 更新食品收发库存表中的条目信息
+                        update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity, price, amount, remark)
+                        # 更新收发存表皮中的条目信息
+                        update_receipt_storage_sheet(self,main_workbook, product_name,single_name, category_name, amount)
+                        # 更新主副食明细账中的条目信息
+                        update_main_food_detail_sheet(self,main_workbook, product_name,single_name, category_name, amount)
+                    else:
+                        print(f"\n\nNotice: 品名{product_name}正在出库")
+                        # 此函数不带"export"头，没打错
+                        updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
+                        #搞定
+                        export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
+                        #搞定
+                        export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
+                        #搞定
+                        export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
+
+                except Exception as e:
+                    print(f"Error: 条目{product_name}入库\出库更新数据时出错，跳过该条目 {e}")
+                    self.worker.done.emit("list_updated_filed",product_name)
+                    continue
 
 
             try:
@@ -383,8 +393,6 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
         except Exception:
             print(f"Error: 公司 Sheet 的传入金额数据格式错误，请检查输入金额是否正确，已跳过公司金额数据的写入")
             amount = 0
-            # 弹窗提示条目入库出现问题，该条目入库跳过更新主副食品明细账步骤
-            self.worker.done.emit("list_updated_filed",product_name)
             return
 
 
@@ -401,7 +409,7 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
             print("Notice: 公司金额当前值", current_value, "新值", new_value)
         except Exception as e:
             print(f"Error: 更新公司 Sheet 金额数据中计算新值步骤出错 {e}，已跳过公司金额数据的写入")
-            self.worker.done.emit("list_updated_filed",product_name)
+            
             return
 
         "写入新值"
@@ -415,7 +423,7 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
             print(f"Notice: 在公司名为 {company_name} 的sheet中更新金额数据成功, 新值为 {new_value_chinese}")
         except Exception as e:
             print(f"Error: 更新公司 Sheet 金额数据中写入新值步骤出错 {e}，已跳过公司金额数据的写入")
-            self.worker.done.emit("list_updated_filed",product_name)
+        
             return
         
     except Exception as e: # KeyError 会造成直接退出该函数步骤
@@ -453,9 +461,7 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
         else:
             print(f"Error: 未在主表中找到入库类型名为 `{single_name}` 的sheet,可能存在空字符,已跳过写入指定入库类型 sheet 中步骤")
             #QMessageBox.warning(None, "警告", f"未在主表中找到入库类型名为 `{single_name}` 的sheet,可能存在空字符,已跳过写入指定入库类型 sheet 中步骤")
-            
-            # 弹窗提示条目入库出现问题，该条目入库跳过更新将数据写入指定的入库类型步骤
-            self.worker.done.emit("list_updated_filed",product_name)
+
             return
 
         
@@ -558,7 +564,7 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
             print(f"Error: 写入主表时出错 {e}")
 
     except Exception:
-        print(f"Warning: 未找到入库类型名为 {single_name} 的sheet,已跳过将数据写入指定的入库类型sheet中")
+        print(f"Warning: 将数据写入指定的入库类型 `{single_name}` sheet发生错误,已跳过将数据写入指定的入库类型sheet中")
 
 
 
@@ -581,7 +587,6 @@ def update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity
     else:
         print(f"Error: 未找到出库类型名为 `食堂物品收发存库存表` 的sheet,可能存在空字符")
         # 弹窗提示条目入库出现问题，该条目入库跳过更新更新或添加数据到食堂物品收发存库存表这一步骤
-        self.worker.done.emit("list_updated_filed",product_name)
         return
         
 
@@ -599,8 +604,6 @@ def update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity
                     break
             if row_index is None:
                 print(f"Error: 在表 食堂物品收发存库存表 未找到名称为 {product_name} 的行")
-                 # 弹窗提示条目入库出现问题，该条目入库跳过更新更新或添加数据到食堂物品收发存库存表这一步骤
-                self.worker.done.emit("list_updated_filed",product_name)
                 return
             print(f"Notice: 在表 食堂物品收发存库存表 找到名称为 {product_name} 的行,行号为{row_index}")
 
@@ -619,8 +622,6 @@ def update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity
                 amount = float(amount)
             except:
                 print(f"Error: quantity、price、amount的值必须为数值")
-                # 弹窗提示条目入库出现问题，该条目入库跳过更新更新或添加数据到食堂物品收发存库存表这一步骤
-                self.worker.done.emit("list_updated_filed",product_name)
                 return
             
             if isinstance(quantity, (int, float)) and isinstance(price, (int, float)) and isinstance(amount, (int, float)):
@@ -641,8 +642,7 @@ def update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity
 
                 print(f"Notice: 在表 食堂物品收发存库存表 更新行信息 数量、单价、金额 的列,行号为{row_index}")
             else:
-                # 弹窗提示条目入库出现问题，该条目入库跳过更新更新或添加数据到食堂物品收发存库存表这一步骤
-                self.worker.done.emit("list_updated_filed",product_name)
+
                 print(f"Error: quantity、price、amount的值必须为数值")
                 return
         else:
@@ -672,8 +672,7 @@ def update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity
                 price = float(price)
                 amount = float(amount)
             except ValueError:
-                # 弹窗提示条目入库出现问题，该条目入库跳过更新更新或添加数据到食堂物品收发存库存表这一步骤
-                self.worker.done.emit("list_updated_filed",product_name)
+
                 print(f"Error: quantity、price、amount的值必须为数值")
                 return
 
@@ -800,8 +799,6 @@ def update_main_food_detail_sheet(self,product_name,main_workbook, single_name, 
             return
     else:
         print(f"\nError: 未找到入库类型名为 `自购主食入库等` 的sheet,可能存在空字符\n")
-        # 弹窗提示条目入库出现问题，该条目入库跳过更新主副食品明细账步骤
-        self.worker.done.emit("list_updated_filed",product_name)
         return
 
     # 调用Excel API 进行行索引名匹配
@@ -879,7 +876,7 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
         try:
             # 打开主工作簿对象
             main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-            print(f"Notice: 子工作表(副食)加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
+            print(f"Notice: 子表副食表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
             
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -1011,7 +1008,7 @@ def update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_storage
         try:
             # 打开主工作簿对象
             main_workbook = app.books.open(_sub_main_food_excel_file_path)
-            print(f"Notice: 子主食表加载成功，文件路径: {_sub_main_food_excel_file_path}")
+            print(f"Notice: 子表主食表加载成功，文件路径: {_sub_main_food_excel_file_path}")
             
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -1662,7 +1659,7 @@ def export_update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_
         try:
             # 打开主工作簿对象
             main_workbook = app.books.open(_sub_main_food_excel_file_path)
-            print(f"Notice: 子主食表加载成功，文件路径: {_sub_main_food_excel_file_path}")
+            print(f"Notice: 子表主食表加载成功，文件路径: {_sub_main_food_excel_file_path}")
             
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -1801,7 +1798,7 @@ def export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, r
         try:
             # 打开主工作簿对象
             main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-            print(f"Notice: 子工作表(副食)加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
+            print(f"Notice: 子表副食表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
             
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):

@@ -108,7 +108,7 @@ class Worker(QObject):
     下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
     此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
     """
-    done = Signal(str)  # 定义一个带字符串参数的信号
+    done = Signal(str,str)  # 定义一个带字符串参数的信号
 
     def show(self, message,list_name):
         """
@@ -121,6 +121,9 @@ class Worker(QObject):
         elif message == "tables_updated":
             #所有表格更新完成
             self.data_writing_finished()
+        elif message == "tables_updated_filed":
+            #所有表格更新失败
+            self.tables_updated_filed()
         elif message == 'list_updated_filed':
             self.list_updated_filed(list_name)
 
@@ -140,6 +143,15 @@ class Worker(QObject):
                 subprocess.Popen(['open', folder_path])
             else:
                 subprocess.Popen(['xdg-open', folder_path])
+
+    def tables_updated_filed(self):
+        """
+        表格更新失败提醒
+        :param: self
+        :return: None
+        """
+        self.reply = QMessageBox.information(None, "提示", "表格更新失败,本次提交取消，请重新进行输入检查", QMessageBox.Ok | QMessageBox.Cancel)
+
     def list_updated_filed(self,list_name):
         """
         列表条目更新失败提醒
@@ -754,7 +766,21 @@ class Ui_Form(object):
             print("Notice: 自动切换为出库")
             MODE = 0
         
-        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        try:
+            # 动态获取 MAIN_WORK_EXCEL_PATH 下Excel表文件路径
+            main_workbook = None
+            files = [f for f in os.listdir(MAIN_WORK_EXCEL_PATH) if f.endswith('.xls')]
+
+            if len(files) == 1:
+                main_workbook = os.path.join(MAIN_WORK_EXCEL_PATH, files[0])
+            else:
+                raise ValueError("Error: 目录中必须且仅能包含一个 .xls 文件")
+       
+        except Exception as e:
+            QMessageBox.information(None, "错误", "工作表不存在，请重新导入表格", QMessageBox.Ok)
+            print(f"Error: 手动提交数据出错 {e}")
+            return
+
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
         welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
@@ -929,7 +955,15 @@ class Ui_Form(object):
         self.pushButton_9.setText("正在提交")
 
         
-        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        # 动态获取 MAIN_WORK_EXCEL_PATH 下Excel表文件路径
+        main_workbook = None
+        files = [f for f in os.listdir(MAIN_WORK_EXCEL_PATH) if f.endswith('.xls')]
+
+        if len(files) == 1:
+            main_workbook = os.path.join(MAIN_WORK_EXCEL_PATH, files[0])
+        else:
+            raise ValueError("Error: 目录中必须且仅能包含一个 .xls 文件")
+        
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
         welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
