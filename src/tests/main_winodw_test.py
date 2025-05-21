@@ -110,7 +110,7 @@ class Worker(QObject):
     """
     done = Signal(str)  # 定义一个带字符串参数的信号
 
-    def show(self, message):
+    def show(self, message,list_name):
         """
         这个用来判断是哪个信号
         :param 信号来源，用来判断执行哪个弹窗函数
@@ -120,12 +120,13 @@ class Worker(QObject):
             img_excel_after_process(ui)
         elif message == "tables_updated":
             #所有表格更新完成
-            self.show_message()
+            self.data_writing_finished()
+        elif message == 'list_updated_filed':
+            self.list_updated_filed(list_name)
 
-
-    def show_message(self):
+    def data_writing_finished(self):
         """
-        显示消息框
+        显示数据写入完成消息框
         :param: self
         :return: None
         """
@@ -139,6 +140,14 @@ class Worker(QObject):
                 subprocess.Popen(['open', folder_path])
             else:
                 subprocess.Popen(['xdg-open', folder_path])
+    def list_updated_filed(self,list_name):
+        """
+        列表条目更新失败提醒
+        :param: self
+        :return: None
+        """
+        self.reply = QMessageBox.information(None, "提示", f"{list_name}条目入库/出库出现问题,已跳过自动入库，请稍后手动入库", QMessageBox.Ok | QMessageBox.Cancel)
+        
 
 
 class Ui_Form(object):
@@ -733,6 +742,7 @@ class Ui_Form(object):
         if self.pushButton_5.text() == "正在提交":
             return
         self.pushButton_5.setText("正在提交")
+        
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
         
         print("Notice:当前模式", modeText, str(MODE))
@@ -912,6 +922,12 @@ class Ui_Form(object):
         """
         global MODE
         print("Notice:当前模式代码(0:入库/1:出库)", str(MODE))
+
+        
+        if self.pushButton_9.text() == "正在提交":
+            return
+        self.pushButton_9.setText("正在提交")
+
         
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
