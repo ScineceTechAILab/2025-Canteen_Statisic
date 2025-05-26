@@ -610,16 +610,16 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        # self.line1Right.setText("2025-05-20")      # 日期
-        # self.line2Right.setText("主食")            # 类别
-        # self.line3Right.setText("大米")            # 品名
+        # self.line1Right.setText("2025-05-26")      # 日期
+        # self.line2Right.setText("副食")            # 类别 只能填写主食/副食
+        # self.line3Right.setText("大米")            # 品名 要匹配子表主食表/子表副食表中的菜品单名
         # self.line4Right.setText("备注")            # 备注
-        # self.line5Right.setText("891")             # 金额
-        # self.line6Right.setText("891")             # 数量
-        # self.line7Right.setText("1")               # 单价
+        # self.line5Right.setText("124.41")             # 金额
+        # self.line6Right.setText("33")             # 数量
+        # self.line7Right.setText("3.77")               # 单价
         # self.line8Right.setText("斤")              # 单位
-        # self.line9Right.setText("嘉亿格")           # 公司
-        # self.line10Right.setText("食堂主食出库")    # 单名
+        # self.line9Right.setText("四季常青")           # 公司 要匹配主表中的公司表单名
+        # self.line10Right.setText("食堂副食入库")    # 单名  要匹配主表中相应入库类型单名
 
     # retranslateUi
 
@@ -1314,11 +1314,18 @@ def restore_backup(self,objectname):
     # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
     try:
         shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
-        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
+        print(f"Notice:备份文件已从 {path}  复制到 main 目录")
         QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
     except Exception as e:
-        print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
+        print(f"Error in reimport_excel_data: 将主表文件复制到 main 目录出错,错误信息为: {e}")
         QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
+    # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 work 目录
+    try:
+        shutil.copytree( path,"./src/data/storage/work", dirs_exist_ok=True)
+        print(f"Notice:备份文件已从 {path}  复制到 work 目录")
+        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
+    except Exception as e:
+        print(f"Error in reimport_excel_data: 将主表文件复制到 work 目录出错,错误信息为: {e}")
 
 def delete_backup(self,objectname):
     folder_name = objectname

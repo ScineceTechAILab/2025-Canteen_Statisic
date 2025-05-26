@@ -1366,11 +1366,19 @@ def restore_backup(self,objectname):
     # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
     try:
         shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
-        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
+        print(f"Notice:备份文件已从 {path}  复制到 main 目录")
         QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
     except Exception as e:
-        print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
+        print(f"Error in reimport_excel_data: 将主表文件复制到 main 目录出错,错误信息为: {e}")
         QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
+    # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 work 目录
+    try:
+        shutil.copytree( path,"./src/data/storage/work", dirs_exist_ok=True)
+        print(f"Notice:备份文件已从 {path}  复制到 work 目录")
+        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
+    except Exception as e:
+        print(f"Error in reimport_excel_data: 将主表文件复制到 work 目录出错,错误信息为: {e}")
+
 
 def delete_backup(self,objectname):
     folder_name = objectname
