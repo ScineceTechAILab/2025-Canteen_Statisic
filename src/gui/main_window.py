@@ -757,12 +757,13 @@ class Ui_Form(object):
 
         main_workbook =MAIN_WORK_EXCEL_PATH +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
         sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
-        sub_auxiliary_food_workbook = ""
         sub_main_food_workbook = ""
+        sub_auxiliary_food_workbook = ""
+        # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
         for i in sub_main_file_path:
-            if "主" in i:
+            if "主食" in i:
                 sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
-            elif "副" in i:
+            elif "副食" in i:
                 sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + i
         
         welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
@@ -948,10 +949,11 @@ class Ui_Form(object):
         sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
         sub_auxiliary_food_workbook = ""
         sub_main_food_workbook = ""
+         # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
         for i in sub_main_file_path:
-            if "主" in i:
+            if "主食" in i:
                 sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
-            elif "副" in i:
+            elif "副食" in i:
                 sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + i
         
         welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
