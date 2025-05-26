@@ -17,7 +17,7 @@ import multiprocessing
 import subprocess
 import time
 import xlwings as xw
-
+import PySide6
 from PySide6.QtWidgets import QMessageBox
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
@@ -33,6 +33,10 @@ from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, Q
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
     QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
 
+# 设置Qt插件路径以确保PySide6正常运行，避免打包到客户平台发生 qt.qpa.plugin: could not find the Qt Platform Plugin "windows" 的报错
+dirname = os.path.dirname(PySide6.__file__)                  # 获取当前文件所在目录
+plugin_path = os.path.join(dirname, 'plugins', 'platforms')  # 拼接插件路径
+os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path      # 设置环境变量
 
 # 获取当前文件的绝对路径
 current_file_path = os.path.abspath(__file__) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -610,16 +614,16 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        # self.line1Right.setText("2025-05-26")      # 日期
-        # self.line2Right.setText("副食")            # 类别 只能填写主食/副食
-        # self.line3Right.setText("大米")            # 品名 要匹配子表主食表/子表副食表中的菜品单名
-        # self.line4Right.setText("备注")            # 备注
-        # self.line5Right.setText("124.41")             # 金额
-        # self.line6Right.setText("33")             # 数量
-        # self.line7Right.setText("3.77")               # 单价
-        # self.line8Right.setText("斤")              # 单位
-        # self.line9Right.setText("四季常青")           # 公司 要匹配主表中的公司表单名
-        # self.line10Right.setText("食堂副食入库")    # 单名  要匹配主表中相应入库类型单名
+        self.line1Right.setText("2025-05-26")      # 日期
+        self.line2Right.setText("副食")            # 类别 只能填写主食/副食
+        self.line3Right.setText("鸡蛋")            # 品名 要匹配子表主食表/子表副食表中的菜品单名
+        self.line4Right.setText("备注")            # 备注
+        self.line5Right.setText("124.41")             # 金额
+        self.line6Right.setText("33")             # 数量
+        self.line7Right.setText("3.77")               # 单价
+        self.line8Right.setText("斤")              # 单位
+        self.line9Right.setText("四季常青")           # 公司 要匹配主表中的公司表单名
+        self.line10Right.setText("食堂副食入库")    # 单名  要匹配主表中相应入库类型单名
 
     # retranslateUi
 
@@ -743,11 +747,31 @@ class Ui_Form(object):
         elif "出库" in modeText and MODE == 0:
             print("Notice: 自动切换为出库")
             MODE = 0
+
+        # 动态获取主表、子表、福利表的相对文件路径
+        MIAN_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/主表"
+        SUB_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/子表"
+        WELFARE_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/福利表"
         
-        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
-        sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
-        sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
+        # 获取主表、子表主食表、子表副食表、福利表的文件路径
+
+        main_workbook =MAIN_WORK_EXCEL_PATH +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
+        sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
+        sub_auxiliary_food_workbook = ""
+        sub_main_food_workbook = ""
+        for i in sub_main_file_path:
+            if "主" in i:
+                sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
+            elif "副" in i:
+                sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + i
+        
+        welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
+
+        
+        # main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        # sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        # sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        # welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
         model = "manual"
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
@@ -913,10 +937,30 @@ class Ui_Form(object):
         global MODE
         print("Notice:当前模式代码(0:入库/1:出库)", str(MODE))
         
-        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
-        sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
-        sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
+        # 动态获取main目录下主食表、子表主食表、子表副食表、福利表文件夹相对地址
+        
+        MIAN_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/主表"
+        SUB_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/子表"
+        WELFARE_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/福利表"
+        
+        # 获取主表、子表主食表、子表副食表、福利表的文件路径
+        main_workbook =MAIN_WORK_EXCEL_PATH + [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
+        sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
+        sub_auxiliary_food_workbook = ""
+        sub_main_food_workbook = ""
+        for i in sub_main_file_path:
+            if "主" in i:
+                sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
+            elif "副" in i:
+                sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + i
+        
+        welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
+
+        # main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        # sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        # sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        # welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
+        
         model = 'photo'
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
