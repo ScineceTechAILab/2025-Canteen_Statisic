@@ -768,11 +768,6 @@ class Ui_Form(object):
         
         welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
 
-        
-        # main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
-        # sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
-        # sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        # welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
         model = "manual"
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
@@ -958,11 +953,6 @@ class Ui_Form(object):
         
         welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
 
-        # main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
-        # sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
-        # sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        # welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
-        
         model = 'photo'
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
