@@ -17,7 +17,7 @@ import multiprocessing
 import subprocess
 import time
 import xlwings as xw
-
+import PySide6
 from PySide6.QtWidgets import QMessageBox
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
@@ -33,6 +33,10 @@ from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, Q
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
     QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
 
+# 设置Qt插件路径以确保PySide6正常运行，避免打包到客户平台发生 qt.qpa.plugin: could not find the Qt Platform Plugin "windows" 的报错
+dirname = os.path.dirname(PySide6.__file__)                  # 获取当前文件所在目录
+plugin_path = os.path.join(dirname, 'plugins', 'platforms')  # 拼接插件路径
+os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path      # 设置环境变量
 
 # 获取当前文件的绝对路径
 current_file_path = os.path.abspath(__file__) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -622,16 +626,16 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        # self.line1Right.setText("2025-05-20")      # 日期
-        # self.line2Right.setText("主食")            # 类别
-        # self.line3Right.setText("大米")            # 品名
-        # self.line4Right.setText("备注")            # 备注
-        # self.line5Right.setText("891")             # 金额
-        # self.line6Right.setText("891")             # 数量
-        # self.line7Right.setText("1")               # 单价
-        # self.line8Right.setText("斤")              # 单位
-        # self.line9Right.setText("嘉亿格")           # 公司
-        # self.line10Right.setText("食堂主食出库")    # 单名
+        self.line1Right.setText("2025-05-26")      # 日期
+        self.line2Right.setText("副食")            # 类别 只能填写主食/副食
+        self.line3Right.setText("鸡蛋")            # 品名 要匹配子表主食表/子表副食表中的菜品单名
+        self.line4Right.setText("备注")            # 备注
+        self.line5Right.setText("124.41")             # 金额
+        self.line6Right.setText("33")             # 数量
+        self.line7Right.setText("3.77")               # 单价
+        self.line8Right.setText("斤")              # 单位
+        self.line9Right.setText("四季常青")           # 公司 要匹配主表中的公司表单名
+        self.line10Right.setText("食堂副食入库")    # 单名  要匹配主表中相应入库类型单名
 
     # retranslateUi
 
@@ -759,25 +763,32 @@ class Ui_Form(object):
         elif "出库" in modeText and MODE == 0:
             print("Notice: 自动切换为出库")
             MODE = 0
+
+        # 动态获取主表、子表、福利表的相对文件路径
+        MIAN_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/主表"
+        SUB_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/子表"
+        WELFARE_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/福利表"
         
-        try:
-            # 动态获取 MAIN_WORK_EXCEL_PATH 下Excel表文件路径
-            main_workbook = None
-            files = [f for f in os.listdir(MAIN_WORK_EXCEL_PATH) if f.endswith('.xls')]
+        # 获取主表、子表主食表、子表副食表、福利表的文件路径
 
-            if len(files) == 1:
-                main_workbook = os.path.join(MAIN_WORK_EXCEL_PATH, files[0])
-            else:
-                raise ValueError("Error: 目录中必须且仅能包含一个 .xls 文件")
-       
-        except Exception as e:
-            QMessageBox.information(None, "错误", "工作表不存在，请重新导入表格", QMessageBox.Ok)
-            print(f"Error: 手动提交数据出错 {e}")
-            return
+        main_workbook =MAIN_WORK_EXCEL_PATH +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
+        sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
+        sub_main_food_workbook = ""
+        sub_auxiliary_food_workbook = ""
+        # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
+        for i in sub_main_file_path:
+            if "主食" in i:
+                sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
+            elif "副食" in i:
+                sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + i
+        
+        welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
 
-        sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
-        sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
+        
+        # main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        # sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        # sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        # welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
         model = "manual"
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
@@ -942,25 +953,32 @@ class Ui_Form(object):
         """
         global MODE
         print("Notice:当前模式代码(0:入库/1:出库)", str(MODE))
-
         
-        if self.pushButton_9.text() == "正在提交":
-            return
-        self.pushButton_9.setText("正在提交")
-
+        # 动态获取main目录下主食表、子表主食表、子表副食表、福利表文件夹相对地址
         
-        # 动态获取 MAIN_WORK_EXCEL_PATH 下Excel表文件路径
-        main_workbook = None
-        files = [f for f in os.listdir(MAIN_WORK_EXCEL_PATH) if f.endswith('.xls')]
-
-        if len(files) == 1:
-            main_workbook = os.path.join(MAIN_WORK_EXCEL_PATH, files[0])
-        else:
-            raise ValueError("Error: 目录中必须且仅能包含一个 .xls 文件")
+        MIAN_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/主表"
+        SUB_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/子表"
+        WELFARE_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/福利表"
         
-        sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
-        sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
+        # 获取主表、子表主食表、子表副食表、福利表的文件路径
+        main_workbook =MAIN_WORK_EXCEL_PATH + [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
+        sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
+        sub_auxiliary_food_workbook = ""
+        sub_main_food_workbook = ""
+         # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
+        for i in sub_main_file_path:
+            if "主食" in i:
+                sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
+            elif "副食" in i:
+                sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + i
+        
+        welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
+
+        # main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        # sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        # sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        # welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
+        
         model = 'photo'
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
@@ -1367,14 +1385,18 @@ def restore_backup(self,objectname):
     # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
     try:
         shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
-        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
-        shutil.copytree( path,"./src/data/storage/work", dirs_exist_ok=True)
-        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
-        QMessageBox.information(None, "提示", "数据已全部还原", QMessageBox.Ok)
+        print(f"Notice:备份文件已从 {path}  复制到 main 目录")
+        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
     except Exception as e:
-        print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
-        QMessageBox.information(None, "错误", "数据还原失败", QMessageBox.Ok)
-    
+        print(f"Error in reimport_excel_data: 将主表文件复制到 main 目录出错,错误信息为: {e}")
+        QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
+    # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 work 目录
+    try:
+        shutil.copytree( path,"./src/data/storage/work", dirs_exist_ok=True)
+        print(f"Notice:备份文件已从 {path}  复制到 work 目录")
+        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
+    except Exception as e:
+        print(f"Error in reimport_excel_data: 将主表文件复制到 work 目录出错,错误信息为: {e}")
 
 def delete_backup(self,objectname):
     folder_name = objectname
