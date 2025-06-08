@@ -108,9 +108,9 @@ class Worker(QObject):
     下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
     此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
     """
-    done = Signal(str)  # 定义一个带字符串参数的信号
+    done = Signal(str,str)  # 定义一个带字符串参数的信号
 
-    def show(self, message):
+    def show(self, message,list_name):
         """
         这个用来判断是哪个信号
         :param 信号来源，用来判断执行哪个弹窗函数
@@ -120,12 +120,14 @@ class Worker(QObject):
             img_excel_after_process(ui)
         elif message == "tables_updated":
             #所有表格更新完成
-            self.show_message()
+            self.data_writing_finished()
+        elif message == "tables_updated_filed":
+            #所有表格更新失败
+            self.tables_updated_filed()
 
-
-    def show_message(self):
+    def data_writing_finished(self):
         """
-        显示消息框
+        显示数据写入完成消息框
         :param: self
         :return: None
         """
@@ -139,6 +141,16 @@ class Worker(QObject):
                 subprocess.Popen(['open', folder_path])
             else:
                 subprocess.Popen(['xdg-open', folder_path])
+
+    def tables_updated_filed(self):
+        """
+        表格更新失败提醒
+        :param: self
+        :return: None
+        """
+        self.reply = QMessageBox.information(None, "提示", "表格更新失败,本次提交取消，请重新进行输入检查", QMessageBox.Ok | QMessageBox.Cancel)
+
+
 
 
 class Ui_Form(object):
@@ -696,10 +708,13 @@ class Ui_Form(object):
         """
         # 定义输入框的字典
 
+        
+        
+        
         input_fields = {
             "日期": self.line1Right.text(),
-            "类别": self.line3Right.text(),
-            "品名": self.line2Right.text(),
+            "类别": self.line2Right.text(),
+            "品名": self.line3Right.text(),
             "单位": self.line8Right.text(),
             "单价": self.line7Right.text(),
             "数量": self.line6Right.text(),
@@ -733,6 +748,7 @@ class Ui_Form(object):
         if self.pushButton_5.text() == "正在提交":
             return
         self.pushButton_5.setText("正在提交")
+        
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
         
         print("Notice:当前模式", modeText, str(MODE))
@@ -744,7 +760,21 @@ class Ui_Form(object):
             print("Notice: 自动切换为出库")
             MODE = 0
         
-        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        try:
+            # 动态获取 MAIN_WORK_EXCEL_PATH 下Excel表文件路径
+            main_workbook = None
+            files = [f for f in os.listdir(MAIN_WORK_EXCEL_PATH) if f.endswith('.xls')]
+
+            if len(files) == 1:
+                main_workbook = os.path.join(MAIN_WORK_EXCEL_PATH, files[0])
+            else:
+                raise ValueError("Error: 目录中必须且仅能包含一个 .xls 文件")
+       
+        except Exception as e:
+            QMessageBox.information(None, "错误", "工作表不存在，请重新导入表格", QMessageBox.Ok)
+            print(f"Error: 手动提交数据出错 {e}")
+            return
+
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
         welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
@@ -881,7 +911,7 @@ class Ui_Form(object):
                 # img_excel_after_process(self)
                 #修正识别结果数据
                 modify_data_in_image_excel(self)
-                self.worker.done.emit("image_finished")  # 比如写完数据后调用
+                self.worker.done.emit("image_finished","None")  # 比如写完数据后调用
 
         threading.Thread(target=run_in_background, daemon=True).start()
 
@@ -912,8 +942,22 @@ class Ui_Form(object):
         """
         global MODE
         print("Notice:当前模式代码(0:入库/1:出库)", str(MODE))
+
         
-        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        if self.pushButton_9.text() == "正在提交":
+            return
+        self.pushButton_9.setText("正在提交")
+
+        
+        # 动态获取 MAIN_WORK_EXCEL_PATH 下Excel表文件路径
+        main_workbook = None
+        files = [f for f in os.listdir(MAIN_WORK_EXCEL_PATH) if f.endswith('.xls')]
+
+        if len(files) == 1:
+            main_workbook = os.path.join(MAIN_WORK_EXCEL_PATH, files[0])
+        else:
+            raise ValueError("Error: 目录中必须且仅能包含一个 .xls 文件")
+        
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
         welfare_food_workbook = WELFARE_WORK_EXCEL_PATH + "704班2025年福利.xls"
@@ -1121,10 +1165,18 @@ class Ui_Form(object):
         except Exception as e:
             print(f"Error in reimport_excel_data: 创建备份文件夹出错,错误信息为: {e}")
         
+
+        # 将 work 文件下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 main 目录
+        try:
+            shutil.copytree("./src/data/storage/work", "./src/data/storage/main",dirs_exist_ok=True)
+            print("Notice:文件已从 ./src/data/storage/work  复制到 ./src/data/storage/main 目录")
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 将主表文件复制到 main 目录出错,错误信息为: {e}")
+
         # 将 main 目录下的 主表文件夹、子表文件夹拷贝到 backup_path 目录
         try:
             shutil.copytree("./src/data/storage/main", backup_path, dirs_exist_ok=True)
-            print("Notice:备份文件已从 ./src/data/storage/main  复制到 backup_path 目录")
+            print("Notice:文件已从 ./src/data/storage/main  复制到 backup_path 目录")
             QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
         except Exception as e:
             print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
@@ -1311,14 +1363,18 @@ def restore_backup(self,objectname):
     parent_object_name = objectname
     print(f"Notice:还原备份 {parent_object_name} 到 main 目录")
     path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
+    
     # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
     try:
         shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
         print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
-        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
+        shutil.copytree( path,"./src/data/storage/work", dirs_exist_ok=True)
+        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
+        QMessageBox.information(None, "提示", "数据已全部还原", QMessageBox.Ok)
     except Exception as e:
         print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
-        QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
+        QMessageBox.information(None, "错误", "数据还原失败", QMessageBox.Ok)
+    
 
 def delete_backup(self,objectname):
     folder_name = objectname

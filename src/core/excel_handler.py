@@ -351,26 +351,30 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                 # 创建一个字典，用于存储列索引和列名的对应关系
                 header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
                 
-                # 将日期分解为月和日
-                year, month, day = row_data[header_index["日期"]].split("-")
-                # 获取行中类别列类型单元中的类别名数据
-                category_name = row_data[header_index["类别"]]
-                # 获取行中品名列类型单元中的品名名数据
-                product_name = row_data[header_index["品名"]]
-                # 获取行中单位列类型单元中的单位名数据
-                unit_name = row_data[header_index["单位"]]
-                # 获取行中单价列类型单元中的单价名数据
-                price = row_data[header_index["单价"]]
-                # 获取行中数量列类型单元中的数量名数据
-                quantity = row_data[header_index["数量"]]
-                # 获取行中金额列单元中金额数据
-                amount = row_data[header_index["金额"]]
-                # 获取行中备注列单元中备注数据
-                remark = row_data[header_index["备注"]]
-                # 获取行中公司列单元中公司名数据
-                company_name = row_data[header_index["公司"]]
-                # 获取行中单名称列单元中单名数据
-                single_name = row_data[header_index["单名"]]
+                try:
+                    # 将日期分解为月和日
+                    year, month, day = row_data[header_index["日期"]].split("-")
+                    # 获取行中类别列类型单元中的类别名数据
+                    category_name = row_data[header_index["类别"]]
+                    # 获取行中品名列类型单元中的品名名数据
+                    product_name = row_data[header_index["品名"]]
+                    # 获取行中单位列类型单元中的单位名数据
+                    unit_name = row_data[header_index["单位"]]
+                    # 获取行中单价列类型单元中的单价名数据
+                    price = row_data[header_index["单价"]]
+                    # 获取行中数量列类型单元中的数量名数据
+                    quantity = row_data[header_index["数量"]]
+                    # 获取行中金额列单元中金额数据
+                    amount = row_data[header_index["金额"]]
+                    # 获取行中备注列单元中备注数据
+                    remark = row_data[header_index["备注"]]
+                    # 获取行中公司列单元中公司名数据
+                    company_name = row_data[header_index["公司"]]
+                    # 获取行中单名称列单元中单名数据
+                    single_name = row_data[header_index["单名"]]
+                except Exception as e:
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 处理主工作簿，更新相关表格信息时拆解数据出错 {e}")
 
                 try:
                     if not __main__.MODE:
@@ -787,7 +791,7 @@ def update_receipt_storage_sheet(self,main_workbook, product_name,single_name, c
             print("\nError: 场调面食入库 未找到类别信息，请检查输入数据\n")
     else:
         __main__.SAVE_OK_SIGNAL = False
-        print(f"Error: 在更新收发存表皮时规则为匹配到表名 `{single_name}` ,可能存在空字符,已跳过写入")
+        print(f"Error: 在更新收发存表皮时规则未匹配到表名 `{single_name}` ,可能存在空字符,已跳过写入")
         return
 
     # 调用Excel API用行索引名匹配行索引
@@ -954,26 +958,31 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
                 # 创建一个字典，用于存储列索引和列名的对应关系
                 header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
                 
-                # 将日期分解为月和日
-                year, month, day = row_data[header_index["日期"]].split("-")
-                # 获取行中类别列类型单元中的类别名数据
-                category_name = row_data[header_index["类别"]]
-                # 获取行中品名列类型单元中的品名名数据
-                product_name = row_data[header_index["品名"]]
-                # 获取行中单位列类型单元中的单位名数据
-                unit_name = row_data[header_index["单位"]]
-                # 获取行中单价列类型单元中的单价名数据
-                price = row_data[header_index["单价"]]
-                # 获取行中数量列类型单元中的数量名数据
-                quantity = row_data[header_index["数量"]]
-                # 获取行中金额列单元中金额数据
-                amount = row_data[header_index["金额"]]
-                # 获取行中备注列单元中备注数据
-                remark = row_data[header_index["备注"]]
-                # 获取行中公司列单元中公司名数据
-                company_name = row_data[header_index["公司"]]
-                # 获取行中单名称列单元中单名数据
-                single_name = row_data[header_index["单名"]]  
+                try:
+                    # 将日期分解为月和日
+                    year, month, day = row_data[header_index["日期"]].split("-")
+                    # 获取行中类别列类型单元中的类别名数据
+                    category_name = row_data[header_index["类别"]]
+                    # 获取行中品名列类型单元中的品名名数据
+                    product_name = row_data[header_index["品名"]]
+                    # 获取行中单位列类型单元中的单位名数据
+                    unit_name = row_data[header_index["单位"]]
+                    # 获取行中单价列类型单元中的单价名数据
+                    price = row_data[header_index["单价"]]
+                    # 获取行中数量列类型单元中的数量名数据
+                    quantity = row_data[header_index["数量"]]
+                    # 获取行中金额列单元中金额数据
+                    amount = row_data[header_index["金额"]]
+                    # 获取行中备注列单元中备注数据
+                    remark = row_data[header_index["备注"]]
+                    # 获取行中公司列单元中公司名数据
+                    company_name = row_data[header_index["公司"]]
+                    # 获取行中单名称列单元中单名数据
+                    single_name = row_data[header_index["单名"]]  
+                except Exception as e:
+                    app.quit()
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 将暂存表数据提交到子表副食表时拆解数据出错 {e}")
 
                 # 获取所有sheet的name
                 sheet_names = [s.name for s in main_workbook.sheets]
@@ -1086,26 +1095,31 @@ def update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_storage
                 # 创建一个字典，用于存储列索引和列名的对应关系
                 header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
                 
-                # 将日期分解为月和日
-                year, month, day = row_data[header_index["日期"]].split("-")
-                # 获取行中类别列类型单元中的类别名数据
-                category_name = row_data[header_index["类别"]]
-                # 获取行中品名列类型单元中的品名名数据
-                product_name = row_data[header_index["品名"]]
-                # 获取行中单位列类型单元中的单位名数据
-                unit_name = row_data[header_index["单位"]]
-                # 获取行中单价列类型单元中的单价名数据
-                price = row_data[header_index["单价"]]
-                # 获取行中数量列类型单元中的数量名数据
-                quantity = row_data[header_index["数量"]]
-                # 获取行中金额列单元中金额数据
-                amount = row_data[header_index["金额"]]
-                # 获取行中备注列单元中备注数据
-                remark = row_data[header_index["备注"]]
-                # 获取行中公司列单元中公司名数据
-                company_name = row_data[header_index["公司"]]
-                # 获取行中单名称列单元中单名数据
-                single_name = row_data[header_index["单名"]]  
+                try:
+                    # 将日期分解为月和日
+                    year, month, day = row_data[header_index["日期"]].split("-")
+                    # 获取行中类别列类型单元中的类别名数据
+                    category_name = row_data[header_index["类别"]]
+                    # 获取行中品名列类型单元中的品名名数据
+                    product_name = row_data[header_index["品名"]]
+                    # 获取行中单位列类型单元中的单位名数据
+                    unit_name = row_data[header_index["单位"]]
+                    # 获取行中单价列类型单元中的单价名数据
+                    price = row_data[header_index["单价"]]
+                    # 获取行中数量列类型单元中的数量名数据
+                    quantity = row_data[header_index["数量"]]
+                    # 获取行中金额列单元中金额数据
+                    amount = row_data[header_index["金额"]]
+                    # 获取行中备注列单元中备注数据
+                    remark = row_data[header_index["备注"]]
+                    # 获取行中公司列单元中公司名数据
+                    company_name = row_data[header_index["公司"]]
+                    # 获取行中单名称列单元中单名数据
+                    single_name = row_data[header_index["单名"]]  
+                except Exception as e:
+                    app.quit()
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 将暂存表数据提交到子表主食表时拆解数据出错 {e}")
 
                 # 获取所有sheet的name
                 sheet_names = [s.name for s in main_workbook.sheets]
@@ -1743,26 +1757,32 @@ def export_update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_
                 # 创建一个字典，用于存储列索引和列名的对应关系
                 header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
                 
-                # 将日期分解为月和日
-                year, month, day = row_data[header_index["日期"]].split("-")
-                # 获取行中类别列类型单元中的类别名数据
-                category_name = row_data[header_index["类别"]]
-                # 获取行中品名列类型单元中的品名名数据
-                product_name = row_data[header_index["品名"]]
-                # 获取行中单位列类型单元中的单位名数据
-                unit_name = row_data[header_index["单位"]]
-                # 获取行中单价列类型单元中的单价名数据
-                price = row_data[header_index["单价"]]
-                # 获取行中数量列类型单元中的数量名数据
-                quantity = row_data[header_index["数量"]]
-                # 获取行中金额列单元中金额数据
-                amount = row_data[header_index["金额"]]
-                # 获取行中备注列单元中备注数据
-                remark = row_data[header_index["备注"]]
-                # 获取行中公司列单元中公司名数据
-                company_name = row_data[header_index["公司"]]
-                # 获取行中单名称列单元中单名数据
-                single_name = row_data[header_index["单名"]]  
+                try:
+                    # 将日期分解为月和日
+                    year, month, day = row_data[header_index["日期"]].split("-")
+                    # 获取行中类别列类型单元中的类别名数据
+                    category_name = row_data[header_index["类别"]]
+                    # 获取行中品名列类型单元中的品名名数据
+                    product_name = row_data[header_index["品名"]]
+                    # 获取行中单位列类型单元中的单位名数据
+                    unit_name = row_data[header_index["单位"]]
+                    # 获取行中单价列类型单元中的单价名数据
+                    price = row_data[header_index["单价"]]
+                    # 获取行中数量列类型单元中的数量名数据
+                    quantity = row_data[header_index["数量"]]
+                    # 获取行中金额列单元中金额数据
+                    amount = row_data[header_index["金额"]]
+                    # 获取行中备注列单元中备注数据
+                    remark = row_data[header_index["备注"]]
+                    # 获取行中公司列单元中公司名数据
+                    company_name = row_data[header_index["公司"]]
+                    # 获取行中单名称列单元中单名数据
+                    single_name = row_data[header_index["单名"]]  
+                except Exception as e:
+                    app.quit()
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 将暂存表数据提交到子表主食表(出库)时拆解数据出错 {e}")
+  
 
                 # 获取所有sheet的name
                 sheet_names = [s.name for s in main_workbook.sheets]
@@ -1882,26 +1902,32 @@ def export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, r
                 # 创建一个字典，用于存储列索引和列名的对应关系
                 header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
                 
-                # 将日期分解为月和日
-                year, month, day = row_data[header_index["日期"]].split("-")
-                # 获取行中类别列类型单元中的类别名数据
-                category_name = row_data[header_index["类别"]]
-                # 获取行中品名列类型单元中的品名名数据
-                product_name = row_data[header_index["品名"]]
-                # 获取行中单位列类型单元中的单位名数据
-                unit_name = row_data[header_index["单位"]]
-                # 获取行中单价列类型单元中的单价名数据
-                price = row_data[header_index["单价"]]
-                # 获取行中数量列类型单元中的数量名数据
-                quantity = row_data[header_index["数量"]]
-                # 获取行中金额列单元中金额数据
-                amount = row_data[header_index["金额"]]
-                # 获取行中备注列单元中备注数据
-                remark = row_data[header_index["备注"]]
-                # 获取行中公司列单元中公司名数据
-                company_name = row_data[header_index["公司"]]
-                # 获取行中单名称列单元中单名数据
-                single_name = row_data[header_index["单名"]]  
+                try:
+                    # 将日期分解为月和日
+                    year, month, day = row_data[header_index["日期"]].split("-")
+                    # 获取行中类别列类型单元中的类别名数据
+                    category_name = row_data[header_index["类别"]]
+                    # 获取行中品名列类型单元中的品名名数据
+                    product_name = row_data[header_index["品名"]]
+                    # 获取行中单位列类型单元中的单位名数据
+                    unit_name = row_data[header_index["单位"]]
+                    # 获取行中单价列类型单元中的单价名数据
+                    price = row_data[header_index["单价"]]
+                    # 获取行中数量列类型单元中的数量名数据
+                    quantity = row_data[header_index["数量"]]
+                    # 获取行中金额列单元中金额数据
+                    amount = row_data[header_index["金额"]]
+                    # 获取行中备注列单元中备注数据
+                    remark = row_data[header_index["备注"]]
+                    # 获取行中公司列单元中公司名数据
+                    company_name = row_data[header_index["公司"]]
+                    # 获取行中单名称列单元中单名数据
+                    single_name = row_data[header_index["单名"]]  
+                except Exception as e:
+                    app.quit()
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 将暂存表数据提交到子表副食表(出库)时拆解数据出错 {e}")
+
 
                 # 获取所有sheet的name
                 sheet_names = [s.name for s in main_workbook.sheets]

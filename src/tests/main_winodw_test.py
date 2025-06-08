@@ -911,7 +911,7 @@ class Ui_Form(object):
                 # img_excel_after_process(self)
                 #修正识别结果数据
                 modify_data_in_image_excel(self)
-                self.worker.done.emit("image_finished")  # 比如写完数据后调用
+                self.worker.done.emit("image_finished","None")  # 比如写完数据后调用
 
         threading.Thread(target=run_in_background, daemon=True).start()
 
@@ -1363,14 +1363,18 @@ def restore_backup(self,objectname):
     parent_object_name = objectname
     print(f"Notice:还原备份 {parent_object_name} 到 main 目录")
     path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
+    
     # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
     try:
         shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
         print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
-        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
+        shutil.copytree( path,"./src/data/storage/work", dirs_exist_ok=True)
+        print(f"Notice:备份文件已从 {path}  复制到 backup_path 目录")
+        QMessageBox.information(None, "提示", "数据已全部还原", QMessageBox.Ok)
     except Exception as e:
         print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
-        QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
+        QMessageBox.information(None, "错误", "数据还原失败", QMessageBox.Ok)
+    
 
 def delete_backup(self,objectname):
     folder_name = objectname
