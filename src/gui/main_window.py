@@ -92,8 +92,9 @@ WELFARE_WORK_EXCEL_PATH = os.path.join(project_root, WELFARE_WORK_EXCEL_PATH)
 MODE = 0
 ADD_DAY_SUMMARY = False
 ADD_MONTH_SUMMARY = False
-ONLY_WELFARE_TABLE = False # 是否开启只登记福利表
+ONLY_WELFARE_TABLE = False # 登记福利表开启指示器
 SAVE_OK_SIGNAL = True
+PAGE_COUNTER_SIGNAL = True # 页计模式开启指示器
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
