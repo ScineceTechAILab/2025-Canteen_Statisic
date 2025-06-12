@@ -109,9 +109,10 @@ from PySide6.QtCore import QObject, Signal
 
 class Worker(QObject):
     """
-    用于解决存表结束弹窗卡死的问题
-    下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
+    用于解决存表结束弹窗卡死的问题下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
     此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
+
+    param: QObject
     """
     done = Signal(str,str)  # 定义一个带字符串参数的信号
 
@@ -772,12 +773,13 @@ class Ui_Form(object):
         
         # 获取主表、子表主食表、子表副食表、福利表的文件路径
 
+        sub_main_file_paths = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
+        
         main_workbook =MAIN_WORK_EXCEL_PATH +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
-        sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
         sub_main_food_workbook = ""
         sub_auxiliary_food_workbook = ""
         # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
-        for i in sub_main_file_path:
+        for i in sub_main_file_paths:
             if "主食" in i:
                 sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
             elif "副食" in i:

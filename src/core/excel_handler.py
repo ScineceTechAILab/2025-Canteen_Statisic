@@ -190,7 +190,15 @@ def clear_temp_image_dir():
 def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path):
     """
     提交暂存 Excel 数据到主表、副表 Excel 文件
-    :param: temp_excel_file: 要存储的暂存表
+
+    Parameters:
+        - self: 当前窗口对象
+        - modle: 输入输出模式切换变量,0为入库模式/1为出库模式
+        - main_excel_file_path: 主表 Excel 文件路径
+        - sub_main_food_excel_file_path: 主副食明细账 Excel 文件路径
+        - sub_auxiliary_food_excel_file_path: 副食品明细账 Excel 文件路径
+        - welfare_food_excel_file_path: 福利食品明细账 Excel 文件路径
+    :return: None
     """
     # 根据触发该函数的是手动还是照片输入模式去读取不同的表格
     if modle == "manual":
@@ -496,16 +504,17 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
 def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name):
     """
     将数据写入指定的入库类型sheet中
-    :param main_workbook: 主工作簿对象
-    :param single_name: sheet名称
-    :param row_data: 行数据
-    :param header_index: 表头索引字典
-    :param month: 月份
-    :param day: 日期
-    :param unit_name: 单位名称
-    :return: None
-    """
-    """
+    
+    Parameters:
+        :param main_workbook: 主工作簿对象
+        :param single_name: sheet名称
+        :param row_data: 行数据
+        :param header_index: 表头索引字典
+        :param month: 月份
+        :param day: 日期
+        :param unit_name: 单位名称
+        :return: None
+    
     主表各种杂表
     wjwcj 2025/05/05 13:47 测试没问题
     """
