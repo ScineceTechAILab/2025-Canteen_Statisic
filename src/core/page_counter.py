@@ -42,23 +42,39 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_s
         if excel_type == "主表":
 
             if work_sheet.name in [s.name for s in work_book.sheets]:
+                
+                
 
                 print("Notice: 开始为主表 {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
             
                 if work_sheet.name == "食堂物品收发存库存表":
 
                     # 定位存有空行的一行，计算出其所在的页码
-                    blank_row_index = get_blank_row_index(work_sheet) 
-                    page_index = int(blank_row_index / 26) + 1 # 主表中该表为26行一页，int(13 / 26) = 0 但是是第一页，所以要加1  
-                
-                    #TODO
+                    blank_row_index = get_first_blank_row_index(work_sheet) 
+                    sheet_ratio = 26                                    # 主表中该表为26行一页
+                    page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 26) = 0 但是是第一页，所以要加1  
+                    # 统计该页范围内除了 "日记"、"页计"等的行
+                    page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
+                    # 检测该页的倒数第二行是否为空
+                    if work_sheet.range((page_index * sheet_ratio - 1, 1)).value is None:
+                        print("Notice: {sheet_name} 页的倒数第二行为空，跳过页计功能".format(sheet_name=work_sheet.name))
+                        return
+                    else:
+                        print("Notice: {sheet_name} 页的倒数第二行不为空，继续执行页计功能".format(sheet_name=work_sheet.name))
+                        
+                        # 检测为空时是否是页做，自
+                        if work_book.sheets[work_sheet.name].range((page_index * sheet_ratio, 1)).value is None:
+                            print("Notice: {sheet_name} 页的页计行为空，继续执行页计功能".format(sheet_name=work_sheet.name))
+                            
+                    
 
                 else:
 
                     # 定位存有空行的一行，计算出其所在的页码
-                    blank_row_index = get_blank_row_index(work_sheet)
-                    page_index = int(blank_row_index / 33) + 1 # 主表中的其他主食表皆为 33 行一页
-                
+                    blank_row_index = get_first_blank_row_index(work_sheet)
+                    sheet_ratio = 33                                    # 主表中其他主食表皆为 33 行一页
+                    page_index = int(blank_row_index / sheet_ratio) + 1 
+
                     #TODO
 
 
@@ -74,9 +90,12 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_s
                 print("Notice: 开始为福利表 {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
 
                 # 定位存有空行的一行，计算出其所在的页码
-                blank_row_index = get_blank_row_index(work_sheet)
-                page_index = int(blank_row_index / 32) + 1 # 福利表中的所有表皆为 32 行一页
+                blank_row_index = get_first_blank_row_index(work_sheet)
+                sheet_ratio = 32                                    # 福利表中所有表皆为 32 行一页
+                page_index = int(blank_row_index / sheet_ratio) + 1 
                 
+                # 统计该页范围内除了 "日记"、"页计"等的行
+                page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
                 #TODO
 
 
@@ -98,7 +117,7 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_s
         print("Error: PAGE_COUNTER_SIGNAL值错误,请检查代码逻辑")
         return
     
-def get_blank_row_index(work_sheet):
+def get_first_blank_row_index(page_counter_signal:bool,excel_type:str,work_book,work_sheet):
     """
     定位在表中出现的第一个有效空行(在某页内出现的第一个空行不包括页与页间的),返回该空行的行索引(1索引格式)
     
@@ -110,6 +129,7 @@ def get_blank_row_index(work_sheet):
     """
     # 查找第一行空行，记录下空行行标（从表格的第二行开始）
 
+    effective_row_index = 0  # 初始化有效行索引
 
     for row_index in range(0, work_sheet.used_range.rows.count):
         if work_sheet.range((row_index + 1, 1)).value is None and row_index != 0:
@@ -140,12 +160,40 @@ def get_blank_row_index(work_sheet):
         return effective_row_index
 
 
-def get_page_item_indexes():
+def get_page_item_indexes(work_sheet,page_index:int,sheet_ratio:int):
     """
-    统计当前页有真正物品登记的条目索引,返回该页的条目索引的一维列表
+    统计当前页有物品登记行的条目索引,返回存储该页的商品行索引
     
+    Parameters:
+        work_sheet: 要进行统计的 xlwings sheet 对象
+        page_index: 当前页的页码(1索引格式)
+        sheet_ratio: 相应 Sheet 中每页的行数(1索引格式)，例如主表中自购主食入库每页33行，福利表中每页32行
+
     Returns:
-        page_item_indexes: 当前页的条目索引列表
+        page_item_indexes: 当前页的条目索引列表(1索引格式)
     """
+    page_item_indexes = []  # 初始化当前页的条目索引列表
+
+    # 计算当前页的起始行和结束行(1索引格式)
+    start_row = (page_index - 1) * sheet_ratio + 1  # 每页起始行，带入 page_index =1,sheet_ratio=33: (1-1)*33 + 1 = 1 
+    end_row = page_index * sheet_ratio              # 每页结束行, sheet_ratio 行，带入 page_index =1,sheet_ratio=33: 1*33 = 33
+
+    for row_index in range(start_row, end_row + 1): # 由于range()函数的结束值是不包含的，所以要加1
+        
+        # 观察到非"日记"、"页计"等行的第一列都是字符，利用强制类型转换会报错的特性筛选出有效行
+        try:
+            int(work_sheet.range((row_index, 1)).value)                  
+            page_item_indexes.append(row_index)                      
+            continue
+        
+        # 如果强制转换失败，说明该行不是有效的条目行
+        except:    
+            continue
+
+    return page_item_indexes 
+
+
+
+
 
 if __name__ == "__main__":
