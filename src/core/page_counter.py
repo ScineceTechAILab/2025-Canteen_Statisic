@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, Q
     QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
 
 
-def counting_page_value(page_counter_signal,excel_type,work_book,work_sheet):
+def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_sheet):
     """
     在将条目添加到表之后,为该页面加上页计行
     
@@ -41,14 +41,25 @@ def counting_page_value(page_counter_signal,excel_type,work_book,work_sheet):
         
         if excel_type == "主表":
 
-            sheet_names_list = work_book.sheetnames # 动态获取 work_book 中所有的 Sheet 名称，保存为一维列表
-
-            if work_sheet.name in sheet_names_list:
+            if work_sheet.name in [s.name for s in work_book.sheets]:
 
                 print("Notice: 开始为主表 {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
-                # TODO:
+            
+                if work_sheet.name == "食堂物品收发存库存表":
 
+                    # 定位存有空行的一行，计算出其所在的页码
+                    blank_row_index = get_blank_row_index(work_sheet) 
+                    page_index = int(blank_row_index / 26) + 1 # 主表中该表为26行一页，int(13 / 26) = 0 但是是第一页，所以要加1  
+                
+                    #TODO
 
+                else:
+
+                    # 定位存有空行的一行，计算出其所在的页码
+                    blank_row_index = get_blank_row_index(work_sheet)
+                    page_index = int(blank_row_index / 33) + 1 # 主表中的其他主食表皆为 33 行一页
+                
+                    #TODO
 
 
 
@@ -58,13 +69,15 @@ def counting_page_value(page_counter_signal,excel_type,work_book,work_sheet):
 
         elif excel_type == "福利表":
 
-            sheet_names_list = work_book.sheetnames # 动态获取 work_book 中所有的 Sheet 名称，保存为一维列表   
-
-            if work_sheet.name in sheet_names_list:
+            if  work_sheet.name in [s.name for s in work_book.sheets]:
+                
                 print("Notice: 开始为福利表 {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
 
-
-
+                # 定位存有空行的一行，计算出其所在的页码
+                blank_row_index = get_blank_row_index(work_sheet)
+                page_index = int(blank_row_index / 32) + 1 # 福利表中的所有表皆为 32 行一页
+                
+                #TODO
 
 
 
@@ -85,31 +98,54 @@ def counting_page_value(page_counter_signal,excel_type,work_book,work_sheet):
         print("Error: PAGE_COUNTER_SIGNAL值错误,请检查代码逻辑")
         return
     
-def get_page_indexes(work_sheet):
-    """
-    定位表中含有空行的页，并返回该页中除日记、月计外所有行的索引(1索引格式)
-    
-    Returns:
-     - page_indexes: 页索引列表
-    """
-    page_indexes = []
-
-
-    return page_indexes
-
 def get_blank_row_index(work_sheet):
     """
-    定位表中含有空行的页，并返回该页中除日记、月计外所有行的索引(1索引格式)
+    定位在表中出现的第一个有效空行(在某页内出现的第一个空行不包括页与页间的),返回该空行的行索引(1索引格式)
+    
     Parameters:
-     - work_book: 要修改的 Excel 传入工作簿对象
+        work_sheet: 要进行检测的 xlwings sheet 对象
+    
     Returns:
-     - blank_row_indexes: 空行索引列表
+        effective_row_index:有效空行索引(1索引格式)
     """
-    blank_row_index = 0
+    # 查找第一行空行，记录下空行行标（从表格的第二行开始）
 
 
+    for row_index in range(0, work_sheet.used_range.rows.count):
+        if work_sheet.range((row_index + 1, 1)).value is None and row_index != 0:
+            # 检查前一行是否包含“领导”二字
+            if row_index > 0:
+                previous_row_values = [
+                str(work_sheet.range((row_index, col)).value).strip()
+                for col in range(1, work_sheet.used_range.columns.count + 1)
+                if work_sheet.range((row_index, col)).value is not None
+                ]
+                if any("领导" in value for value in previous_row_values):
+                    print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
+                    continue
+
+            # 检查当前列的前几行是否包含“序号”二字
+            column_values = [
+                str(work_sheet.range((row, 1)).value).strip()
+                for row in range(1, row_index + 1)
+                if work_sheet.range((row, 1)).value is not None
+            ]
+            if not any("序号" in value for value in column_values):
+                print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
+                continue
+            break
+        
+        effective_row_index = row_index + 1  # 转换为1索引格式
+
+        return effective_row_index
 
 
-    return blank_row_index
+def get_page_item_indexes():
+    """
+    统计当前页有真正物品登记的条目索引,返回该页的条目索引的一维列表
+    
+    Returns:
+        page_item_indexes: 当前页的条目索引列表
+    """
 
 if __name__ == "__main__":
