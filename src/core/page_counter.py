@@ -62,9 +62,24 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_s
                     else:
                         print("Notice: {sheet_name} 页的倒数第二行不为空，继续执行页计功能".format(sheet_name=work_sheet.name))
                         
-                        # 检测为空时是否是页做，自
-                        if work_book.sheets[work_sheet.name].range((page_index * sheet_ratio, 1)).value is None:
-                            print("Notice: {sheet_name} 页的页计行为空，继续执行页计功能".format(sheet_name=work_sheet.name))
+                        # 检测不为空时是否为页计行
+                        if work_sheet.range((page_index * sheet_ratio - 2, 1)).value == "页计":
+                            # 是页计行，计算页计列表范围中每一项 J 列的总和
+                            page_item_sum = 0
+                            for item_index in page_item_indexes:
+                                item_value = work_sheet.range((item_index, 10)).value
+                                if isinstance(item_value, (int, float)):
+                                    page_item_sum += item_value
+                            # 将页计行的 J 列设置为该页的总和
+                            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
+
+                        
+                        else:
+                        # 若不为页计行，将该行移入下一页
+                            print("Notice: {sheet_name} 页的倒数第二行不为页计行，继续执行页计功能".format(sheet_name=work_sheet.name))
+                            # 将该行移入下一页
+                            work_sheet.range((page_index * sheet_ratio - 1, 1)).value = work_sheet.range((page_index * sheet_ratio - 2, 1)).value
+                            work_sheet.range((page_index * sheet_ratio - 2, 1)).value = None
                             
                     
 
