@@ -92,8 +92,9 @@ WELFARE_WORK_EXCEL_PATH = os.path.join(project_root, WELFARE_WORK_EXCEL_PATH)
 MODE = 0
 ADD_DAY_SUMMARY = False
 ADD_MONTH_SUMMARY = False
-ONLY_WELFARE_TABLE = False # 是否开启只登记福利表
+ONLY_WELFARE_TABLE = False # 登记福利表开启指示器
 SAVE_OK_SIGNAL = True
+PAGE_COUNTER_SIGNAL = True # 页计模式开启指示器
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
@@ -108,13 +109,14 @@ from PySide6.QtCore import QObject, Signal
 
 class Worker(QObject):
     """
-    用于解决存表结束弹窗卡死的问题
-    下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
+    用于解决存表结束弹窗卡死的问题下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
     此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
-    """
-    done = Signal(str)  # 定义一个带字符串参数的信号
 
-    def show(self, message):
+    param: QObject
+    """
+    done = Signal(str,str)  # 定义一个带字符串参数的信号
+
+    def show(self, message,list_name):
         """
         这个用来判断是哪个信号
         :param 信号来源，用来判断执行哪个弹窗函数
@@ -124,12 +126,14 @@ class Worker(QObject):
             img_excel_after_process(ui)
         elif message == "tables_updated":
             #所有表格更新完成
-            self.show_message()
+            self.data_writing_finished()
+        elif message == "tables_updated_filed":
+            #所有表格更新失败
+            self.tables_updated_filed()
 
-
-    def show_message(self):
+    def data_writing_finished(self):
         """
-        显示消息框
+        显示数据写入完成消息框
         :param: self
         :return: None
         """
@@ -143,6 +147,16 @@ class Worker(QObject):
                 subprocess.Popen(['open', folder_path])
             else:
                 subprocess.Popen(['xdg-open', folder_path])
+
+    def tables_updated_filed(self):
+        """
+        表格更新失败提醒
+        :param: self
+        :return: None
+        """
+        self.reply = QMessageBox.information(None, "提示", "表格更新失败,本次提交取消，请重新进行输入检查", QMessageBox.Ok | QMessageBox.Cancel)
+
+
 
 
 class Ui_Form(object):
@@ -700,10 +714,13 @@ class Ui_Form(object):
         """
         # 定义输入框的字典
 
+        
+        
+        
         input_fields = {
             "日期": self.line1Right.text(),
-            "类别": self.line3Right.text(),
-            "品名": self.line2Right.text(),
+            "类别": self.line2Right.text(),
+            "品名": self.line3Right.text(),
             "单位": self.line8Right.text(),
             "单价": self.line7Right.text(),
             "数量": self.line6Right.text(),
@@ -737,6 +754,7 @@ class Ui_Form(object):
         if self.pushButton_5.text() == "正在提交":
             return
         self.pushButton_5.setText("正在提交")
+        
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
         
         print("Notice:当前模式", modeText, str(MODE))
@@ -755,12 +773,13 @@ class Ui_Form(object):
         
         # 获取主表、子表主食表、子表副食表、福利表的文件路径
 
+        sub_main_file_paths = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
+        
         main_workbook =MAIN_WORK_EXCEL_PATH +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
-        sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
         sub_main_food_workbook = ""
         sub_auxiliary_food_workbook = ""
         # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
-        for i in sub_main_file_path:
+        for i in sub_main_file_paths:
             if "主食" in i:
                 sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
             elif "副食" in i:
@@ -901,7 +920,7 @@ class Ui_Form(object):
                 # img_excel_after_process(self)
                 #修正识别结果数据
                 modify_data_in_image_excel(self)
-                self.worker.done.emit("image_finished")  # 比如写完数据后调用
+                self.worker.done.emit("image_finished","None")  # 比如写完数据后调用
 
         threading.Thread(target=run_in_background, daemon=True).start()
 
@@ -1157,10 +1176,18 @@ class Ui_Form(object):
         except Exception as e:
             print(f"Error in reimport_excel_data: 创建备份文件夹出错,错误信息为: {e}")
         
+
+        # 将 work 文件下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 main 目录
+        try:
+            shutil.copytree("./src/data/storage/work", "./src/data/storage/main",dirs_exist_ok=True)
+            print("Notice:文件已从 ./src/data/storage/work  复制到 ./src/data/storage/main 目录")
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 将主表文件复制到 main 目录出错,错误信息为: {e}")
+
         # 将 main 目录下的 主表文件夹、子表文件夹拷贝到 backup_path 目录
         try:
             shutil.copytree("./src/data/storage/main", backup_path, dirs_exist_ok=True)
-            print("Notice:备份文件已从 ./src/data/storage/main  复制到 backup_path 目录")
+            print("Notice:文件已从 ./src/data/storage/main  复制到 backup_path 目录")
             QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
         except Exception as e:
             print(f"Error in reimport_excel_data: 将主表文件复制到 backup_path 目录出错,错误信息为: {e}")
@@ -1347,6 +1374,7 @@ def restore_backup(self,objectname):
     parent_object_name = objectname
     print(f"Notice:还原备份 {parent_object_name} 到 main 目录")
     path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
+    
     # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
     try:
         shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)

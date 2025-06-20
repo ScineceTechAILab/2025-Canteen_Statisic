@@ -34,7 +34,7 @@ def first_start_detect(Form):
     print("Notice:检测是否首次启动")
     # 检查是否首次启动
     if FIRST_START :
-        QMessageBox.information(Form, "提示", "首次启动应用，请点击重导表格", QMessageBox.Ok)
+        QMessageBox.information(Form, "提示", "首次启动应用，请点击导入表格", QMessageBox.Ok)
         # 打开目标文件将值写成 False
         with open("./config/config.py", "w") as f: # 创建一个文件，将值写成 False
             # 将FIRST_START  = True 的 True 替换成 False

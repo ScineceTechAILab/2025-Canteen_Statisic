@@ -197,8 +197,16 @@ def show_check_window(self,file_path):
 def commit_data_to_excel(self,model,excel_file_path,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook):
     """
     提交数据到主表、副表Excel文件
-    :param: self
-    :return: None
+
+    Parameters:
+     - self: Object    
+     - model: 输入输出模式切换变量,0为入库模式/1为出库模式
+     - excel_file_path: 主表Excel文件路径
+     - sub_main_food_workbook: 子食主食表Excel文件路径
+     - sub_auxiliary_food_workbook: 子食副食表Excel文件路径
+     - welfare_food_workbook: 福利副表Excel文件路径
+    
+    Return: None
     """
 
     commit_data_to_storage_excel(self,model,excel_file_path,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)
