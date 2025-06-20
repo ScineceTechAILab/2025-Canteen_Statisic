@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, Q
 
 def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_sheet):
     """
-    在将条目添加到表之后,为该页面加上页计行
+    在将条目添加到表之后,为该页面加上页计行(v1.1 逻辑流版本)
     
     Parameters:
       page_counter_signal: 页计功能是否开启的信号，值为 True 或 False
@@ -39,70 +39,67 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_s
     """
     if page_counter_signal == True:
         
+        "判断哪个表需要页计"
         if excel_type == "主表":
 
             if work_sheet.name in [s.name for s in work_book.sheets]:
-                
-                
-
-                print("Notice: 开始为主表 {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
             
                 if work_sheet.name == "食堂物品收发存库存表":
 
-                    # 定位存有空行的一行，计算出其所在的页码
-                    blank_row_index = get_first_blank_row_index(work_sheet) 
+                    print("Notice: 开始为{excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+
+                    "设定一页的行数"
                     sheet_ratio = 26                                    # 主表中该表为26行一页
+
+                    "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
+                    blank_row_index = get_first_blank_row_index(work_sheet) 
                     page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 26) = 0 但是是第一页，所以要加1  
-                    # 统计该页范围内除了 "日记"、"页计"等的行
-                    page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
-                    # 检测该页的倒数第二行是否为空
-                    if work_sheet.range((page_index * sheet_ratio - 1, 1)).value is None:
-                        print("Notice: {sheet_name} 页的倒数第二行为空，跳过页计功能".format(sheet_name=work_sheet.name))
-                        return
-                    else:
-                        print("Notice: {sheet_name} 页的倒数第二行不为空，继续执行页计功能".format(sheet_name=work_sheet.name))
-                        
-                        # 检测不为空时是否为页计行
-                        if work_sheet.range((page_index * sheet_ratio - 2, 1)).value == "页计":
-                            # 是页计行，计算页计列表范围中每一项 J 列的总和
-                            page_item_sum = 0
-                            for item_index in page_item_indexes:
-                                item_value = work_sheet.range((item_index, 10)).value
-                                if isinstance(item_value, (int, float)):
-                                    page_item_sum += item_value
-                            # 将页计行的 J 列设置为该页的总和
-                            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
-
-                        
-                        else:
-                        # 若不为页计行，将该行移入下一页
-                            print("Notice: {sheet_name} 页的倒数第二行不为页计行，继续执行页计功能".format(sheet_name=work_sheet.name))
-                            # 将该行移入下一页
-                            work_sheet.range((page_index * sheet_ratio - 1, 1)).value = work_sheet.range((page_index * sheet_ratio - 2, 1)).value
-                            work_sheet.range((page_index * sheet_ratio - 2, 1)).value = None
-                            
                     
+                    "统计该页范围内除了 日记、页计等的行"
+                    page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
+                                    
+                    "累加每一页除了日计、月计、总计每一项 J 列的值"
+                    page_item_sum = 0
+                    for item_index in page_item_indexes:
+                        item_value = work_sheet.range((item_index, 10)).value
+                        if isinstance(item_value, (int, float)):
+                            page_item_sum += item_value
+                    
+                    "将该值设置为页计行 J 列的新值"
+                    work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
 
-                else:
+                elif work_sheet.name in ["自购主食入库","食堂副食入库","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
+                    
+                    print("Notice: 开始为{excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
 
-                    # 定位存有空行的一行，计算出其所在的页码
-                    blank_row_index = get_first_blank_row_index(work_sheet)
+                    "设定一页的行数"
                     sheet_ratio = 33                                    # 主表中其他主食表皆为 33 行一页
+                    "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
+                    blank_row_index = get_first_blank_row_index(work_sheet)
                     page_index = int(blank_row_index / sheet_ratio) + 1 
 
-                    #TODO
-
-
-
+                    "统计该页范围内除了 日记、页计等的行"
+                    page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
+                                    
+                    "累加每一页除了日计、月计、总计每一项 J 列的值"
+                    page_item_sum = 0
+                    for item_index in page_item_indexes:
+                        item_value = work_sheet.range((item_index, 10)).value
+                        if isinstance(item_value, (int, float)):
+                            page_item_sum += item_value
+                    
+                    "将该值设置为页计行 J 列的新值"
+                    work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
+                    
             else:
-                print("Error: 主表中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
+                print("Error: {excel_type}中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
                 return
 
         elif excel_type == "福利表":
 
             if  work_sheet.name in [s.name for s in work_book.sheets]:
                 
-                print("Notice: 开始为福利表 {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+                print("Notice: 开始为{excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
 
                 # 定位存有空行的一行，计算出其所在的页码
                 blank_row_index = get_first_blank_row_index(work_sheet)
