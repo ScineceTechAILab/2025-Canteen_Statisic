@@ -1,6 +1,3 @@
-
-
-
 import datetime
 import sys
 import os
@@ -90,7 +87,7 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_s
                     
                     "将该值设置为页计行 J 列的新值"
                     work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
-                    
+
             else:
                 print("Error: {excel_type}中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
                 return
@@ -109,8 +106,6 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_s
                 # 统计该页范围内除了 "日记"、"页计"等的行
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
                 #TODO
-
-
 
             else:
                 print("Error: 福利表中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
