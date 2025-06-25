@@ -40,7 +40,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, Q
     QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
 
 
-def counting_page_value(page_counter_signal:bool,excel_type:str,work_book,work_sheet):
+def counting_page_value(page_counter_signal:bool,excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
     """
     在将条目添加到表之后,为该页面加上页计行(v1.1 逻辑流版本)
     
