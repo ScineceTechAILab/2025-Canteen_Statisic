@@ -119,9 +119,9 @@ class Worker(QObject):
 
     param: QObject
     """
-    done = Signal(str,str)  # 定义一个带字符串参数的信号
+    done = Signal(str)  # 定义一个带字符串参数的信号
 
-    def show(self, message,list_name):
+    def show(self, message):
         """
         这个用来判断是哪个信号
         :param 信号来源，用来判断执行哪个弹窗函数

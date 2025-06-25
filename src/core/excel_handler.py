@@ -55,7 +55,9 @@ from src.core.excel_handler_utils import (
     get_all_sheets_todo_for_sub_table
 )
 
-from core.models.page_counter import *
+
+
+from src.core.models.page_counter import *
 
 def store_single_entry_to_temple_excel(data, file_path):
     """
@@ -351,9 +353,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
             except Exception as e:
                 print(f"Error: {e}")
                 return    
-
-
-
+            
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
                 # 读取行数据
@@ -382,6 +382,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                     company_name = row_data[header_index["公司"]]
                     # 获取行中单名称列单元中单名数据
                     single_name = row_data[header_index["单名"]]
+                
                 except Exception as e:
                     __main__.SAVE_OK_SIGNAL = False
                     print(f"Error: 处理主工作簿，更新相关表格信息时拆解数据出错 {e}")
@@ -411,6 +412,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                         export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
 
                 except Exception as e:
+                    print(f"Error: 更新主工作簿，更新相关表格信息时出错 {e}")
                     continue
 
 
@@ -613,7 +615,6 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
                         # 去除所有中文之间的空格
                         cell_attribute = re.sub(r'(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])', '', cell_attribute)
 
-                    print("当前列", col_index, cell_attribute)
                     try:
                         if cell_attribute == "计量单位":
                             # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
@@ -768,7 +769,7 @@ def update_receipt_storage_sheet(self,main_workbook, product_name,single_name, c
     :param amount: 金额数据
     :return: None
     """
-    print(f"Notice: 正在更新主表收发存表皮 Sheet 信息,该条目单名为 '{single_name}'")
+    print(f"Notice: 正在更新主表收发存表皮 Sheet  信息,该条目单名为 '{single_name}'")
     # 尝试打开名为收发存表皮的 sheet
     if "收发存表皮" in [s.name for s in main_workbook.sheets]:
         sheet = main_workbook.sheets["收发存表皮"]
@@ -810,31 +811,31 @@ def update_receipt_storage_sheet(self,main_workbook, product_name,single_name, c
     if found_row is not None:
         try:
             found_row_index = sheet.range("A:A").value.index(row_index_name) + 1
-            print(f"Notice: 在 收发存表皮 Sheet中找到 {row_index_name} 的行索引为 {found_row_index}")
+            print(f"Notice: 在 收发存表皮 Sheet 中找到 {row_index_name} 的行索引为 {found_row_index}")
         except Exception as e:
             print(f"Error: 获取行索引出错 {e}")
             return
     else:
-        print(f"Error: 在 收发存表皮 Sheet中未找到 {row_index_name} 的行索引，请检查输入数据")
+        print(f"Error: 在 收发存表皮 Sheet 中未找到 {row_index_name} 的行索引，请检查输入数据")
         return
 
     # 更新H列的金额数据
     if found_row_index:
         if sheet.range(found_row_index, 8).value is None:
             sheet.range(found_row_index, 8).value = float(amount)
-            print(f"Notice: 发现 收发存表皮 Sheet 中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 8).value}")
+            print(f"Notice: 发现 收发存表皮 Sheet   中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 8).value}")
         else:
-            print(f"Notice: 在 收发存表皮 Sheet中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 8).value}")
+            print(f"Notice: 在 收发存表皮 Sheet 中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 8).value}")
             sheet.range(found_row_index, 8).value = float(amount) + float(sheet.range(found_row_index, 8).value) # Fixed：修复了can only concatenate str (not "float") to str，遇到运算问题时尽可能的强制类型转换
-            print(f"Notice: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 8).value}")
+            print(f"Notice: 在 收发存表皮 Sheet 中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 8).value}")
     else:
-        print(f"Error: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据失败，请检查输入数据")
+        print(f"Error: 在 收发存表皮 Sheet 中更新 {row_index_name} 的金额数据失败，请检查输入数据")
 
 
 
-def update_main_food_detail_sheet(self,product_name,main_workbook, single_name, category_name, amount):
+def update_main_food_detail_sheet(self,main_workbook,product_name ,single_name, category_name, amount):
     """
-    更新主副食品明细账中的条目信息
+    更新主表中主副食品明细账Sheet中的信息
     :param main_workbook: 主工作簿对象
     :param single_name: 单名信息
     :param category_name: 类别信息
@@ -844,23 +845,24 @@ def update_main_food_detail_sheet(self,product_name,main_workbook, single_name, 
 
     """注意！！这个函数只负责主副食品明细账"""
 
-    
-    # 尝试打开名为主副食品明细账的 sheet
-    if "主副食品明细账" in [s.name for s in main_workbook.sheets]:
-        sheet = main_workbook.sheets["主副食品明细账"]
-        print(f"Notice: 找到入库类型名为 `主副食品明细账` 的sheet")
-    else:
-        __main__.SAVE_OK_SIGNAL = False
-        print(f"Error: 更新主副食品明细账时未在主表找名为 `主副食品明细账` 的sheet,可能存在空字符")
+    try:
+        # 尝试打开名为主副食品明细账的 sheet
+        if "主副食品明细账" in [s.name for s in main_workbook.sheets]:
+            sheet = main_workbook.sheets["主副食品明细账"]
+            print(f"Notice: 找到入库类型名为 `主副食品明细账` 的sheet")
+        else:
+            __main__.SAVE_OK_SIGNAL = False
+            print(f"Error: 更新主副食品明细账时未在主表找名为 `主副食品明细账` 的sheet,可能存在空字符")
+            return
+    except Exception as e:
+        print(f"Error: 打开主副食品明细账 Sheet 时出错 {e}")
         return
 
-    # 提取输入数据的单名信息和类别信息进行行列索引词匹配
+    # 提取输入数据的单名信息和类别信息进行行列索引词匹配（）
     if single_name == "扶贫主食入库":
         row_index_name = "（帮扶食品）主副食"
         column_index_name = "主食购入"
-    elif single_name == "扶贫副食入库":
-        row_index_name = "（帮扶食品）主副食"
-        column_index_name = "副食购入"
+
     elif single_name in "自购主食入库等":
         if category_name == "主食":
             row_index_name = "自购主副食"
@@ -871,6 +873,15 @@ def update_main_food_detail_sheet(self,product_name,main_workbook, single_name, 
         else:
             print(f"Error: 查找 '自购主食入库' sheet时未找到对应的类别信息，请检查类别")
             return
+    
+    elif single_name == "扶贫副食入库":
+        row_index_name = "（帮扶食品）主副食"
+        column_index_name = "副食购入"
+    
+    elif single_name == "食堂副食入库":
+        row_index_name = "（帮扶食品）主副食"
+        column_index_name = "副食购入"
+
     else:
         __main__.SAVE_OK_SIGNAL = False
         print(f"Error: 更新主副食品明细账时未在主表找名为 `{single_name}` 的sheet,可能存在空字符")
@@ -1785,25 +1796,25 @@ def export_update_receipt_storage_sheet(main_workbook, single_name, category_nam
     if found_row is not None:
         try:
             found_row_index = sheet.range("A:A").value.index(row_index_name) + 1
-            print(f"Notice: 在 收发存表皮 Sheet中找到 {row_index_name} 的行索引为 {found_row_index}")
+            print(f"Notice: 在 收发存表皮 Sheet 中找到 {row_index_name} 的行索引为 {found_row_index}")
         except Exception as e:
             print(f"Error: 获取行索引出错 {e}")
             return
     else:
-        print(f"Error: 在 收发存表皮 Sheet中未找到 {row_index_name} 的行索引，请检查输入数据")
+        print(f"Error: 在 收发存表皮 Sheet 中未找到 {row_index_name} 的行索引，请检查输入数据")
         return
 
     # 更新K列的金额数据
     if found_row_index:
         if sheet.range(found_row_index, 11).value is None:
             sheet.range(found_row_index, 11).value = float(amount)
-            print(f"Notice: 发现 收发存表皮 Sheet 中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 11).value}")
+            print(f"Notice: 发现 收发存表皮 Sheet   中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 11).value}")
         else:
-            print(f"Notice: 在 收发存表皮 Sheet中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 11).value}")
+            print(f"Notice: 在 收发存表皮 Sheet 中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 11).value}")
             sheet.range(found_row_index, 11).value = float(amount) + float(sheet.range(found_row_index, 11).value) # Fixed：修复了can only concatenate str (not "float") to str，遇到运算问题时尽可能的强制类型转换
-            print(f"Notice: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 11).value}")
+            print(f"Notice: 在 收发存表皮 Sheet 中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 11).value}")
     else:
-        print(f"Error: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据失败，请检查输入数据")
+        print(f"Error: 在 收发存表皮 Sheet 中更新 {row_index_name} 的金额数据失败，请检查输入数据")
 
 def export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount):
 

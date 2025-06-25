@@ -373,12 +373,3 @@ def get_page_item_indexes(work_sheet,page_index:int,sheet_ratio:int):
             continue
 
     return page_item_indexes 
-
-
-
-
-
-if __name__ == "__main__":
-
-
-
