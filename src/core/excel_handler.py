@@ -2572,6 +2572,7 @@ def note_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path):
         "添加页计"
         if __main__.ADD_PAGE_SUMMARY:
             
+            
             with xw.App(visible=False) as app:
                 
                 for sheet_name in sheets_to_add:
