@@ -90,8 +90,13 @@ WELFARE_WORK_EXCEL_PATH = os.path.join(project_root, WELFARE_WORK_EXCEL_PATH)
 
 # 这个0/1用来表示是入库出库
 MODE = 0
-ADD_DAY_SUMMARY = False
-ADD_MONTH_SUMMARY = False
+
+
+ADD_DAY_SUMMARY = False    # 
+ADD_MONTH_SUMMARY = False  # 
+ADD_PAGE_SUMMARY = False
+ADD_TOTAL_SUMMARY = False
+
 ONLY_WELFARE_TABLE = False # 登记福利表开启指示器
 SAVE_OK_SIGNAL = True
 PAGE_COUNTER_SIGNAL = True # 页计模式开启指示器
@@ -394,16 +399,24 @@ class Ui_Form(object):
         # 创建复选框
         self.checkbox1 = QCheckBox("添加日计")
         self.checkbox2 = QCheckBox("添加月计")
-        self.checkbox3 = QCheckBox("只登记福利表")
+        self.checkbox3 = QCheckBox("添加页计")
+        self.checkbox4 = QCheckBox("添加合计")
+        self.checkbox5 = QCheckBox("只登记福利表")
+        
+        # 连接槽函数
         self.checkbox1.toggled.connect(self.on_checkbox_toggled)
         self.checkbox2.toggled.connect(self.on_checkbox_toggled)
         self.checkbox3.toggled.connect(self.on_checkbox_toggled)
+        self.checkbox4.toggled.connect(self.on_checkbox_toggled)
+        self.checkbox5.toggled.connect(self.on_checkbox_toggled)
 
         # 添加复选框到左下角布局，排成同一行
         checkbox_layout = QHBoxLayout()
         checkbox_layout.addWidget(self.checkbox1)
         checkbox_layout.addWidget(self.checkbox2)
         checkbox_layout.addWidget(self.checkbox3)
+        checkbox_layout.addWidget(self.checkbox4)
+        checkbox_layout.addWidget(self.checkbox5)
 
         self.gridLayout_3.addLayout(checkbox_layout, 1, 0, Qt.AlignLeft | Qt.AlignBottom)  # 左下角对齐
 
@@ -651,13 +664,19 @@ class Ui_Form(object):
         """
         global ADD_DAY_SUMMARY
         global ADD_MONTH_SUMMARY
+        global ADD_PAGE_SUMMARY
+        global ADD_TOTAL_SUMMARY
         global ONLY_WELFARE_TABLE
-        #添加日计
+        # 添加日计
         ADD_DAY_SUMMARY = self.checkbox1.isChecked()
-        #添加月计
+        # 添加月计
         ADD_MONTH_SUMMARY = self.checkbox2.isChecked()
+        # 添加页计
+        ADD_PAGE_SUMMARY = self.checkbox3.isChecked()
+        # 添加合计
+        ADD_TOTAL_SUMMARY = self.checkbox4.isChecked()
         # 只登记福利表
-        ONLY_WELFARE_TABLE = self.checkbox3.isChecked()
+        ONLY_WELFARE_TABLE = self.checkbox5.isChecked()
 
     def on_tab_clicked(self, index):
         """

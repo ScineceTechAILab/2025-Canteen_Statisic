@@ -194,7 +194,7 @@ def show_check_window(self,file_path):
     self.PopWindowApplicationForm.show()
     
 
-def commit_data_to_excel(self,model,excel_file_path,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook):
+def commit_data_to_excel(self,model,main_excel_file_path,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook):
     """
     提交数据到主表、副表Excel文件
 
@@ -209,7 +209,7 @@ def commit_data_to_excel(self,model,excel_file_path,sub_main_food_workbook,sub_a
     Return: None
     """
 
-    commit_data_to_storage_excel(self,model,excel_file_path,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)
+    commit_data_to_storage_excel(self,model,main_excel_file_path,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)
 
 
 def temp_list_rollback(self):
