@@ -121,6 +121,8 @@ class Worker(QObject):
     """
     done = Signal(str)  # 定义一个带字符串参数的信号
 
+    done2 = Signal()  
+
     def show(self, message):
         """
         这个用来判断是哪个信号
@@ -169,6 +171,9 @@ class Ui_Form(object):
     def setupUi(self, Form):
         self.worker = Worker()
         self.worker.done.connect(self.worker.show)  # 当信号发出时，执行 show_message()
+
+        self.worker.done2.connect(self.worker.tables_updated_filed) # 接收 done2信号,执行 tables_updated_filed 方法
+
 
         if not Form.objectName():
             Form.setObjectName(u"Form")
