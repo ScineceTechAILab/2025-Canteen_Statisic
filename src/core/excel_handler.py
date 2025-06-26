@@ -2200,7 +2200,13 @@ def add_counter(self, main_excel_file_path, sub_main_food_excel_file_path, sub_a
     """
 
 
-    if not (__main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY):        return
+    if not (__main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY):    
+        self.QMessageBox = QMessageBox()
+        self.QMessageBox.setText("提示:你没有勾选任何计数选项选项")    
+        self.QMessageBox.show()
+        return
+
+    
 
     try:
         if __main__.ONLY_WELFARE_TABLE == False:
