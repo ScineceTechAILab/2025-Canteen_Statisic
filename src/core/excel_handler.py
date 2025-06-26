@@ -2224,12 +2224,12 @@ def add_counter(self, main_excel_file_path, sub_main_food_excel_file_path, sub_a
 
 def note_main_table(self, main_excel_file_path):
     """
-    在主表中添加日计和月计
+    在主表中添加日计、月计、页计
     :param main_excel_file_path 主表路径
     :return None
     """
     #主表：各种杂项需要做日计月计, "日计"放"序号"--金额
-    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY:
+    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_main_table()
     else:
         return 
@@ -2319,12 +2319,12 @@ def note_main_table(self, main_excel_file_path):
 
 def note_sub_main_table(self, sub_main_food_excel_file_path):
     """
-    在子表主食表添加日计和月计
+    在子表主食表添加日计、月计、页计
     :param 子表主食表路径
     :return None
     """
     #在暂存的表里面查找第二列"品名", 将其作为sheet名查找对应sheet
-    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY:
+    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_sub_table()
     else:
         return 
@@ -2460,12 +2460,12 @@ def note_sub_main_table(self, sub_main_food_excel_file_path):
 
 def note_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path):
     """
-    在子表副食表添加日计和月计
+    在子表副食表添加日计、月计、页计
     :param 子表副食表路径
     :return None
     """
     #在暂存的表里面查找"品名", 将其作为sheet名查找对应sheet
-    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY:
+    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_sub_table()
     else:
         return 
@@ -2600,12 +2600,12 @@ def note_sub_auxiliary_table(self, sub_auxiliary_food_excel_file_path):
 
 def note_welfare_table(self, welfare_excel_file_path):
     """
-    为福利表增加日记月计
+    为福利表增加日记、月计、页计
     :param welfare_excel_file_path: 福利表路径
     :return: None
     """
     ##主表：各种杂项需要做日计月计, "日计"放"序号"--金额
-    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY:
+    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         #事实上这个和主表可以共用一个函数
         sheets_to_add = get_all_sheets_todo_for_main_table()
     else:
