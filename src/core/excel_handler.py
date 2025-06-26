@@ -393,7 +393,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                         # 更新指定公司sheet中的金额数据
                         update_company_sheet(self,main_workbook,product_name ,company_name, amount) # 只在入库的时候用到
                         # 更新入库相关表中的条目信息
-                        updata_import_sheet(self,main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name)
+                        updata_import_sheet(self,main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name) #TODO:优化耗时
                         # 更新食品收发库存表中的条目信息
                         update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity, price, amount, remark)
                         # 更新收发存表皮中的条目信息
