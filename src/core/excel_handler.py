@@ -197,7 +197,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
 
     Parameters:
         - self: 当前窗口对象
-        - modle: 输入输出模式切换变量,0为入库模式/1为出库模式
+        - modle: 输入输出模式切换变量,值为 manual/photo
         - main_excel_file_path: 主表 Excel 文件路径
         - sub_main_food_excel_file_path: 主副食明细账 Excel 文件路径
         - sub_auxiliary_food_excel_file_path: 副食品明细账 Excel 文件路径
@@ -2147,7 +2147,7 @@ def note_main_table(self, app ,  main_excel_file_path):
       
         for sheet_name in sheets_to_add:
             workbook = app.books.open(main_excel_file_path)
-            counting_page_value(True,"主食",workbook,sheet,sheet_name)
+            counting_page_value("主食",workbook,sheet,sheet_name)
 
         print("Notice: ", "主表页计全部添加完成")
 
@@ -2156,7 +2156,7 @@ def note_main_table(self, app ,  main_excel_file_path):
 
 
 
-def note_sub_main_table(self, app,sub_main_food_excel_file_path):
+def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
     """
     在子表主食表添加日计、月计、页计
     :param 子表主食表路径
@@ -2164,11 +2164,11 @@ def note_sub_main_table(self, app,sub_main_food_excel_file_path):
     """
     #在暂存的表里面查找第二列"品名", 将其作为sheet名查找对应sheet
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
-        sheets_to_add = get_all_sheets_todo_for_sub_table()
+        sheets_to_add = get_all_sheets_todo_for_sub_table(app,model)
     else:
         return 
     # 获取所有sheet的name
-    print("待添加的主食的表", sheets_to_add)
+    print("Notice: 待添加的主食的表", sheets_to_add)
 
     for product_name in sheets_to_add:
         #这里查找正确的sheet名
@@ -2289,12 +2289,12 @@ def note_sub_main_table(self, app,sub_main_food_excel_file_path):
                  
             for sheet_name in sheets_to_add:
                 workbook = app.books.open(sub_main_food_excel_file_path)
-                counting_page_value(True,"主食",workbook,sheet,sheet_name)
+                counting_page_value("主食",workbook,sheet,sheet_name)
 
             print("Notice: ", "主表页计全部添加完成")   
 
 
-def note_sub_auxiliary_table(self,app, sub_auxiliary_food_excel_file_path):
+def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path):
     """
     在子表副食表添加日计、月计、页计
     :param 子表副食表路径
@@ -2302,11 +2302,11 @@ def note_sub_auxiliary_table(self,app, sub_auxiliary_food_excel_file_path):
     """
     #在暂存的表里面查找"品名", 将其作为sheet名查找对应sheet
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
-        sheets_to_add = get_all_sheets_todo_for_sub_table()
+        sheets_to_add = get_all_sheets_todo_for_sub_table(app,model)
     else:
         return 
     # 获取所有sheet的name
-    print("待添加的副食的表", sheets_to_add)
+    print("Notice: 待添加到子表副食表中的条目", sheets_to_add)
     if __main__.ADD_DAY_SUMMARY:
         for product_name in sheets_to_add:
             #这里查找正确的sheet名
@@ -2425,7 +2425,7 @@ def note_sub_auxiliary_table(self,app, sub_auxiliary_food_excel_file_path):
         
             for sheet_name in sheets_to_add:
                 workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-                counting_page_value(True,"主食",workbook,sheet,sheet_name)
+                counting_page_value("主食",workbook,sheet,sheet_name)
 
             print("Notice: ", "主表页计全部添加完成")   
 
@@ -2523,7 +2523,7 @@ def note_welfare_table(self, app,welfare_excel_file_path):
             
         for sheet_name in sheets_to_add:
             workbook = app.books.open(welfare_excel_file_path)
-            counting_page_value(True,"主食",workbook,sheet,sheet_name)
+            counting_page_value("主食",workbook,sheet,sheet_name)
 
         print("Notice: ", "主表页计全部添加完成")   
 

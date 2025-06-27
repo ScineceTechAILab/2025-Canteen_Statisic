@@ -321,62 +321,49 @@ def get_all_sheets_todo_for_main_table():
     return list(sheets_to_add)
 
 
-def get_all_sheets_todo_for_sub_table():
+def get_all_sheets_todo_for_sub_table(app,model):
+    """
+    在手动模式和图片模式的临时表中查找所有需要添加的sheet名
+    Parameters
+      app: xlwings应用实例
+    """
+    # 使用集合来存储唯一的sheet名
     sheets_to_add = set()
+    # 读取手动模式的临时表
+
+    # 监测第二行是否为空
+
     try:
-        with xw.App(visible=False) as app:
+
+        if model == "manual":
             manual_workbook = app.books.open(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            
             manual_sheet = manual_workbook.sheets[0]
+            
+            # 检测第二行是否为空
+            if manual_sheet.range("B2").value is None:
+                print("Warning: 手动模式临时表的第二行为空，可能没有数据。")
+                return []
+            
             values = manual_sheet.range("B2:B" + str(manual_sheet.used_range.rows.count)).value
             if not isinstance(values, list):
                 values = [values]
             sheets_to_add.update(filter(None, values))
 
-    except Exception as e:
-        print(f"Error: 读取手动模式临时表失败: {e}")
-
-    try:
-        with xw.App(visible=False) as app:
+        elif model == "photo":
             photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
             photo_sheet = photo_workbook.sheets[0]
-            #图片导入的话品名在C列
-            values = photo_sheet.range("C2:C" + str(photo_sheet.used_range.rows.count)).value
+            # 检测第二行是否为空
+            if photo_sheet.range("B2").value is None:
+                print("Warning: 图片模式临时表的第二行为空，可能没有数据。")
+                return []
+            values = photo_sheet.range("B2:B" + str(photo_sheet.used_range.rows.count)).value
             if not isinstance(values, list):
                 values = [values]
             sheets_to_add.update(filter(None, values))
 
     except Exception as e:
-        print(f"Error: 读取图片模式临时表失败: {e}")
-
-    return list(sheets_to_add)
-
-
-def get_all_sheets_todo_for_sub_table():
-    sheets_to_add = set()
-    try:
-        with xw.App(visible=False) as app:
-            manual_workbook = app.books.open(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-            manual_sheet = manual_workbook.sheets[0]
-            values = manual_sheet.range("B2:B" + str(manual_sheet.used_range.rows.count)).value
-            if not isinstance(values, list):
-                values = [values]
-            sheets_to_add.update(filter(None, values))
-
-    except Exception as e:
-        print(f"Error: 读取手动模式临时表失败: {e}")
-
-    try:
-        with xw.App(visible=False) as app:
-            photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
-            photo_sheet = photo_workbook.sheets[0]
-            #图片导入的话品名在C列
-            values = photo_sheet.range("C2:C" + str(photo_sheet.used_range.rows.count)).value
-            if not isinstance(values, list):
-                values = [values]
-            sheets_to_add.update(filter(None, values))
-
-    except Exception as e:
-        print(f"Error: 读取图片模式临时表失败: {e}")
+        print(f"Error: 临时表中查找所有需要添加的sheet名失败: {e}")
 
     return list(sheets_to_add)
 

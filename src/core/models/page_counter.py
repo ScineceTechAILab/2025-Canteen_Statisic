@@ -48,81 +48,26 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book:xw.Boo
     在将条目添加到表之后,为该页面加上页计行(v1.1 逻辑流版本)
     
     Parameters:
-      page_counter_signal: 页计功能是否开启的信号，值为 True 或 False
       excel_type: 正在处理的表的类型,值为"主表"、"福利表"、"子表主食表"、"子表副食表"
       work_book: 要修改的 Excel 传入workbook对象
       work_sheet: 要修改的 Excel 传入worksheet对象
     """
-    if page_counter_signal == True:
         
-        "判断哪个表需要页计"
-        if excel_type == "主表":
+    "判断哪个表需要页计"
+    if excel_type == "主表":
 
-            if work_sheet.name in [s.name for s in work_book.sheets]:
-            
-                if work_sheet.name == "食堂物品收发存库存表":
+        if work_sheet.name in [s.name for s in work_book.sheets]:
+        
+            if work_sheet.name == "食堂物品收发存库存表":
 
-                    print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
-
-                    "设定一页的行数"
-                    sheet_ratio = 26                                    # 主表中 食堂物品收发存库存表 表为26行一页
-
-                    "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
-                    blank_row_index = get_first_blank_row_index(work_sheet) 
-                    page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 26) = 0 但是是第一页，所以要加1  
-                    
-                    "统计该页范围内除了 日记、页计等的行"
-                    page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
-                                    
-                    "累加每一页除了日计、月计、总计每一项 J 列的值"
-                    page_item_sum = 0
-                    for item_index in page_item_indexes:
-                        item_value = work_sheet.range((item_index, 10)).value
-                        if isinstance(item_value, (int, float)):
-                            page_item_sum += item_value
-                    
-                    "将该值设置为页计行 J 列的新值"
-                    work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
-
-                elif work_sheet.name in ["自购主食入库","食堂副食入库","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
-                    
-                    print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
-
-                    "设定一页的行数"
-                    sheet_ratio = 33                                    # 主表中 其他主食表 皆为 33 行一页
-                    "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
-                    blank_row_index = get_first_blank_row_index(work_sheet)
-                    page_index = int(blank_row_index / sheet_ratio) + 1 
-
-                    "统计该页范围内除了 日记、页计等的行"
-                    page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
-                                    
-                    "累加每一页除了日计、月计、总计每一项 J 列的值"
-                    page_item_sum = 0
-                    for item_index in page_item_indexes:
-                        item_value = work_sheet.range((item_index, 10)).value
-                        if isinstance(item_value, (int, float)):
-                            page_item_sum += item_value
-                    
-                    "将该值设置为页计行 J 列的新值"
-                    work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
-
-            else:
-                print("Error: {excel_type} 中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
-                return
-
-        elif excel_type == "福利表":
-
-            if  work_sheet.name in [s.name for s in work_book.sheets]:
-                
                 print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
 
                 "设定一页的行数"
-                sheet_ratio = 32                                    # 福利表中该表为32行一页
+                sheet_ratio = 26                                    # 主表中 食堂物品收发存库存表 表为26行一页
 
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet) 
-                page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 32) = 0 但是是第一页，所以要加1  
+                page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 26) = 0 但是是第一页，所以要加1  
                 
                 "统计该页范围内除了 日记、页计等的行"
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
@@ -137,167 +82,214 @@ def counting_page_value(page_counter_signal:bool,excel_type:str,work_book:xw.Boo
                 "将该值设置为页计行 J 列的新值"
                 work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
 
-            else:
-                print("Error: {excel_type} 中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
-                return
-
-        elif excel_type == "子表主食表":
-        
-            if  work_sheet.name in [s.name for s in work_book.sheets]:
-
+            elif work_sheet.name in ["自购主食入库","食堂副食入库","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
+                
                 print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
-                
-                "设定一页的行数"
-                sheet_ratio = 33                                    # 子表主食表中该表为33行一页
 
+                "设定一页的行数"
+                sheet_ratio = 33                                    # 主表中 其他主食表 皆为 33 行一页
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
-                blank_row_index = get_first_blank_row_index(work_sheet) 
-                page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 33) = 0 但是是第一页，所以要加1  
-                
+                blank_row_index = get_first_blank_row_index(work_sheet)
+                page_index = int(blank_row_index / sheet_ratio) + 1 
+
                 "统计该页范围内除了 日记、页计等的行"
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
                                 
-                "取所有行中行号最大的一行的 库存 列组的 数量(J列)、金额(K列) 列作为页计行 库存 列组的 数量(J列)、金额(K列) 列的值"
-                max_row_index = max(page_item_indexes)
-                page_item_sum = work_sheet.range((max_row_index, 10)).value                # 获取数量(J列)的值
-                amount_value = work_sheet.range((max_row_index, 11)).value                 # 获取金额(K列)的值
-                work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum # 设置页计行数量(J列)的新值
-                work_sheet.range((page_index * sheet_ratio - 2, 11)).value = amount_value  # 设置页计行金额(K列)的新值
-
-                "根据 page_item_indexes 存储行摘要列(D列)的字符值(入库/出库)将统计到的行以 {类型(入库/出库):[行号一维列表]}的方式重新打包为一个字典"
-                page_item_types = {"入库": [], "出库": []}  # 初始化一个字典来存储类型和对应的行号列表
-                
-                for item_index in page_item_indexes:       
-                    
-                    item_type = work_sheet.range((item_index, 4)).value # 获取该行的摘要列(D列)的值
-                    
-                    if item_type == "入库":                             
-                        page_item_types[item_type].append(item_index)   # 将行号添加到字典的"入库"键值对的值中
-                    
-                    elif item_type == "出库":
-                        page_item_types[item_type].append(item_index)   # 将行号添加到字典的"出库"键值对的值中
-                    
-                    else:
-                        print(f"Error: 在行 {item_index} 中发现非 入库/出库 的未知类型: {item_type}，已终止为{excel_type} 执行页计")
-                        return
-
-                "分别累加类型为 “入库” 的每一行的 “数量” 列(F列)、“金额“(G列) 列的值,分别对应存入页计行 “入库”列组 下的 “数量”列(F列)、“金额”列(G列) 列中"
-                page_item_in_sum = 0
-                page_item_out_sum = 0
-                
-                for item_index in page_item_types["入库"]:
-                    item_value = work_sheet.range((item_index, 6)).value
+                "累加每一页除了日计、月计、总计每一项 J 列的值"
+                page_item_sum = 0
+                for item_index in page_item_indexes:
+                    item_value = work_sheet.range((item_index, 10)).value
                     if isinstance(item_value, (int, float)):
-                        page_item_in_sum += item_value
-
-                for item_index in page_item_types["出库"]:
-                    item_value = work_sheet.range((item_index, 8)).value
-                    if isinstance(item_value, (int, float)):
-                        page_item_out_sum += item_value
+                        page_item_sum += item_value
                 
-                work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_in_sum  # 设置页计行 入库 列组的 数量(F列)的新值
-                work_sheet.range((page_index * sheet_ratio - 2, 11)).value = page_item_out_sum # 设置页计行 入库 列组的 金额(G列)的新值
-                
-                "分别累加类型为 “出库” 的每一行的 “数量” 列(H列)、“金额“(I列) 列的值,分别对应存入页计行 “出库” 列组 下的 “数量”列(H列)、“金额”列(I列) 列中"
-                page_item_in_sum = 0
-                page_item_out_sum = 0 
-
-                for item_index in page_item_types["出库"]:
-                    item_value = work_sheet.range((item_index, 6)).value
-                    if isinstance(item_value, (int, float)):
-                        page_item_out_sum += item_value
-                for item_index in page_item_types["出库"]:
-                    item_value = work_sheet.range((item_index, 8)).value
-                    if isinstance(item_value, (int, float)):
-                        page_item_out_sum += item_value
-                
-                work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_in_sum  # 设置页计行 入库 列组的 数量(F列)的新值
-                work_sheet.range((page_index * sheet_ratio - 2, 11)).value = page_item_out_sum # 设置页计行 出库 列组的 金额(G列)的新值
-
-        elif excel_type == "子表副食表":
-
-            if  work_sheet.name in [s.name for s in work_book.sheets]:
-
-                print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
-                
-                "设定一页的行数"
-                sheet_ratio = 32                                    # 子表副食表中该表为32行一页
-
-                "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
-                blank_row_index = get_first_blank_row_index(work_sheet) 
-                page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 32) = 0 但是是第一页，所以要加1  
-                
-                "统计该页范围内除了 日记、页计等的行"
-                page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
-                                
-                "取所有行中行号最大的一行的 库存 列组的 数量(J列)、金额(K列) 列作为页计行 库存 列组的 数量(J列)、金额(K列) 列的值"
-                max_row_index = max(page_item_indexes)
-                page_item_sum = work_sheet.range((max_row_index, 10)).value                # 获取数量(J列)的值
-                amount_value = work_sheet.range((max_row_index, 11)).value                 # 获取金额(K列)的值
-                work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum # 设置页计行数量(J列)的新值
-                work_sheet.range((page_index * sheet_ratio - 2, 11)).value = amount_value  # 设置页计行金额(K列)的新值
-
-                "根据 page_item_indexes 存储行摘要列(D列)的字符值(入库/出库)将统计到的行以 {类型(入库/出库):[行号一维列表]}的方式重新打包为一个字典"
-                page_item_types = {"入库": [], "出库": []}  # 初始化一个字典来存储类型和对应的行号列表
-                
-                for item_index in page_item_indexes:       
-                    
-                    item_type = work_sheet.range((item_index, 4)).value # 获取该行的摘要列(D列)的值
-                    
-                    if item_type == "入库":                             
-                        page_item_types[item_type].append(item_index)   # 将行号添加到字典的"入库"键值对的值中
-                    
-                    elif item_type == "出库":
-                        page_item_types[item_type].append(item_index)   # 将行号添加到字典的"出库"键值对的值中
-                    
-                    else:
-                        print(f"Error: 在行 {item_index} 中发现非 入库/出库 的未知类型: {item_type}，已终止为{excel_type} 执行页计")
-                        return
-
-                "分别累加类型为 “入库” 的每一行的 “数量” 列(F列)、“金额“(G列) 列的值,分别对应存入页计行 “入库”列组 下的 “数量”列(F列)、“金额”列(G列) 列中"
-                page_item_in_sum = 0
-                page_item_out_sum = 0
-                
-                for item_index in page_item_types["入库"]:
-                    item_value = work_sheet.range((item_index, 6)).value
-                    if isinstance(item_value, (int, float)):
-                        page_item_in_sum += item_value
-
-                for item_index in page_item_types["出库"]:
-                    item_value = work_sheet.range((item_index, 8)).value
-                    if isinstance(item_value, (int, float)):
-                        page_item_out_sum += item_value
-                
-                work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_in_sum  # 设置页计行 入库 列组的 数量(F列)的新值
-                work_sheet.range((page_index * sheet_ratio - 2, 11)).value = page_item_out_sum # 设置页计行 入库 列组的 金额(G列)的新值
-                
-                "分别累加类型为 “出库” 的每一行的 “数量” 列(H列)、“金额“(I列) 列的值,分别对应存入页计行 “出库” 列组 下的 “数量”列(H列)、“金额”列(I列) 列中"
-                page_item_in_sum = 0
-                page_item_out_sum = 0 
-
-                for item_index in page_item_types["出库"]:
-                    item_value = work_sheet.range((item_index, 6)).value
-                    if isinstance(item_value, (int, float)):
-                        page_item_out_sum += item_value
-                for item_index in page_item_types["出库"]:
-                    item_value = work_sheet.range((item_index, 8)).value
-                    if isinstance(item_value, (int, float)):
-                        page_item_out_sum += item_value
-                
-                work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_in_sum  # 设置页计行 入库 列组的 数量(F列)的新值
-                work_sheet.range((page_index * sheet_ratio - 2, 11)).value = page_item_out_sum # 设置页计行 出库 列组的 金额(G列)的新值
+                "将该值设置为页计行 J 列的新值"
+                work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
 
         else:
-            print("Error: 未知的表类型值: {Excel_Type} 跳过执行页计功能".format(Excel_Type=excel_type))
+            print("Error: {excel_type} 中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
             return
-        
-    elif page_counter_signal == False:
-        print("Notice: 页计功能被关闭，跳过为{Excel_Type} 执行页计".format(Excel_Type=excel_type))
-        return
+
+    elif excel_type == "福利表":
+
+        if  work_sheet.name in [s.name for s in work_book.sheets]:
+            
+            print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+
+            "设定一页的行数"
+            sheet_ratio = 32                                    # 福利表中该表为32行一页
+
+            "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
+            blank_row_index = get_first_blank_row_index(work_sheet) 
+            page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 32) = 0 但是是第一页，所以要加1  
+            
+            "统计该页范围内除了 日记、页计等的行"
+            page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
+                            
+            "累加每一页除了日计、月计、总计每一项 J 列的值"
+            page_item_sum = 0
+            for item_index in page_item_indexes:
+                item_value = work_sheet.range((item_index, 10)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_sum += item_value
+            
+            "将该值设置为页计行 J 列的新值"
+            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
+
+        else:
+            print("Error: {excel_type} 中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
+            return
+
+    elif excel_type == "子表主食表":
     
+        if  work_sheet.name in [s.name for s in work_book.sheets]:
+
+            print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+            
+            "设定一页的行数"
+            sheet_ratio = 33                                    # 子表主食表中该表为33行一页
+
+            "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
+            blank_row_index = get_first_blank_row_index(work_sheet) 
+            page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 33) = 0 但是是第一页，所以要加1  
+            
+            "统计该页范围内除了 日记、页计等的行"
+            page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
+                            
+            "取所有行中行号最大的一行的 库存 列组的 数量(J列)、金额(K列) 列作为页计行 库存 列组的 数量(J列)、金额(K列) 列的值"
+            max_row_index = max(page_item_indexes)
+            page_item_sum = work_sheet.range((max_row_index, 10)).value                # 获取数量(J列)的值
+            amount_value = work_sheet.range((max_row_index, 11)).value                 # 获取金额(K列)的值
+            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum # 设置页计行数量(J列)的新值
+            work_sheet.range((page_index * sheet_ratio - 2, 11)).value = amount_value  # 设置页计行金额(K列)的新值
+
+            "根据 page_item_indexes 存储行摘要列(D列)的字符值(入库/出库)将统计到的行以 {类型(入库/出库):[行号一维列表]}的方式重新打包为一个字典"
+            page_item_types = {"入库": [], "出库": []}  # 初始化一个字典来存储类型和对应的行号列表
+            
+            for item_index in page_item_indexes:       
+                
+                item_type = work_sheet.range((item_index, 4)).value # 获取该行的摘要列(D列)的值
+                
+                if item_type == "入库":                             
+                    page_item_types[item_type].append(item_index)   # 将行号添加到字典的"入库"键值对的值中
+                
+                elif item_type == "出库":
+                    page_item_types[item_type].append(item_index)   # 将行号添加到字典的"出库"键值对的值中
+                
+                else:
+                    print(f"Error: 在行 {item_index} 中发现非 入库/出库 的未知类型: {item_type}，已终止为{excel_type} 执行页计")
+                    return
+
+            "分别累加类型为 “入库” 的每一行的 “数量” 列(F列)、“金额“(G列) 列的值,分别对应存入页计行 “入库”列组 下的 “数量”列(F列)、“金额”列(G列) 列中"
+            page_item_in_sum = 0
+            page_item_out_sum = 0
+            
+            for item_index in page_item_types["入库"]:
+                item_value = work_sheet.range((item_index, 6)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_in_sum += item_value
+
+            for item_index in page_item_types["出库"]:
+                item_value = work_sheet.range((item_index, 8)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_out_sum += item_value
+            
+            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_in_sum  # 设置页计行 入库 列组的 数量(F列)的新值
+            work_sheet.range((page_index * sheet_ratio - 2, 11)).value = page_item_out_sum # 设置页计行 入库 列组的 金额(G列)的新值
+            
+            "分别累加类型为 “出库” 的每一行的 “数量” 列(H列)、“金额“(I列) 列的值,分别对应存入页计行 “出库” 列组 下的 “数量”列(H列)、“金额”列(I列) 列中"
+            page_item_in_sum = 0
+            page_item_out_sum = 0 
+
+            for item_index in page_item_types["出库"]:
+                item_value = work_sheet.range((item_index, 6)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_out_sum += item_value
+            for item_index in page_item_types["出库"]:
+                item_value = work_sheet.range((item_index, 8)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_out_sum += item_value
+            
+            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_in_sum  # 设置页计行 入库 列组的 数量(F列)的新值
+            work_sheet.range((page_index * sheet_ratio - 2, 11)).value = page_item_out_sum # 设置页计行 出库 列组的 金额(G列)的新值
+
+    elif excel_type == "子表副食表":
+
+        if  work_sheet.name in [s.name for s in work_book.sheets]:
+
+            print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+            
+            "设定一页的行数"
+            sheet_ratio = 32                                    # 子表副食表中该表为32行一页
+
+            "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
+            blank_row_index = get_first_blank_row_index(work_sheet) 
+            page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 32) = 0 但是是第一页，所以要加1  
+            
+            "统计该页范围内除了 日记、页计等的行"
+            page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
+                            
+            "取所有行中行号最大的一行的 库存 列组的 数量(J列)、金额(K列) 列作为页计行 库存 列组的 数量(J列)、金额(K列) 列的值"
+            max_row_index = max(page_item_indexes)
+            page_item_sum = work_sheet.range((max_row_index, 10)).value                # 获取数量(J列)的值
+            amount_value = work_sheet.range((max_row_index, 11)).value                 # 获取金额(K列)的值
+            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum # 设置页计行数量(J列)的新值
+            work_sheet.range((page_index * sheet_ratio - 2, 11)).value = amount_value  # 设置页计行金额(K列)的新值
+
+            "根据 page_item_indexes 存储行摘要列(D列)的字符值(入库/出库)将统计到的行以 {类型(入库/出库):[行号一维列表]}的方式重新打包为一个字典"
+            page_item_types = {"入库": [], "出库": []}  # 初始化一个字典来存储类型和对应的行号列表
+            
+            for item_index in page_item_indexes:       
+                
+                item_type = work_sheet.range((item_index, 4)).value # 获取该行的摘要列(D列)的值
+                
+                if item_type == "入库":                             
+                    page_item_types[item_type].append(item_index)   # 将行号添加到字典的"入库"键值对的值中
+                
+                elif item_type == "出库":
+                    page_item_types[item_type].append(item_index)   # 将行号添加到字典的"出库"键值对的值中
+                
+                else:
+                    print(f"Error: 在行 {item_index} 中发现非 入库/出库 的未知类型: {item_type}，已终止为{excel_type} 执行页计")
+                    return
+
+            "分别累加类型为 “入库” 的每一行的 “数量” 列(F列)、“金额“(G列) 列的值,分别对应存入页计行 “入库”列组 下的 “数量”列(F列)、“金额”列(G列) 列中"
+            page_item_in_sum = 0
+            page_item_out_sum = 0
+            
+            for item_index in page_item_types["入库"]:
+                item_value = work_sheet.range((item_index, 6)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_in_sum += item_value
+
+            for item_index in page_item_types["出库"]:
+                item_value = work_sheet.range((item_index, 8)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_out_sum += item_value
+            
+            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_in_sum  # 设置页计行 入库 列组的 数量(F列)的新值
+            work_sheet.range((page_index * sheet_ratio - 2, 11)).value = page_item_out_sum # 设置页计行 入库 列组的 金额(G列)的新值
+            
+            "分别累加类型为 “出库” 的每一行的 “数量” 列(H列)、“金额“(I列) 列的值,分别对应存入页计行 “出库” 列组 下的 “数量”列(H列)、“金额”列(I列) 列中"
+            page_item_in_sum = 0
+            page_item_out_sum = 0 
+
+            for item_index in page_item_types["出库"]:
+                item_value = work_sheet.range((item_index, 6)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_out_sum += item_value
+            for item_index in page_item_types["出库"]:
+                item_value = work_sheet.range((item_index, 8)).value
+                if isinstance(item_value, (int, float)):
+                    page_item_out_sum += item_value
+            
+            work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_in_sum  # 设置页计行 入库 列组的 数量(F列)的新值
+            work_sheet.range((page_index * sheet_ratio - 2, 11)).value = page_item_out_sum # 设置页计行 出库 列组的 金额(G列)的新值
+
     else:
-        print("Error: PAGE_COUNTER_SIGNAL值错误,请检查代码逻辑")
+        print("Error: 未知的表类型值: {Excel_Type} 跳过执行页计功能".format(Excel_Type=excel_type))
         return
+        
+
     
 def get_first_blank_row_index(page_counter_signal:bool,excel_type:str,work_book,work_sheet):
     """
