@@ -41,6 +41,7 @@ import xlwings as xw
 import re
 import __main__
 
+from src.gui.data_save_dialog import data_save_success
 from src.core.excel_handler_utils import (
     is_single_punctuation,
     is_visually_empty,
@@ -59,7 +60,7 @@ from src.core.excel_handler_utils import (
 
 from src.core.models.page_counter import *
 
-def store_single_entry_to_temple_excel(data, file_path):
+def store_single_entry_to_temple_excel(self,data, file_path):
     """
     将单条目的数据追加存储到临时excel表格中
     :param data: 要存储的字典数据
@@ -92,7 +93,10 @@ def store_single_entry_to_temple_excel(data, file_path):
             writable_workbook = copy(workbook)
             writable_sheet = writable_workbook.get_sheet(0)
             
-            
+            # 检查表头是否依次为"日期"、"类别"、"品名"、"单位"、"单价"、"数量"、"金额"、"备注"、"公司"、"单名"
+            if sheet.row_values(0) != headers:
+                raise ValueError("Error:表头必须为'日期'、'类别'、'品名'、'单位'、'单价'、'数量'、'金额'、'备注'、'公司'、'单名'")
+
             # 追加数据
             for row_index, row_data in enumerate(rows, start=existing_rows):
                 for col_index, cell_value in enumerate(row_data):
@@ -120,6 +124,8 @@ def store_single_entry_to_temple_excel(data, file_path):
             print(f"Warning:暂存表格不存在,重新创建暂存表格,路径为{file_path}")
 
         print("Notice:数据已成功追加存储到Excel文件中。")
+        # 显示保存成功的消息提示弹窗
+        data_save_success(self)     
     except Exception as e: # Leraning2：不能操作Excel正在打开的表
         print(f"Error:写入Excel文件时出错: {e}")
 
@@ -251,7 +257,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                     # 在子表中更新信息
                     update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
                     #等所有表格都更新完了才日计和月计
-                    add_counter(self,app ,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+                    add_counter(self,app ,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
 
             except Exception as e:
                 __main__.SAVE_OK_SIGNAL = False
@@ -296,7 +302,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                 # 在福利表中更新信息
                 update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
                 #等所有表格都更新完了才日计和月计
-                add_counter(self, app,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+                add_counter(self, app,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
             except Exception as e:
                 __main__.SAVE_OK_SIGNAL = False
                 print(f"Error: 福利表文件读取保存工作失败 {e}")
@@ -2029,7 +2035,7 @@ def export_update_sub_auxiliary_food_sheet(app,sub_auxiliary_food_excel_file_pat
         return  
 
 
-def add_counter(self, app, main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_excel_file_path):
+def add_counter(self, app, modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_excel_file_path):
     """
     在主表和子表中添加日计、月计、页计、累计
 
@@ -2054,7 +2060,7 @@ def add_counter(self, app, main_excel_file_path, sub_main_food_excel_file_path, 
             #添加主表
             note_main_table(self,app, main_excel_file_path)
             #添加子表主食表, wjwcj: 2025/05/13 12:43 测试没问题
-            note_sub_main_table(self, app , sub_main_food_excel_file_path)
+            note_sub_main_table(self, app , modle,sub_main_food_excel_file_path)
             #添加子表副食表, wjwcj: 2025/05/13 12:43 测试没问题
             note_sub_auxiliary_table(self, app, sub_auxiliary_food_excel_file_path)
         else:
@@ -2062,7 +2068,7 @@ def add_counter(self, app, main_excel_file_path, sub_main_food_excel_file_path, 
             note_welfare_table(self, app, welfare_excel_file_path)
 
     except Exception as e:
-        print(f"Error:添加日记月记出错,出错信息 {e}")
+        print(f"Error:在主表和子表中添加日计、月计、页计、累计,出错信息 {e}")
 
 def note_main_table(self, app ,  main_excel_file_path):
     """

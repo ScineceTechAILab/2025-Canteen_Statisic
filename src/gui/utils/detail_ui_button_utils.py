@@ -50,8 +50,8 @@ def manual_temp_storage(self,input_fields):
     """
     values_must_have = [
         self.line1Right,  # 日期
-        self.line3Right,  # 品名
-        self.line2Right,  # 类别
+        self.line2Right,  # 品名
+        self.line3Right,  # 类别
         self.line6Right,  # 数量
         self.line5Right,  # 金额
         self.line9Right,  # 公司
@@ -98,8 +98,8 @@ def manual_temp_storage(self,input_fields):
 
             "重置输入框提示文本为上一次的输入"
             self.line1Right.setPlaceholderText(input_fields['日期'])
-            self.line3Right.setPlaceholderText(input_fields['品名'])
             self.line2Right.setPlaceholderText(input_fields['类别'])
+            self.line3Right.setPlaceholderText(input_fields['品名'])
             self.line8Right.setPlaceholderText(input_fields['单位'])
             self.line7Right.setPlaceholderText(input_fields['单价'])
             self.line6Right.setPlaceholderText(input_fields['数量'])
@@ -121,9 +121,8 @@ def manual_temp_storage(self,input_fields):
             print("Notice: 暂存数据为", temp_storage)
             
             # 调用 store_single_entry_to_excel 函数存储数据到Excel文件,以xls方式存储
-            store_single_entry_to_temple_excel(temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-            # 显示保存成功的消息提示弹窗
-            data_save_success(self)     
+            store_single_entry_to_temple_excel(self,temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            
             # 暂存列表展示回滚                       
             temp_list_rollback(self)
             return temp_storage
