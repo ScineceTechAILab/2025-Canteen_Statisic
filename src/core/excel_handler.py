@@ -2062,10 +2062,10 @@ def add_counter(self, app, modle,main_excel_file_path, sub_main_food_excel_file_
             #添加子表主食表, wjwcj: 2025/05/13 12:43 测试没问题
             note_sub_main_table(self, app , modle,sub_main_food_excel_file_path)
             #添加子表副食表, wjwcj: 2025/05/13 12:43 测试没问题
-            note_sub_auxiliary_table(self, app, sub_auxiliary_food_excel_file_path)
+            note_sub_auxiliary_table(self, app, modle,sub_auxiliary_food_excel_file_path)
         else:
             #添加福利表
-            note_welfare_table(self, app, welfare_excel_file_path)
+            note_welfare_table(self, app,modle ,welfare_excel_file_path)
 
     except Exception as e:
         print(f"Error:在主表和子表中添加日计、月计、页计、累计,出错信息 {e}")
@@ -2085,7 +2085,7 @@ def note_main_table(self, app ,  main_excel_file_path):
 
     if __main__.ADD_DAY_SUMMARY:
         # 添加日计
-        # 在临时储存表格里查找单名，只有有的单名需要添加
+        # 在临时储存表格7里查找单名，只有有的单名需要添加
         # 同时查找手动和图片的两个临时储存表，排除重复项(用{}即可去重)
         # 前文获取了单名
         
@@ -2132,7 +2132,7 @@ def note_main_table(self, app ,  main_excel_file_path):
             try:
                 sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
             except:
-                print("sheet名不存在")
+                print("Warning:sheet名不存在")
                 continue
             total_amount = 0
             for row in matching_rows:
@@ -2153,6 +2153,11 @@ def note_main_table(self, app ,  main_excel_file_path):
       
         for sheet_name in sheets_to_add:
             workbook = app.books.open(main_excel_file_path)
+            try:
+                sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+            except:
+                print("Warning:sheet名不存在")
+                continue
             counting_page_value("主食",workbook,sheet,sheet_name)
 
         print("Notice: ", "主表页计全部添加完成")
@@ -2436,7 +2441,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             print("Notice: ", "主表页计全部添加完成")   
 
 
-def note_welfare_table(self, app,welfare_excel_file_path):
+def note_welfare_table(self, app,modle,welfare_excel_file_path):
     """
     为福利表增加日记、月计、页计
     :param welfare_excel_file_path: 福利表路径
