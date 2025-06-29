@@ -258,7 +258,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                     update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
                     #等所有表格都更新完了才日计和月计
                     add_counter(self,app ,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
-
+            
             except Exception as e:
                 __main__.SAVE_OK_SIGNAL = False
                 print(f"Error: 更新主表/副表/日记月计数据出错 {e}")
@@ -266,41 +266,11 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             self.pushButton_5.setText("提交数据")
             self.pushButton_9.setText("提交数据")
             
-            if __main__.SAVE_OK_SIGNAL:
-                # 调用弹窗显示保存完成信息，终端同步显示信息
-                print(f"Notice: 主子表文件读取保存工作完成")
-                self.worker.done.emit("tables_updated")  # 比如写完数据后调用
-            
-            else:
-                print(f"Error: 主子表文件读取保存工作失败，有条目未识别")
-
-                "依次复原 main、work 目录下的文件"
-                # 遍历src\data\storage\backup下的文件夹，找到备份时间最新的一份
-                backup_dir = os.path.join('src', 'data', 'storage', 'backup')
-                backup_folders = [f for f in glob(os.path.join(backup_dir, '*')) if os.path.isdir(f)]
-                backup_folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                if backup_folders:
-                    backup_path = backup_folders[0]
-                    print(f"Notice: 尝试将最新备份备份 {backup_path} 还原至 main 目录")
-                # 还原 backup 目录中的文件到 main、work 目录
-                try:
-                    shutil.rmtree("./src/data/storage/main")
-                    shutil.copytree(backup_path, "./src/data/storage/main",dirs_exist_ok=True)
-                    print(f"Notice:文件已从{backup_path}还原到 ./src/data/storage/work 目录")
-                    shutil.rmtree("./src/data/storage/work")
-                    shutil.copytree(backup_path, "./src/data/storage/work",dirs_exist_ok=True)
-                    print(f"Notice: 文件已从{backup_path}还原到 ./src/data/storage/work 目录")
-                
-                except Exception as e:
-                    print(f"Error: 将主表文件复制到 work 目录出错,错误信息为: {e}")            
-                # 弹出入库失败通知
-                self.worker.done.emit("tables_updated_filed")  
-
         else:
             "只登记福利表"
             try:
                 # 在福利表中更新信息
-                update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
+                update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
                 #等所有表格都更新完了才日计和月计
                 add_counter(self, app,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
             except Exception as e:
@@ -313,34 +283,38 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             # 调用弹窗显示保存完成信息，终端同步显示信息
             print(f"Notice: 文件读取保存工作完成")
 
-            if __main__.SAVE_OK_SIGNAL:
-                # 调用弹窗显示保存完成信息，终端同步显示信息
-                print(f"Notice: 主子表文件读取保存工作完成")
-                self.worker.done.emit("tables_updated")  # 比如写完数据后调用
-            else:
-                print(f"Error: 主子表文件读取保存工作失败")
-                
-                "依次复原 main、work 目录下的文件"
-                # 遍历src\data\storage\backup下的文件夹，找到备份时间最新的一份
-                backup_dir = os.path.join('src', 'data', 'storage', 'backup')
-                backup_folders = [f for f in glob(os.path.join(backup_dir, '*')) if os.path.isdir(f)]
-                backup_folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-                if backup_folders:
-                    backup_path = backup_folders[0]
-                    print(f"Notice: 尝试将最新备份备份 {backup_path} 还原至 main 目录")
-                # 还原 back 目录中的文件到 main、work 目录
-                try:
-                    shutil.rmtree("./src/data/storage/main")
-                    shutil.copytree(backup_path, "./src/data/storage/main",dirs_exist_ok=True)
-                    print(f"Notice:文件已从{backup_path}还原到 ./src/data/storage/work 目录")
-                    shutil.rmtree("./src/data/storage/work")
-                    shutil.copytree(backup_path, "./src/data/storage/work",dirs_exist_ok=True)
-                    print(f"Notice: 文件已从{backup_path}还原到 ./src/data/storage/work 目录")
-                
-                except Exception as e:
-                    print(f"Error: 将主表文件复制到 main 目录出错,错误信息为: {e}")            
-                # 弹出入库失败通知
-                self.worker.done.emit("tables_updated_filed","None")    
+
+
+        if __main__.SAVE_OK_SIGNAL:
+            # 调用弹窗显示保存完成信息，终端同步显示信息
+            print(f"Notice: 主子表文件读取保存工作完成")
+            self.worker.done.emit("tables_updated")  # 比如写完数据后调用
+        
+        else:
+            print(f"Error: 主子表文件读取保存工作失败，有条目未识别")
+
+            "依次复原 main、work 目录下的文件"
+            # 遍历src\data\storage\backup下的文件夹，找到备份时间最新的一份
+            backup_dir = os.path.join('src', 'data', 'storage', 'backup')
+            backup_folders = [f for f in glob(os.path.join(backup_dir, '*')) if os.path.isdir(f)]
+            backup_folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+            if backup_folders:
+                backup_path = backup_folders[0]
+                print(f"Notice: 尝试将最新备份备份 {backup_path} 还原至 main 目录")
+            # 还原 backup 目录中的文件到 main、work 目录
+            try:
+                shutil.rmtree("./src/data/storage/main")
+                shutil.copytree(backup_path, "./src/data/storage/main",dirs_exist_ok=True)
+                print(f"Notice:文件已从{backup_path}还原到 ./src/data/storage/work 目录")
+                shutil.rmtree("./src/data/storage/work")
+                shutil.copytree(backup_path, "./src/data/storage/work",dirs_exist_ok=True)
+                print(f"Notice: 文件已从{backup_path}还原到 ./src/data/storage/work 目录")
+            
+            except Exception as e:
+                print(f"Error: 将主表文件复制到 work 目录出错,错误信息为: {e}")            
+            # 弹出入库失败通知
+            self.worker.done.emit("tables_updated_filed")  
+
 
 def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
@@ -413,10 +387,12 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
                 #搞定
                 export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
 
-        main_workbook.save()
-        # 关闭工作簿
-        main_workbook.close()
-          
+        "如果开启页计功能，先不更新页计表格"
+        if not (__main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY):    
+            main_workbook.save()
+            # 关闭工作簿
+            main_workbook.close()
+        
     except Exception as e:
         print(f"Error: 处理主工作簿更新相关表格信息出错,出错信息{e}")
 
@@ -930,14 +906,20 @@ def update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food
     :return: None
     """
 
+    # 打开子表主食表
+    main_workbook = app.books.open(sub_main_food_excel_file_path)
+    # 打开子表副食表
+    auxiliary_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
+    print(f"Notice: 子表主食表和副食表加载成功，文件路径: {sub_main_food_excel_file_path} 和 {sub_auxiliary_food_excel_file_path}")
     
     if not __main__.MODE:
+
         try:
             print(f"\n\n\nNotice: 入库更新子表")
             # 在子表主食表中更新信息
-            update_sub_main_food_sheet(app,sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+            update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers)
             # 在子表副食表中更新信息
-            update_sub_auxiliary_food_sheet(app,sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+            update_sub_auxiliary_food_sheet(auxiliary_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers)
         except Exception as e:
 
             print(f"Error: 更新子表主食表或副食表出错 {e}")
@@ -946,26 +928,36 @@ def update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food
         try:
             print(f"\n\n\nNotice: 出库更新子表")
             # 在子表主食表中更新信息
-            export_update_sub_main_food_sheet(app,sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+            export_update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers)
             # 在子表副食表中更新信息
             export_update_sub_auxiliary_food_sheet(app,sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
         except Exception as e:
             print(f"Error: 输出子表主食表或副食表出错 {e}")
+    
+    # 保存工作簿
+    main_workbook.save()
+    auxiliary_workbook.save()
+    # 关闭工作簿
+    main_workbook.close()
+    auxiliary_workbook.close()
 
-def update_sub_main_food_sheet(app,_sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
+    print(f"Notice: 子表主食表和副食表更新完成，已保存并关闭工作簿")
+
+
+def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     将暂存表数据提交到子表主食表
-    :param sub_mian_food_excel_file_path: 子表主食表路径
-    :param read_temp_storage_workbook: 暂存表格工作簿对象
-    :param read_temp_storage_workbook_headers: 暂存表格表头
+    Parameters:
+     main_workbook: 子表主食表工作簿对象
+     sub_mian_food_excel_file_path: 子表主食表路径
+     read_temp_storage_workbook: 暂存表格工作簿对象
+     read_temp_storage_workbook_headers: 暂存表格表头
+    
     :return: None
     """
 
     try:
 
-        main_workbook = app.books.open(_sub_main_food_excel_file_path)
-        print(f"Notice: 子表主食表加载成功，文件路径: {_sub_main_food_excel_file_path}")
-        
         # 轮询读取暂存表格数据行
         for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
             # 读取行数据
@@ -1086,29 +1078,24 @@ def update_sub_main_food_sheet(app,_sub_main_food_excel_file_path, read_temp_sto
                 print(f"Warning: 在子表主食表入库时该食品类别属性不名为 主食 ,实名为 {category_name} 已跳过该菜品子表主食表写入")
                 continue
             
-        # 保存并关闭子表
-        main_workbook.save()
-        main_workbook.close()
-        print(f"Notice: 子表主食表保存成功，文件路径: {_sub_main_food_excel_file_path}")
-
     except Exception as e:
         print(f"Error: 将暂存表数据提交到子表主食表时出错,出错信息{e}")
         return  
 
-def update_sub_auxiliary_food_sheet(app,sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
+def update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     将暂存表数据提交到子表副食表
-    :param sub_auxiliary_food_excel_file_path: 子表副食表路径
-    :param read_temp_storage_workbook: 暂存表格工作簿对象
-    :param read_temp_storage_workbook_headers: 暂存表格表头
+    Parameters:
+     main_workbook: 子表副食表工作簿对象
+     sub_auxiliary_food_excel_file_path: 子表副食表路径
+     read_temp_storage_workbook: 暂存表格工作簿对象
+     read_temp_storage_workbook_headers: 暂存表格表头
+    
     :return: None
     """
     
     try:
-        # 打开主工作簿对象
-        main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-        print(f"\nNotice: 子表副食表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
-        
+
         # 轮询读取暂存表格数据行
         for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
             # 读取行数据
@@ -1221,17 +1208,12 @@ def update_sub_auxiliary_food_sheet(app,sub_auxiliary_food_excel_file_path, read
             else:
                 print(f"Warning: 在子表副食表入库时该食品类别属性不名为 主食 ,实名为 {category_name} 已跳过该菜品子表副食表写入")
                 continue
-
-        # 保存并关闭子表
-        main_workbook.save()
-        main_workbook.close()
-        print(f"Notice: 子表副食表保存成功，文件路径: {sub_auxiliary_food_excel_file_path}")
-
+        
     except Exception as e:
         print(f"Error: 将暂存表数据提交到子表副食表出错，出错信息 {e}")
         return  
 
-def update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers):
+def update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers):
     """
     更新或添加数据到食堂福利表
     :param main_workbook: 主工作簿对象
@@ -1245,271 +1227,264 @@ def update_welfare_food_sheet(self,welfare_food_excel_file_path,read_temp_storag
     """
     # 在福利表中更新信息
     try:
-        # 调用xlwings打开 excel 应用对象
-        with xw.App(visible=False) as app:
+        # 读取福利表表格
+        try:
+            # 打开福利表簿对象
+            main_workbook = app.books.open(welfare_food_excel_file_path)
+            print(f"Notice: 福利表表加载成功，文件路径: {welfare_food_excel_file_path}")
+        except Exception as e:
+            __main__.SAVE_OK_SIGNAL = False
+            print(f"Error: {e}")
+            return    
+
+        # 轮询读取暂存表格数据行
+        for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
+            # 读取行数据
+            row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
+            # 创建一个字典，用于存储列索引和列名的对应关系
+            header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
             
-            # 读取福利表表格
-            try:
-                # 打开福利表簿对象
-                main_workbook = app.books.open(welfare_food_excel_file_path)
-                print(f"Notice: 福利表表加载成功，文件路径: {welfare_food_excel_file_path}")
-            except Exception as e:
-                __main__.SAVE_OK_SIGNAL = False
-                print(f"Error: {e}")
-                return    
+            # 将日期分解为月和日
+            year, month, day = row_data[header_index["日期"]].split("-")
+            # 获取行中类别列类型单元中的类别名数据
+            category_name = row_data[header_index["类别"]]
+            # 获取行中品名列类型单元中的品名名数据
+            product_name = row_data[header_index["品名"]]
+            # 获取行中单位列类型单元中的单位名数据
+            unit_name = row_data[header_index["单位"]]
+            # 获取行中单价列类型单元中的单价名数据
+            price = row_data[header_index["单价"]]
+            # 获取行中数量列类型单元中的数量名数据
+            quantity = row_data[header_index["数量"]]
+            # 获取行中金额列单元中金额数据
+            amount = row_data[header_index["金额"]]
+            # 获取行中备注列单元中备注数据
+            remark = row_data[header_index["备注"]]
+            # 获取行中公司列单元中公司名数据
+            company_name = row_data[header_index["公司"]]
+            # 获取行中单名称列单元中单名数据
+            single_name = row_data[header_index["单名"]]
 
-            # 轮询读取暂存表格数据行
-            for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
-                # 读取行数据
-                row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
-                # 创建一个字典，用于存储列索引和列名的对应关系
-                header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
-                
-                # 将日期分解为月和日
-                year, month, day = row_data[header_index["日期"]].split("-")
-                # 获取行中类别列类型单元中的类别名数据
-                category_name = row_data[header_index["类别"]]
-                # 获取行中品名列类型单元中的品名名数据
-                product_name = row_data[header_index["品名"]]
-                # 获取行中单位列类型单元中的单位名数据
-                unit_name = row_data[header_index["单位"]]
-                # 获取行中单价列类型单元中的单价名数据
-                price = row_data[header_index["单价"]]
-                # 获取行中数量列类型单元中的数量名数据
-                quantity = row_data[header_index["数量"]]
-                # 获取行中金额列单元中金额数据
-                amount = row_data[header_index["金额"]]
-                # 获取行中备注列单元中备注数据
-                remark = row_data[header_index["备注"]]
-                # 获取行中公司列单元中公司名数据
-                company_name = row_data[header_index["公司"]]
-                # 获取行中单名称列单元中单名数据
-                single_name = row_data[header_index["单名"]]
-
-                if not __main__.MODE:
-                    print("Notice: 福利表正在入库")
-                    # 尝试打开名为过年福利入的 sheet
-                    if "过年福利入" in [s.name for s in main_workbook.sheets]:
-                        sheet = main_workbook.sheets["过年福利入"]
-                        print(f"Notice: 入库福利表时找到名为 `过年福利入` 的sheet")
-                    else:
-                        print(f"Error: 入库福利表时未找到入库名为 `过年福利入` 的sheet")
-                        return
-                            
-                    # 从已有的行中查找第一行空行，记录下空行行标（从表格的第二行开始）
-                    for row_index in range(0, sheet.used_range.rows.count):
-                        if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
-                            # 检查前一行是否包含“领导”二字
-                            if row_index > 0:
-                                previous_row_values = [
-                                str(sheet.range((row_index, col)).value).strip()
-                                for col in range(1, sheet.used_range.columns.count + 1)
-                                if sheet.range((row_index, col)).value is not None
-                                ]
-                                if any("领导" in value for value in previous_row_values):
-                                    print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
-                                    continue
-
-                            # 检查当前列的前几行是否包含“序号”二字
-                            column_values = [str(sheet.range((row, 1)).value).strip() for row in range(1, row_index + 1) if sheet.range((row, 1)).value is not None]
-                            if not any("序号" in value for value in column_values):
-                                print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
-                                continue
-                            break
-
-                    # 尝试写入一行数据
-                    try:
-                        # 获取当前列中所有的序号值，排除空值并转换为整数
-                        existing_numbers = []
-                        for i in range(row_index):
-                            box_value = sheet.range((i + 1, 1)).value
-                            # 判定 box_value 是否为整型
-                            try:
-                                if box_value == '日计':
-                                    existing_numbers = [0]
-                                else:
-                                    box_value = int(box_value)  # 尝试将值转换为整数
-                                    if str(box_value).isdigit():
-                                        existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
-                            except:
-                                continue
-                                
-                        # 计算新的序号值
-                        new_number = max(existing_numbers) + 1 if existing_numbers else 1
-                        # 写入序号数据
-                        sheet.range((row_index + 1, 1)).value = new_number
-                        print(f"Notice: 在福利表表为入库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
-
-                        # 为B、C列写入月份日期数据
-                        sheet.range((row_index + 1, 2)).value = month
-                        sheet.range((row_index + 1, 3)).value = day
-                        print(f"Notice: 在福利表表为入库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
-
-                        #动态获取表头行行数
-                        name_row = 0
-                        for i in range(6):
-                            #在前六行里找吧
-                            datas = [str(sheet.range((i + 1, col)).value).strip().replace(" ", "") for col in range(1, 12)]
-                            if "单价" in datas and "数量" in datas and "金额" in datas:
-                                name_row = i + 1
-                                break
-
-                        # 依次为D~K列写入数据(D、E列合并，需要加入跳过判断逻辑)
-                        for col_index in range(4, 12):
-                            if col_index == 5:
-                                # 如果当前列是E列，则跳过
-                                continue
-                            else:
-                                # 操作该单元时候，访问第该单元对应列的第四行单元获取该列的列名属性
-                                # wjwcj：这可不一定，自购主食出库的列名属性就在第三行，所以得动态获取(到name_row)
-                                    
-                                cell_attribute = sheet.range((name_row, col_index)).value
-
-                                if isinstance(cell_attribute, str):
-                                    # 去除所有中文之间的空格
-                                    cell_attribute = re.sub(r'(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])', '', cell_attribute)
-
-                                print("Notice: 当前列", col_index, cell_attribute)
-                                try:
-                                    if cell_attribute == "计量单位":
-                                        # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
-                                        sheet.range((row_index + 1, col_index)).value = unit_name
-                                        print(f"Notice: 在福利表表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
-
-                                    else:
-                                        # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
-                                        #print("正在写入" + cell_attribute + "  " + str(row_data[header_index[cell_attribute]]))
-                                        if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
-                                            row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
-                                        sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
-                                        print(f"Notice: 在福利表表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
-
-                                except KeyError:
-                                    __main__.SAVE_OK_SIGNAL = False
-                                    print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
-                    except Exception as e:
-                        __main__.SAVE_OK_SIGNAL = False
-                        print(f"Error: 出库时写入数据时发生错误 {e}")
+            if not __main__.MODE:
+                print("Notice: 福利表正在入库")
+                # 尝试打开名为过年福利入的 sheet
+                if "过年福利入" in [s.name for s in main_workbook.sheets]:
+                    sheet = main_workbook.sheets["过年福利入"]
+                    print(f"Notice: 入库福利表时找到名为 `过年福利入` 的sheet")
                 else:
-                    print("Notice: 正在出库")
-                    # 尝试打开名为过年福利入的 sheet
-                    if "过年福利出 (2)" in [s.name for s in main_workbook.sheets]:
-                        sheet = main_workbook.sheets["过年福利出 (2)"]
-                        print(f"Notice: 找到入库类型名为 `过年福利出 (2)` 的sheet")
-                    else:
-                        __main__.SAVE_OK_SIGNAL = False
-                        print(f"Error: 未找到入库类型名为 `过年福利出 (2)` 的sheet,可能存在空字符")
-                        return
-                            
-                    # 查找第一行空行，记录下空行行标（从表格的第二行开始）
-                    for row_index in range(0, sheet.used_range.rows.count):
-                        if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
-                            # 检查前一行是否包含“领导”二字
-                            if row_index > 0:
-                                previous_row_values = [
-                                str(sheet.range((row_index, col)).value).strip()
-                                for col in range(1, sheet.used_range.columns.count + 1)
-                                if sheet.range((row_index, col)).value is not None
-                                ]
-                                if any("领导" in value for value in previous_row_values):
-                                    print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
-                                    continue
-
-                            # 检查当前列的前几行是否包含“序号”二字
-                            column_values = [
-                                str(sheet.range((row, 1)).value).strip()
-                                for row in range(1, row_index + 1)
-                                if sheet.range((row, 1)).value is not None
+                    print(f"Error: 入库福利表时未找到入库名为 `过年福利入` 的sheet")
+                    return
+                        
+                # 从已有的行中查找第一行空行，记录下空行行标（从表格的第二行开始）
+                for row_index in range(0, sheet.used_range.rows.count):
+                    if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
+                        # 检查前一行是否包含“领导”二字
+                        if row_index > 0:
+                            previous_row_values = [
+                            str(sheet.range((row_index, col)).value).strip()
+                            for col in range(1, sheet.used_range.columns.count + 1)
+                            if sheet.range((row_index, col)).value is not None
                             ]
-                            if not any("序号" in value for value in column_values):
-                                print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
+                            if any("领导" in value for value in previous_row_values):
+                                print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
                                 continue
+
+                        # 检查当前列的前几行是否包含“序号”二字
+                        column_values = [str(sheet.range((row, 1)).value).strip() for row in range(1, row_index + 1) if sheet.range((row, 1)).value is not None]
+                        if not any("序号" in value for value in column_values):
+                            print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
+                            continue
+                        break
+
+                # 尝试写入一行数据
+                try:
+                    # 获取当前列中所有的序号值，排除空值并转换为整数
+                    existing_numbers = []
+                    for i in range(row_index):
+                        box_value = sheet.range((i + 1, 1)).value
+                        # 判定 box_value 是否为整型
+                        try:
+                            if box_value == '日计':
+                                existing_numbers = [0]
+                            else:
+                                box_value = int(box_value)  # 尝试将值转换为整数
+                                if str(box_value).isdigit():
+                                    existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
+                        except:
+                            continue
+                            
+                    # 计算新的序号值
+                    new_number = max(existing_numbers) + 1 if existing_numbers else 1
+                    # 写入序号数据
+                    sheet.range((row_index + 1, 1)).value = new_number
+                    print(f"Notice: 在福利表表为入库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
+
+                    # 为B、C列写入月份日期数据
+                    sheet.range((row_index + 1, 2)).value = month
+                    sheet.range((row_index + 1, 3)).value = day
+                    print(f"Notice: 在福利表表为入库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
+
+                    #动态获取表头行行数
+                    name_row = 0
+                    for i in range(6):
+                        #在前六行里找吧
+                        datas = [str(sheet.range((i + 1, col)).value).strip().replace(" ", "") for col in range(1, 12)]
+                        if "单价" in datas and "数量" in datas and "金额" in datas:
+                            name_row = i + 1
                             break
 
-                    # 尝试写入一行数据
-                    try:
-                        # 获取当前列中所有的序号值，排除空值并转换为整数
-                        existing_numbers = []
-                        for i in range(row_index):
-                            box_value = sheet.range((i + 1, 1)).value
+                    # 依次为D~K列写入数据(D、E列合并，需要加入跳过判断逻辑)
+                    for col_index in range(4, 12):
+                        if col_index == 5:
+                            # 如果当前列是E列，则跳过
+                            continue
+                        else:
+                            # 操作该单元时候，访问第该单元对应列的第四行单元获取该列的列名属性
+                            # wjwcj：这可不一定，自购主食出库的列名属性就在第三行，所以得动态获取(到name_row)
+                                
+                            cell_attribute = sheet.range((name_row, col_index)).value
+
+                            if isinstance(cell_attribute, str):
+                                # 去除所有中文之间的空格
+                                cell_attribute = re.sub(r'(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])', '', cell_attribute)
+
+                            print("Notice: 当前列", col_index, cell_attribute)
                             try:
-                                if box_value == '日计':
-                                    existing_numbers = [0]
+                                if cell_attribute == "计量单位":
+                                    # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
+                                    sheet.range((row_index + 1, col_index)).value = unit_name
+                                    print(f"Notice: 在福利表表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
+
                                 else:
-                                    box_value = int(box_value)  # 尝试将值转换为整数
-                                    if str(box_value).isdigit():
-                                        existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
-                            except:
+                                    # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
+                                    #print("正在写入" + cell_attribute + "  " + str(row_data[header_index[cell_attribute]]))
+                                    if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
+                                        row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
+                                    sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
+                                    print(f"Notice: 在福利表表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+
+                            except KeyError:
+                                __main__.SAVE_OK_SIGNAL = False
+                                print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
+                except Exception as e:
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 出库时写入数据时发生错误 {e}")
+            else:
+                print("Notice: 正在出库")
+                # 尝试打开名为过年福利入的 sheet
+                if "过年福利出 (2)" in [s.name for s in main_workbook.sheets]:
+                    sheet = main_workbook.sheets["过年福利出 (2)"]
+                    print(f"Notice: 找到入库类型名为 `过年福利出 (2)` 的sheet")
+                else:
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 未找到入库类型名为 `过年福利出 (2)` 的sheet,可能存在空字符")
+                    return
+                        
+                # 查找第一行空行，记录下空行行标（从表格的第二行开始）
+                for row_index in range(0, sheet.used_range.rows.count):
+                    if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
+                        # 检查前一行是否包含“领导”二字
+                        if row_index > 0:
+                            previous_row_values = [
+                            str(sheet.range((row_index, col)).value).strip()
+                            for col in range(1, sheet.used_range.columns.count + 1)
+                            if sheet.range((row_index, col)).value is not None
+                            ]
+                            if any("领导" in value for value in previous_row_values):
+                                print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
                                 continue
-                        # 计算新的序号值
-                        new_number = max(existing_numbers) + 1 if existing_numbers else 1
-                        # 写入序号数据
-                        sheet.range((row_index + 1, 1)).value = new_number
-                        print(f"Notice: 在福利表表为出库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
 
-                        # 为B、C列写入月份日期数据
-                        sheet.range((row_index + 1, 2)).value = month
-                        sheet.range((row_index + 1, 3)).value = day
-                        print(f"Notice: 在福利表表为出库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
+                        # 检查当前列的前几行是否包含“序号”二字
+                        column_values = [
+                            str(sheet.range((row, 1)).value).strip()
+                            for row in range(1, row_index + 1)
+                            if sheet.range((row, 1)).value is not None
+                        ]
+                        if not any("序号" in value for value in column_values):
+                            print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
+                            continue
+                        break
 
-                        #动态获取表头行行数
-                        name_row = 0
-                        for i in range(6):
-                            #在前六行里找吧
-                            datas = [str(sheet.range((i + 1, col)).value).strip().replace(" ", "") for col in range(1, 12)]
-                            if "单价" in datas and "数量" in datas and "金额" in datas:
-                                name_row = i + 1
-                                break
-
-                        # 依次为D~K列写入数据(D、E列合并，需要加入跳过判断逻辑)
-                        for col_index in range(4, 12):
-                            if col_index == 5:
-                                # 如果当前列是E列，则跳过
-                                continue
+                # 尝试写入一行数据
+                try:
+                    # 获取当前列中所有的序号值，排除空值并转换为整数
+                    existing_numbers = []
+                    for i in range(row_index):
+                        box_value = sheet.range((i + 1, 1)).value
+                        try:
+                            if box_value == '日计':
+                                existing_numbers = [0]
                             else:
-                                # 操作该单元时候，访问第该单元对应列的第四行单元获取该列的列名属性
-                                # wjwcj：这可不一定，自购主食出库的列名属性就在第三行，所以得动态获取(到name_row)
-                                    
-                                cell_attribute = sheet.range((name_row, col_index)).value
+                                box_value = int(box_value)  # 尝试将值转换为整数
+                                if str(box_value).isdigit():
+                                    existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
+                        except:
+                            continue
+                    # 计算新的序号值
+                    new_number = max(existing_numbers) + 1 if existing_numbers else 1
+                    # 写入序号数据
+                    sheet.range((row_index + 1, 1)).value = new_number
+                    print(f"Notice: 在福利表表为出库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
 
-                                if isinstance(cell_attribute, str):
-                                    # 去除所有中文之间的空格
-                                    cell_attribute = re.sub(r'(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])', '', cell_attribute)
+                    # 为B、C列写入月份日期数据
+                    sheet.range((row_index + 1, 2)).value = month
+                    sheet.range((row_index + 1, 3)).value = day
+                    print(f"Notice: 在福利表表为出库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
 
-                                print("Notice: 当前列", col_index, cell_attribute)
-                                try:
-                                    if cell_attribute == "计量单位":
-                                        # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
-                                        sheet.range((row_index + 1, col_index)).value = unit_name
-                                        print(f"Notice: 在福利表表为出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
+                    #动态获取表头行行数
+                    name_row = 0
+                    for i in range(6):
+                        #在前六行里找吧
+                        datas = [str(sheet.range((i + 1, col)).value).strip().replace(" ", "") for col in range(1, 12)]
+                        if "单价" in datas and "数量" in datas and "金额" in datas:
+                            name_row = i + 1
+                            break
 
-                                    else:
-                                        # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
-                                        #print("正在写入" + cell_attribute + "  " + str(row_data[header_index[cell_attribute]]))
-                                        if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
-                                            row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
-                                        sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
-                                        print(f"Notice: 在福利表表为出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+                    # 依次为D~K列写入数据(D、E列合并，需要加入跳过判断逻辑)
+                    for col_index in range(4, 12):
+                        if col_index == 5:
+                            # 如果当前列是E列，则跳过
+                            continue
+                        else:
+                            # 操作该单元时候，访问第该单元对应列的第四行单元获取该列的列名属性
+                            # wjwcj：这可不一定，自购主食出库的列名属性就在第三行，所以得动态获取(到name_row)
+                                
+                            cell_attribute = sheet.range((name_row, col_index)).value
 
-                                except KeyError:
-                                    __main__.SAVE_OK_SIGNAL = False
-                                    print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
-                    except Exception as e:
-                        __main__.SAVE_OK_SIGNAL = False
-                        print(f"Error: 出库时写入数据时发生错误 {e}")
-                
+                            if isinstance(cell_attribute, str):
+                                # 去除所有中文之间的空格
+                                cell_attribute = re.sub(r'(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])', '', cell_attribute)
 
+                            print("Notice: 当前列", col_index, cell_attribute)
+                            try:
+                                if cell_attribute == "计量单位":
+                                    # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
+                                    sheet.range((row_index + 1, col_index)).value = unit_name
+                                    print(f"Notice: 在福利表表为出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
+
+                                else:
+                                    # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
+                                    #print("正在写入" + cell_attribute + "  " + str(row_data[header_index[cell_attribute]]))
+                                    if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
+                                        row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
+                                    sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
+                                    print(f"Notice: 在福利表表为出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+
+                            except KeyError:
+                                __main__.SAVE_OK_SIGNAL = False
+                                print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
+                except Exception as e:
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 出库时写入数据时发生错误 {e}")
             
-            try:
-                # 保存福利表工作簿 
-                main_workbook.save() #Fixed：这个语句必须在 with 作用域内，否则就会报错 The RPC server is unavailable.
-                # 关闭福利表工作簿
-                main_workbook.close()
-                # 关闭应用对象
-                app.quit() # Learning：切记关闭应用对象，否则会造成下次创建一个同名应用对象时候发生对象名重复的冲突造成进程卡死
-                
-            except Exception as e:
-                print(f"Error: 保存主表时出错 {e}")
+
+        "如果开启页计功能，则不需要更新页计表格"
+        if not __main__.ADD_DAY_SUMMARY and not __main__.ADD_MONTH_SUMMARY and not __main__.ADD_PAGE_SUMMARY and not __main__.ADD_TOTAL_SUMMARY:
+            # 保存福利表工作簿 
+            main_workbook.save() #Fixed：这个语句必须在 with 作用域内，否则就会报错 The RPC server is unavailable.
+            # 关闭福利表工作簿
+            main_workbook.close()
+
             
     except Exception as e:
             print(f"Error: 更新或添加数据到食堂福利表出错,出错信息{e}")
@@ -1749,12 +1724,14 @@ def export_update_main_food_detail_sheet(main_workbook, single_name, category_na
             sheet.range(found_row_index, found_column_index).value = float(amount) + float(cell_value)
             print(f"Notice: 在 主副食品明细账 Sheet中的 {row_index_name} {column_index_name} 的现在金额数据为 {sheet.range(found_row_index, found_column_index).value}")
 
-def export_update_sub_main_food_sheet(app,_sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
+def export_update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     将暂存表数据提交到子表主食表(出库)
-    :param sub_mian_food_excel_file_path: 子表主食表路径
-    :param read_temp_storage_workbook: 暂存表格工作簿对象
-    :param read_temp_storage_workbook_headers: 暂存表格表头
+    
+    Parameters:
+      main_workbook: 子表主食表工作簿对象
+      read_temp_storage_workbook: 暂存表格工作簿对象
+      read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
     """
@@ -1763,9 +1740,6 @@ def export_update_sub_main_food_sheet(app,_sub_main_food_excel_file_path, read_t
     """
 
     try:
-        # 打开主工作簿对象
-        main_workbook = app.books.open(_sub_main_food_excel_file_path)
-        print(f"Notice: 子表主食表加载成功，文件路径: {_sub_main_food_excel_file_path}")
         
         # 轮询读取暂存表格数据行
         for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -1796,7 +1770,7 @@ def export_update_sub_main_food_sheet(app,_sub_main_food_excel_file_path, read_t
                 # 获取行中单名称列单元中单名数据
                 single_name = row_data[header_index["单名"]]  
             except Exception as e:
-                app.quit()
+                
                 __main__.SAVE_OK_SIGNAL = False
                 print(f"Error: 将暂存表数据提交到子表主食表(出库)时拆解数据出错 {e}")
 
@@ -1884,33 +1858,22 @@ def export_update_sub_main_food_sheet(app,_sub_main_food_excel_file_path, read_t
                 print(f"Error: 子表主食表 {product_name} sheet 写入金额失败{e}")
                 return
             
-        # 保存并关闭子表
-        main_workbook.save()
-        main_workbook.close()
-        print(f"Notice: 子表主食表保存成功，文件路径: {_sub_main_food_excel_file_path}")
-
     except Exception as e:
         print(f"Error: {e}")
         return  
 
-def export_update_sub_auxiliary_food_sheet(app,sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
+def export_update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     将暂存表数据提交到子表副食表(出库)
-    :param sub_auxiliary_food_excel_file_path: 子表副食表路径
-    :param read_temp_storage_workbook: 暂存表格工作簿对象
-    :param read_temp_storage_workbook_headers: 暂存表格表头
+    Parameters:
+      main_workbook: 子表副食表工作簿对象
+      read_temp_storage_workbook: 暂存表格工作簿对象
+      read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
-    """
-    """
-    将暂存表数据提交到子表副食表(出库)
-    wjwcj: 2025/05/05 15:40 测试没问题
     """
 
     try:
-        # 打开主工作簿对象
-        main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-        print(f"\nNotice: 子表副食表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
-        
+
         # 轮询读取暂存表格数据行
         for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
             # 读取行数据
@@ -2025,11 +1988,6 @@ def export_update_sub_auxiliary_food_sheet(app,sub_auxiliary_food_excel_file_pat
                 print(f"Error: 子表副食表 {product_name} sheet 写入金额失败{e}")
                 return
             
-        # 保存并关闭子表
-        main_workbook.save()
-        main_workbook.close()
-        print(f"Notice: 子表副食表保存成功，文件路径: {sub_auxiliary_food_excel_file_path}")
-
     except Exception as e:
         print(f"Error: {e}")
         return  
@@ -2046,16 +2004,15 @@ def add_counter(self, app, modle,main_excel_file_path, sub_main_food_excel_file_
         welfare_excel_file_path: 福利表路径
         return: None
     """
-
+    print("\n\n\nNotice: ", "开始添加日计\月计\页计\合计") 
 
     if not (__main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY):    
         print("Warning: 没有添加日计、月计、页计或累计的选项，直接退出")
         self.worker.done2.emit()
         return
 
-    
-
     try:
+        
         if __main__.ONLY_WELFARE_TABLE == False:
             #添加主表
             note_main_table(self,app, main_excel_file_path)
@@ -2063,6 +2020,7 @@ def add_counter(self, app, modle,main_excel_file_path, sub_main_food_excel_file_
             note_sub_main_table(self, app , modle,sub_main_food_excel_file_path)
             #添加子表副食表, wjwcj: 2025/05/13 12:43 测试没问题
             note_sub_auxiliary_table(self, app, modle,sub_auxiliary_food_excel_file_path)
+        
         else:
             #添加福利表
             note_welfare_table(self, app,modle ,welfare_excel_file_path)
@@ -2072,29 +2030,29 @@ def add_counter(self, app, modle,main_excel_file_path, sub_main_food_excel_file_
 
 def note_main_table(self, app ,  main_excel_file_path):
     """
-    在主表中添加日计、月计、页计
+    在主表中添加日计、月计、页计、合计
     :param main_excel_file_path 主表路径
     :return None
     """
     #主表：各种杂项需要做日计月计, "日计"放"序号"--金额
-    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
+    if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_main_table()
     else:
         return 
     
-
+    "添加日记"
     if __main__.ADD_DAY_SUMMARY:
-        # 添加日计
         # 在临时储存表格7里查找单名，只有有的单名需要添加
         # 同时查找手动和图片的两个临时储存表，排除重复项(用{}即可去重)
         # 前文获取了单名
         
         for sheet_name in sheets_to_add:
+            
             # 寻找月份和日期都匹配的行数matching_rows
             matching_rows = find_matching_today_rows(main_excel_file_path, sheet_name=sheet_name)
             print("Notice: 重复行", matching_rows)
+            
             # 打开 Excel 文件
-
             workbook = app.books.open(main_excel_file_path)
             print(sheet_name)
             try:
@@ -2103,6 +2061,7 @@ def note_main_table(self, app ,  main_excel_file_path):
                 print("sheet名不存在")
                 continue
             total_amount = 0
+            
             for row in matching_rows:
                 total_amount += round(float(sheet.range((row, 10)).value), 2)
             # 求出总金额后加一行
@@ -2111,14 +2070,18 @@ def note_main_table(self, app ,  main_excel_file_path):
             try:
                 sheet.range((row_index + 1, 1)).value = "日计"  # 在A列写入“日计”
                 sheet.range((row_index + 1, 10)).value = total_amount  # 在J列写入总金额
-                workbook.save()
                 print("Notice: ", f"主表sheet {sheet_name} 日计添加完成")
+                workbook.save()
+                workbook.close()
+                print(f"Notice: 主表文件 {main_excel_file_path} 保存完成")   
+
             except Exception as e:
                 print(f"Error: 无法写入日计数据到主表sheet {sheet_name}, 错误信息: {e}")
-        print("NOtice: ", "主表日计全部添加完成")
+        print("Notice: ", "主表日计全部添加完成")
 
+    "添加月计"
     if __main__.ADD_MONTH_SUMMARY:
-        # 添加月计
+
         # 在临时储存表格里查找单名，只有有的单名需要添加
         # 同时查找手动和图片的两个临时储存表，排除重复项(用{}即可去重)
         # 前文获取了单名
@@ -2149,16 +2112,33 @@ def note_main_table(self, app ,  main_excel_file_path):
                 print(f"Error: 无法写入月计数据到主表sheet {sheet_name}, 错误信息: {e}")
         print("NOtice: ", "主表月计全部添加完成")
 
+
+    "添加页计"
     if __main__.ADD_PAGE_SUMMARY:
       
         for sheet_name in sheets_to_add:
+            
             workbook = app.books.open(main_excel_file_path)
+            
+            # 获取 workbook 对象中所有表的表名
+            sheet_names = [s.name for s in workbook.sheets]
+            # 检查 sheet_name 是否在 sheet_names 中
+            for name in sheet_names:
+                # 去除空格
+                if sheet_name == re.sub(r'\s+', '', name):
+                    sheet_name = name
+                    break
+                
             try:
-                sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
-            except:
-                print("Warning:sheet名不存在")
+                
+                work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+                counting_page_value("主表",workbook,work_sheet)
+            
+            except Exception as e:  
+                print(f"Error:为主表 {sheet_name} sheet 添加页计时报错，错误信息: {e}")
+                __main__.SAVE_OK_SIGNAL = False 
                 continue
-            counting_page_value("主食",workbook,sheet,sheet_name)
+           
 
         print("Notice: ", "主表页计全部添加完成")
 
@@ -2169,7 +2149,7 @@ def note_main_table(self, app ,  main_excel_file_path):
 
 def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
     """
-    在子表主食表添加日计、月计、页计
+    在子主食表添加日计、月计、页计
     :param 子表主食表路径
     :return None
     """
@@ -2297,12 +2277,30 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
 
         "添加页计"
         if __main__.ADD_PAGE_SUMMARY:
-                 
-            for sheet_name in sheets_to_add:
-                workbook = app.books.open(sub_main_food_excel_file_path)
-                counting_page_value("主食",workbook,sheet,sheet_name)
 
-            print("Notice: ", "主表页计全部添加完成")   
+            for sheet_name in sheets_to_add:
+            
+                workbook = app.books.open(main_excel_file_path)
+                
+                # 获取 workbook 对象中所有表的表名
+                sheet_names = [s.name for s in workbook.sheets]
+                # 检查 sheet_name 是否在 sheet_names 中
+                for name in sheet_names:
+                    # 去除空格
+                    if sheet_name == re.sub(r'\s+', '', name):
+                        sheet_name = name
+                        break
+                    
+                try:
+                    
+                    work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+                    counting_page_value("子表主食表",workbook,work_sheet)
+                
+                except Exception as e:  
+                    print(f"Error:为子表主食表 {sheet_name} sheet 添加页计时报错，错误信息: {e}")
+                    __main__.SAVE_OK_SIGNAL = False 
+                    continue
+            print("Notice: ", "子表主食表页计全部添加完成")   
 
 
 def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path):
@@ -2436,9 +2434,9 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
         
             for sheet_name in sheets_to_add:
                 workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-                counting_page_value("主食",workbook,sheet,sheet_name)
+                counting_page_value("子表副食表",workbook,sheet,sheet_name)
 
-            print("Notice: ", "主表页计全部添加完成")   
+            print("Notice: ", "子表副食表页计全部添加完成")   
 
 
 def note_welfare_table(self, app,modle,welfare_excel_file_path):
@@ -2534,9 +2532,9 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
             
         for sheet_name in sheets_to_add:
             workbook = app.books.open(welfare_excel_file_path)
-            counting_page_value("主食",workbook,sheet,sheet_name)
+            counting_page_value("福利表",workbook,sheet,sheet_name)
 
-        print("Notice: ", "主表页计全部添加完成")   
+        print("Notice: ", "福利表页计全部添加完成")   
 
 
 def img_excel_after_process(self,img_to_excel_file_path:str = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")):

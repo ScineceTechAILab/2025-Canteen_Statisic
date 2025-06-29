@@ -18,6 +18,7 @@ import subprocess
 import time
 import xlwings as xw
 import PySide6
+
 from PySide6.QtWidgets import QMessageBox
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
@@ -232,7 +233,7 @@ class Ui_Form(object):
         self.setting.setObjectName("settingLabel")
         self.setting.setAlignment(Qt.AlignRight | Qt.AlignTop)  # type: ignore # Align to the top-right corner
         self.setting.setFixedSize(30, 30)  # Increase the size of the label
-        self.setting.setText("⚙️")  # Use a gear emoji as a placeholder
+        self.setting.setText("⚙️+")  # Use a gear emoji as a placeholder
         self.setting.setStyleSheet("font-size: 25px;")  # Make the gear emoji larger
         self.gridLayout_3.addWidget(self.setting, 0, 0, Qt.AlignRight | Qt.AlignTop)  # type: ignore # Add to the top-right corner of the main layout
         self.setting.mousePressEvent = lambda event: self.show_settings()  # Connect the click event to a function
