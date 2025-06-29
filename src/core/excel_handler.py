@@ -386,10 +386,10 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
                 export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
                 #搞定
                 export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
-
-        "如果开启页计功能，先不更新页计表格"
+        
+        main_workbook.save()
+        "如果开启页计功能，先不关闭主表"
         if not (__main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY):    
-            main_workbook.save()
             # 关闭工作簿
             main_workbook.close()
         
@@ -937,9 +937,11 @@ def update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food
     # 保存工作簿
     main_workbook.save()
     auxiliary_workbook.save()
-    # 关闭工作簿
-    main_workbook.close()
-    auxiliary_workbook.close()
+    "后续如果有页计功能，先不关闭页计表格"
+    if not __main__.ADD_DAY_SUMMARY and not __main__.ADD_MONTH_SUMMARY and not __main__.ADD_PAGE_SUMMARY and not __main__.ADD_TOTAL_SUMMARY:
+        # 关闭工作簿
+        main_workbook.close()
+        auxiliary_workbook.close()
 
     print(f"Notice: 子表主食表和副食表更新完成，已保存并关闭工作簿")
 
@@ -1477,11 +1479,10 @@ def update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_st
                     __main__.SAVE_OK_SIGNAL = False
                     print(f"Error: 出库时写入数据时发生错误 {e}")
             
-
-        "如果开启页计功能，则不需要更新页计表格"
+        # 保存福利表工作簿 
+        main_workbook.save()
+        "如果开启页计功能，先不关闭工作簿"
         if not __main__.ADD_DAY_SUMMARY and not __main__.ADD_MONTH_SUMMARY and not __main__.ADD_PAGE_SUMMARY and not __main__.ADD_TOTAL_SUMMARY:
-            # 保存福利表工作簿 
-            main_workbook.save() #Fixed：这个语句必须在 with 作用域内，否则就会报错 The RPC server is unavailable.
             # 关闭福利表工作簿
             main_workbook.close()
 
@@ -2034,26 +2035,30 @@ def note_main_table(self, app ,  main_excel_file_path):
     :param main_excel_file_path 主表路径
     :return None
     """
+
+    print("\nNotice: ", "开始添加主表日计\月计\页计\合计")
     #主表：各种杂项需要做日计月计, "日计"放"序号"--金额
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_main_table()
     else:
         return 
     
+    # 利用 COM 对象的重连接特性重新连接到之前没有关闭的主表工作簿 
+    workbook = app.books.open(main_excel_file_path)
+
     "添加日记"
     if __main__.ADD_DAY_SUMMARY:
         # 在临时储存表格7里查找单名，只有有的单名需要添加
         # 同时查找手动和图片的两个临时储存表，排除重复项(用{}即可去重)
         # 前文获取了单名
         
+        print("Notice: ", "开始添加主表日计")
+
         for sheet_name in sheets_to_add:
             
             # 寻找月份和日期都匹配的行数matching_rows
             matching_rows = find_matching_today_rows(main_excel_file_path, sheet_name=sheet_name)
             print("Notice: 重复行", matching_rows)
-            
-            # 打开 Excel 文件
-            workbook = app.books.open(main_excel_file_path)
             print(sheet_name)
             try:
                 sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
@@ -2071,16 +2076,17 @@ def note_main_table(self, app ,  main_excel_file_path):
                 sheet.range((row_index + 1, 1)).value = "日计"  # 在A列写入“日计”
                 sheet.range((row_index + 1, 10)).value = total_amount  # 在J列写入总金额
                 print("Notice: ", f"主表sheet {sheet_name} 日计添加完成")
-                workbook.save()
-                workbook.close()
                 print(f"Notice: 主表文件 {main_excel_file_path} 保存完成")   
 
             except Exception as e:
                 print(f"Error: 无法写入日计数据到主表sheet {sheet_name}, 错误信息: {e}")
+       
         print("Notice: ", "主表日计全部添加完成")
 
     "添加月计"
     if __main__.ADD_MONTH_SUMMARY:
+
+        print("Notice: ", "开始添加主表月计")
 
         # 在临时储存表格里查找单名，只有有的单名需要添加
         # 同时查找手动和图片的两个临时储存表，排除重复项(用{}即可去重)
@@ -2091,7 +2097,6 @@ def note_main_table(self, app ,  main_excel_file_path):
             matching_rows = find_matching_month_rows(main_excel_file_path, sheet_name=sheet_name)
             print("重复行", matching_rows)
 
-            workbook = app.books.open(main_excel_file_path)
             try:
                 sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
             except:
@@ -2110,16 +2115,17 @@ def note_main_table(self, app ,  main_excel_file_path):
                 print("Notice: ", f"主表sheet {sheet_name} 月计添加完成")
             except Exception as e:
                 print(f"Error: 无法写入月计数据到主表sheet {sheet_name}, 错误信息: {e}")
-        print("NOtice: ", "主表月计全部添加完成")
+        
+        print("Notice: ", "主表月计全部添加完成")
 
 
     "添加页计"
     if __main__.ADD_PAGE_SUMMARY:
       
+        print("Notice: ", "开始添加主表页计")
+
         for sheet_name in sheets_to_add:
-            
-            workbook = app.books.open(main_excel_file_path)
-            
+                      
             # 获取 workbook 对象中所有表的表名
             sheet_names = [s.name for s in workbook.sheets]
             # 检查 sheet_name 是否在 sheet_names 中
@@ -2130,7 +2136,6 @@ def note_main_table(self, app ,  main_excel_file_path):
                     break
                 
             try:
-                
                 work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
                 counting_page_value("主表",workbook,work_sheet)
             
@@ -2139,9 +2144,12 @@ def note_main_table(self, app ,  main_excel_file_path):
                 __main__.SAVE_OK_SIGNAL = False 
                 continue
            
-
         print("Notice: ", "主表页计全部添加完成")
-
+    
+    workbook.save()  # 保存工作簿
+    workbook.close()  # 关闭工作簿
+    print("Notice: ", "主表文件保存完成")
+    
 
     
 
@@ -2149,83 +2157,89 @@ def note_main_table(self, app ,  main_excel_file_path):
 
 def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
     """
-    在子主食表添加日计、月计、页计
-    :param 子表主食表路径
+    在子主食表添加日计、月计、页计、合计
+    Parameters:
+     self: 主窗口对象
+     app: Excel应用程序对象
+     model: 模式
+     sub_main_food_excel_file_path: 子主食表路径
     :return None
     """
+
+    print("\nNotice: ", "开始添加子表主食表日计\月计\页计\合计")
     #在暂存的表里面查找第二列"品名", 将其作为sheet名查找对应sheet
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_sub_table(app,model)
     else:
         return 
-    # 获取所有sheet的name
-    print("Notice: 待添加的主食的表", sheets_to_add)
+    # 利用 COM 对象的重连接特性重新连接到之前没有关闭的子表主食工作簿
+    workbook = app.books.open(sub_main_food_excel_file_path)
 
     for product_name in sheets_to_add:
         #这里查找正确的sheet名
-        with xw.App(visible=False) as app:
-            print(sub_main_food_excel_file_path)
-            main_workbook = app.books.open(sub_main_food_excel_file_path)
-            sheet_names = [s.name for s in main_workbook.sheets]
-            # 筛选包含product_name的sheet名字
-            matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-            print(matching_sheets)
-            # 取大于product_name长度且长度最小的sheet_name
-            if matching_sheets:
-                sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
-                if sheet_name:
-                    try:
-                        sheet = main_workbook.sheets[sheet_name]
-                    except:
-                        print("sheet名不存在")
-                        continue
-                else:
-                    print(f"未找到合适的sheet匹配品名 {product_name}")
-                    return
+
+        sheet_names = [s.name for s in workbook.sheets]
+        # 筛选包含product_name的sheet名字
+        matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
+        print(matching_sheets)
+        # 取大于product_name长度且长度最小的sheet_name
+        if matching_sheets:
+            sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
+            if sheet_name:
+                try:
+                    sheet = workbook.sheets[sheet_name]
+                except:
+                    print("sheet名不存在")
+                    continue
             else:
-                print(f"Warning: 未找到品名为 {product_name} 的sheet")
+                print(f"未找到合适的sheet匹配品名 {product_name}")
                 return
-            #然后开始写入日计/月计
-            matching_rows = find_matching_today_rows(sub_main_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
-            print("重复行", matching_rows)
-            try:
-                sheet = main_workbook.sheets[sheet]  # 使用指定的工作表名称
-            except:
-                print("sheet名不存在")
-                continue
-            in_quantity = 0
-            in_amount = 0
-            out_quantity = 0
-            out_amount = 0
-            for row in matching_rows:
-                in_quantity += round(float(sheet.range((row, 6)).value) if sheet.range((row, 6)).value is not None else 0, 2)  # F列
-                in_amount += round(float(sheet.range((row, 7)).value) if sheet.range((row, 7)).value is not None else 0, 2)    # G列
-                out_quantity += round(float(sheet.range((row, 8)).value) if sheet.range((row, 8)).value is not None else 0, 2)  # H列
-                out_amount += round(float(sheet.range((row, 9)).value) if sheet.range((row, 9)).value is not None else 0, 2)    # I列
-            # 求出总金额后加一行
-            row_index = find_the_first_empty_line_in_sub_main_excel(sheet)
-            print(f"在{row_index}写入日计")
-            try:
-                #这里也死活写不进去
-                sheet.range((row_index, 4)).value = "日计"  # 在D列写入“日计”
-                data = [in_quantity, in_amount, out_quantity, out_amount]
-                for i in range(len(data)):
-                    sheet.range((row_index, 6 + i)).value = data[i]
-                #抄写库存数量与金额
-                sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
-                sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
-                main_workbook.save()
-                print("Notice: ", f"主表sheet {sheet_name} 日计添加完成")
-            except Exception as e:
-                print(f"Error: 无法写入日计数据到子表sheet {sheet_name}, 错误信息: {e}")
+        else:
+            print(f"Warning: 未找到品名为 {product_name} 的sheet")
+            return
+        #然后开始写入日计/月计
+        matching_rows = find_matching_today_rows(sub_main_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
+        print("重复行", matching_rows)
+        try:
+            sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
+        except:
+            print("sheet名不存在")
+            continue
+        in_quantity = 0
+        in_amount = 0
+        out_quantity = 0
+        out_amount = 0
+        for row in matching_rows:
+            in_quantity += round(float(sheet.range((row, 6)).value) if sheet.range((row, 6)).value is not None else 0, 2)  # F列
+            in_amount += round(float(sheet.range((row, 7)).value) if sheet.range((row, 7)).value is not None else 0, 2)    # G列
+            out_quantity += round(float(sheet.range((row, 8)).value) if sheet.range((row, 8)).value is not None else 0, 2)  # H列
+            out_amount += round(float(sheet.range((row, 9)).value) if sheet.range((row, 9)).value is not None else 0, 2)    # I列
+        # 求出总金额后加一行
+        row_index = find_the_first_empty_line_in_sub_main_excel(sheet)
+        print(f"在{row_index}写入日计")
+        
+        try:
+            #这里也死活写不进去
+            sheet.range((row_index, 4)).value = "日计"  # 在D列写入“日计”
+            data = [in_quantity, in_amount, out_quantity, out_amount]
+            for i in range(len(data)):
+                sheet.range((row_index, 6 + i)).value = data[i]
+            #抄写库存数量与金额
+            sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
+            sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
+
+            print("Notice: ", f"主表sheet {sheet_name} 日计添加完成")
+        except Exception as e:
+            print(f"Error: 无法写入日计数据到子表sheet {sheet_name}, 错误信息: {e}")
+        
         print("NOtice: ", "子表日计全部添加完成")
     
     if __main__.ADD_MONTH_SUMMARY:
         for product_name in sheets_to_add:
 
             print(sub_main_food_excel_file_path)
-            main_workbook = app.books.open(sub_main_food_excel_file_path)
-            sheet_names = [s.name for s in main_workbook.sheets]
+            
+            sheet_names = [s.name for s in workbook.sheets]
             # 筛选包含product_name的sheet名字
             matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
             print(matching_sheets)
@@ -2233,7 +2247,7 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
             if matching_sheets:
                 sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
                 if sheet_name:
-                    sheet = main_workbook.sheets[sheet_name]
+                    sheet = workbook.sheets[sheet_name]
                 else:
                     print(f"未找到合适的sheet匹配品名 {product_name}")
                     return
@@ -2244,7 +2258,7 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
             matching_rows = find_matching_month_rows(sub_main_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
             print("重复行", matching_rows)
             try:
-                sheet = main_workbook.sheets[sheet]  # 使用指定的工作表名称
+                sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
                 print("sheet名不存在")
                 continue
@@ -2269,7 +2283,7 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
                 #抄写库存数量与金额
                 sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
                 sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
-                main_workbook.save()
+
                 print("Notice: ", f"主表sheet {sheet_name} 月计添加完成")
             except Exception as e:
                 print(f"Error: 无法写入月计数据到子表sheet {sheet_name}, 错误信息: {e}")
@@ -2279,51 +2293,62 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
         if __main__.ADD_PAGE_SUMMARY:
 
             for sheet_name in sheets_to_add:
-            
-                workbook = app.books.open(main_excel_file_path)
-                
+                          
                 # 获取 workbook 对象中所有表的表名
                 sheet_names = [s.name for s in workbook.sheets]
-                # 检查 sheet_name 是否在 sheet_names 中
                 for name in sheet_names:
                     # 去除空格
                     if sheet_name == re.sub(r'\s+', '', name):
                         sheet_name = name
                         break
-                    
+                # 尝试获取工作表对象    
                 try:
-                    
+
                     work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
                     counting_page_value("子表主食表",workbook,work_sheet)
-                
+
                 except Exception as e:  
                     print(f"Error:为子表主食表 {sheet_name} sheet 添加页计时报错，错误信息: {e}")
                     __main__.SAVE_OK_SIGNAL = False 
                     continue
+
             print("Notice: ", "子表主食表页计全部添加完成")   
+
+    workbook.save()  # 保存工作簿
+    workbook.close()  # 关闭工作簿
+    print("Notice: ", "添加子表主食表日计\月计\页计\合计完成")
+    
+
 
 
 def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path):
     """
-    在子表副食表添加日计、月计、页计
-    :param 子表副食表路径
-    :return None
+    在子表副食表添加日计、月计、页计、总计
+    
+    Parameters:
+        app: Excel应用程序对象
+        model: 模式
+        sub_auxiliary_food_excel_file_path: 子副食表路径
+
+    :return: None
     """
+    print("\nNotice: ", "开始添加子表副食表日计\月计\页计\总计")
     #在暂存的表里面查找"品名", 将其作为sheet名查找对应sheet
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_sub_table(app,model)
     else:
         return 
     # 获取所有sheet的name
-    print("Notice: 待添加到子表副食表中的条目", sheets_to_add)
+    
+    workbook = app.books.open(sub_auxiliary_food_excel_file_path)
+
     if __main__.ADD_DAY_SUMMARY:
         for product_name in sheets_to_add:
             #这里查找正确的sheet名
             sheet_name = ""
 
-            print(sub_auxiliary_food_excel_file_path)
-            main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-            sheet_names = [s.name for s in main_workbook.sheets]
+            
+            sheet_names = [s.name for s in workbook.sheets]
             # 筛选包含product_name的sheet名字
             matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
             print(matching_sheets)
@@ -2331,7 +2356,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             if matching_sheets:
                 sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
                 if sheet_name:
-                    sheet = main_workbook.sheets[sheet_name]
+                    sheet = workbook.sheets[sheet_name]
                 else:
                     print(f"未找到合适的sheet匹配品名 {product_name}")
                     return
@@ -2342,7 +2367,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             matching_rows = find_matching_today_rows(sub_auxiliary_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
             print("重复行", matching_rows)
             try:
-                sheet = main_workbook.sheets[sheet]  # 使用指定的工作表名称
+                sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
                 print("sheet名不存在")
                 continue
@@ -2359,7 +2384,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             row_index = find_the_first_empty_line_in_sub_auxiliary_excel(sheet)
             print(f"在{row_index}写入日计")
             try:
-                sheet = main_workbook.sheets[sheet_name]
+                sheet = workbook.sheets[sheet_name]
                 print(f"在{sheet_name}写入日计")
                 sheet.range((row_index, 4)).value = "日计"  # 在D列写入“日计”
                 data = [in_quantity, in_amount, out_quantity, out_amount]
@@ -2368,7 +2393,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
                 #抄写库存数量与金额
                 sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
                 sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
-                main_workbook.save()
+      
                 print("Notice: ", f"子表副食表sheet {sheet_name} 日计添加完成")
             except Exception as e:
                 print(f"Error: 无法写入日计数据到子表副食表sheet {sheet_name}, 错误信息: {e}")
@@ -2378,8 +2403,8 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
         for product_name in sheets_to_add:
 
             print(sub_auxiliary_food_excel_file_path)
-            main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-            sheet_names = [s.name for s in main_workbook.sheets]
+            
+            sheet_names = [s.name for s in workbook.sheets]
             # 筛选包含product_name的sheet名字
             matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
             print(matching_sheets)
@@ -2387,7 +2412,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             if matching_sheets:
                 sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
                 if sheet_name:
-                    sheet = main_workbook.sheets[sheet_name]
+                    sheet = workbook.sheets[sheet_name]
                 else:
                     print(f"未找到合适的sheet匹配品名 {product_name}")
                     return
@@ -2398,7 +2423,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             matching_rows = find_matching_month_rows(sub_auxiliary_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
             print("重复行", matching_rows)
             try:
-                sheet = main_workbook.sheets[sheet]  # 使用指定的工作表名称
+                sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
                 print("sheet名不存在")
                 continue
@@ -2423,7 +2448,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
                 #抄写库存数量与金额
                 sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
                 sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
-                main_workbook.save()
+
                 print("Notice: ", f"子副食表sheet {sheet_name} 月计添加完成")
             except Exception as e:
                 print(f"Error: 无法写入月计数据到子副食表sheet {sheet_name}, 错误信息: {e}")
@@ -2439,36 +2464,49 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             print("Notice: ", "子表副食表页计全部添加完成")   
 
 
+    workbook.save()  # 保存工作簿
+    workbook.close()  # 关闭工作簿
+    print("Notice: ", "添加子表副食表日计\月计\页计\总计完成")
+
+
+
 def note_welfare_table(self, app,modle,welfare_excel_file_path):
     """
-    为福利表增加日记、月计、页计
-    :param welfare_excel_file_path: 福利表路径
+    为福利表增加日记、月计、页计、合计等数据
+    Parameters:
+        self: 主窗口对象
+        app: Excel应用程序对象
+        modle: 模式
+        welfare_excel_file_path: 福利表路径
     :return: None
     """
-    ##主表：各种杂项需要做日计月计, "日计"放"序号"--金额
+    print("\nNotice: ", "开始添加福利表日计\月计\页计\合计")
+
+    #主表：各种杂项需要做日计月计, "日计"放"序号"--金额
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         #事实上这个和主表可以共用一个函数
         sheets_to_add = get_all_sheets_todo_for_main_table()
     else:
         return 
-    print("Notice: 待添加福利的表", sheets_to_add)
+    
+    workbook = app.books.open(welfare_excel_file_path)
+
     if __main__.ADD_DAY_SUMMARY:
         for product_name in sheets_to_add:
             #这里查找正确的sheet名
             sheet_name = ""
-
-            print(welfare_excel_file_path)
-            main_workbook = app.books.open(welfare_excel_file_path)
-            sheet_names = [s.name for s in main_workbook.sheets]
+            
+            sheet_names = [s.name for s in workbook.sheets]
             for sheet_name in sheet_names:
                 if sheet_name == product_name:
                     break
-            sheet = main_workbook.sheets[sheet_name]
+            sheet = workbook.sheets[sheet_name]
             print(f"待匹配{product_name}", f"匹配到{sheet_name}")
+            
             matching_rows = find_matching_today_rows(welfare_excel_file_path, sheet_name=sheet_name, columns=[2, 3])
             print("重复行", matching_rows)
             try:
-                sheet = main_workbook.sheets[sheet]  # 使用指定的工作表名称
+                sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
                 print("福利表sheetname不存在")
             quantity = 0
@@ -2480,13 +2518,13 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
             row_index = find_the_first_empty_line_in_main_excel(sheet) + 1
             print(f"在{row_index}写入日计")
             try:
-                sheet = main_workbook.sheets[sheet_name]
+                sheet = workbook.sheets[sheet_name]
                 print(f"在{sheet_name}写入日计")
                 sheet.range((row_index, 1)).value = "日计"  # 在A列写入“日计”
                 data = [quantity, amount]
                 for i in range(len(data)):
                     sheet.range((row_index, 9 + i)).value = data[i]
-                main_workbook.save()
+
                 print("Notice: ", f"福利表sheet {sheet_name} 日计添加完成")
             except Exception as e:
                 print(f"Error: 无法写入日计数据到福利表sheet {sheet_name}, 错误信息: {e}")
@@ -2495,17 +2533,16 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
     if __main__.ADD_MONTH_SUMMARY:
         for product_name in sheets_to_add:
 
-            print(welfare_excel_file_path)
-            main_workbook = app.books.open(welfare_excel_file_path)
-            sheet_names = [s.name for s in main_workbook.sheets]
+
+            sheet_names = [s.name for s in workbook.sheets]
             for sheet_name in sheet_names:
                 if sheet_name == product_name:
                     break
-            sheet = main_workbook.sheets[sheet_name]
+            sheet = workbook.sheets[sheet_name]
             print(f"待匹配{product_name}", f"匹配到{sheet_name}")
             matching_rows = find_matching_month_rows(welfare_excel_file_path, sheet_name=sheet_name, columns=[2, 3])
             print("重复行", matching_rows)
-            sheet = main_workbook.sheets[sheet]  # 使用指定的工作表名称
+            sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             quantity = 0
             amount = 0
             for row in matching_rows:
@@ -2515,13 +2552,12 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
             row_index = find_the_first_empty_line_in_main_excel(sheet) + 1
             print(f"在{row_index}写入月计")
             try:
-                sheet = main_workbook.sheets[sheet_name]
+                sheet = workbook.sheets[sheet_name]
                 print(f"在{sheet_name}写入月计")
                 sheet.range((row_index, 1)).value = "月计"  # 在A列写入“月计”
                 data = [quantity, amount]
                 for i in range(len(data)):
                     sheet.range((row_index, 9 + i)).value = data[i]
-                main_workbook.save()
                 print("Notice: ", f"福利表sheet {sheet_name} 月计添加完成")
             except Exception as e:
                 print(f"Error: 无法写入月计数据到福利表sheet {sheet_name}, 错误信息: {e}")
@@ -2535,6 +2571,10 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
             counting_page_value("福利表",workbook,sheet,sheet_name)
 
         print("Notice: ", "福利表页计全部添加完成")   
+    
+    workbook.save()  # 保存工作簿
+    workbook.close()  # 关闭工作簿
+    print("Notice: ", "添加福利表日计\月计\页计\合计完成")
 
 
 def img_excel_after_process(self,img_to_excel_file_path:str = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")):

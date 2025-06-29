@@ -68,19 +68,24 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet) 
                 page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 26) = 0 但是是第一页，所以要加1  
-                
+                print("Notice: 当前页码为: {page_index}".format(page_index=page_index))
+
                 "统计该页范围内除了 日记、页计等的行"
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
-                                
+                print("Notice: 该页范围内除了 日记、页计等的行号为: {page_item_indexes}".format(page_item_indexes=page_item_indexes))
+
                 "累加每一页除了日计、月计、总计每一项 J 列的值"
                 page_item_sum = 0
                 for item_index in page_item_indexes:
                     item_value = work_sheet.range((item_index, 10)).value
                     if isinstance(item_value, (int, float)):
                         page_item_sum += item_value
-                
+                print("Notice: 该页范围内除了 日记、页计等的行号 J 列的值总和为: {page_item_sum}".format(page_item_sum=page_item_sum))
+
                 "将该值设置为页计行 J 列的新值"
+                print("Notice: 将页计行 J 列的当前值为: {page_item_sum}".format(page_item_sum=work_sheet.range((page_index * sheet_ratio - 2, 10)).value))
                 work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
+                print("Notice: 已将页计行 J 列的新值设置为: {page_item_sum}".format(page_item_sum=page_item_sum))
 
             elif work_sheet.name in ["自购主食入库","食堂副食入库","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
                 
@@ -91,19 +96,24 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet)
                 page_index = int(blank_row_index / sheet_ratio) + 1 
+                print("Notice: 当前页码为: {page_index}".format(page_index=page_index))
 
                 "统计该页范围内除了 日记、页计等的行"
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
-                                
+                print("Notice: 该页范围内除了 日记、页计等的行号为: {page_item_indexes}".format(page_item_indexes=page_item_indexes))
+
                 "累加每一页除了日计、月计、总计每一项 J 列的值"
                 page_item_sum = 0
                 for item_index in page_item_indexes:
                     item_value = work_sheet.range((item_index, 10)).value
                     if isinstance(item_value, (int, float)):
                         page_item_sum += item_value
-                
+                print("Notice: 该页范围内除了 日记、页计等的行号 J 列的值总和为: {page_item_sum}".format(page_item_sum=page_item_sum))
+
                 "将该值设置为页计行 J 列的新值"
+                print("Notice: 将页计行 J 列的当前值为: {page_item_sum}".format(page_item_sum=work_sheet.range((page_index * sheet_ratio - 2, 10)).value))
                 work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
+                print("Notice: 已将页计行 J 列的新值设置为: {page_item_sum}".format(page_item_sum=page_item_sum))
 
         else:
             print("Error: {excel_type} 中 {sheet_name} 页不存在,跳过执行页计功能".format(sheet_name=work_sheet.name))
