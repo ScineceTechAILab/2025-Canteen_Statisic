@@ -636,8 +636,7 @@ class Ui_Form(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
 
 
-
-            #自动填充日期
+        #自动填充日期
         if get_ini_setting("Settings", "auto_fill_date") == "True":
             self.show_current_date()
 

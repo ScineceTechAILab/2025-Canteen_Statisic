@@ -87,9 +87,9 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
                 print("Notice: 已将页计行 J 列的新值设置为: {page_item_sum}".format(page_item_sum=page_item_sum))
 
-            elif work_sheet.name in ["自购主食入库","食堂副食入库","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
+            elif work_sheet.name in ["自购主食入库","食堂副食入库","食堂副食入库 ","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
                 
-                print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+                print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(excel_type=excel_type, sheet_name=work_sheet.name))
 
                 "设定一页的行数"
                 sheet_ratio = 33                                    # 主表中 其他主食表 皆为 33 行一页

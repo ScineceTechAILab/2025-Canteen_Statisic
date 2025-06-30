@@ -1926,8 +1926,6 @@ def export_update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_work
                 print(f"Warning: 未找到品名为 {product_name} 的sheet")
                 return
             
-            #暂时感觉这个for循环没什么问题
-            #wjwcj: 2025/05/04 15:34
             for sub_row_index in range(sheet.used_range.rows.count):
                 # 检查每行的1到11列是否都是空
                 if all(is_visually_empty(sheet.range((sub_row_index + 1, col))) for col in range(1, 12)):
@@ -2035,16 +2033,24 @@ def note_main_table(self, app ,  main_excel_file_path):
     :param main_excel_file_path 主表路径
     :return None
     """
-
+    
     print("\nNotice: ", "开始添加主表日计\月计\页计\合计")
+
+    workbook = None
+
     #主表：各种杂项需要做日计月计, "日计"放"序号"--金额
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_main_table()
     else:
         return 
     
-    # 利用 COM 对象的重连接特性重新连接到之前没有关闭的主表工作簿 
-    workbook = app.books.open(main_excel_file_path)
+    # 继承之前已经打开的工作簿对象
+    for wb in app.books:
+        # 获取路径的文件名
+        excel_name = os.path.basename(main_excel_file_path)
+        if wb.name == excel_name:
+            workbook = wb
+            break
 
     "添加日记"
     if __main__.ADD_DAY_SUMMARY:
@@ -2167,13 +2173,21 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
     """
 
     print("\nNotice: ", "开始添加子表主食表日计\月计\页计\合计")
+
+    workbook = None
     #在暂存的表里面查找第二列"品名", 将其作为sheet名查找对应sheet
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_sub_table(app,model)
     else:
         return 
-    # 利用 COM 对象的重连接特性重新连接到之前没有关闭的子表主食工作簿
-    workbook = app.books.open(sub_main_food_excel_file_path)
+    
+    # 继承之前已经打开的工作簿对象
+    for wb in app.books:
+        # 获取路径的文件名
+        excel_name = os.path.basename(sub_main_food_excel_file_path)
+        if wb.name == excel_name:
+            workbook = wb
+            break
 
     for product_name in sheets_to_add:
         #这里查找正确的sheet名
@@ -2333,14 +2347,21 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
     :return: None
     """
     print("\nNotice: ", "开始添加子表副食表日计\月计\页计\总计")
+
+    workbook = None
     #在暂存的表里面查找"品名", 将其作为sheet名查找对应sheet
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         sheets_to_add = get_all_sheets_todo_for_sub_table(app,model)
     else:
         return 
-    # 获取所有sheet的name
     
-    workbook = app.books.open(sub_auxiliary_food_excel_file_path)
+    # 继承之前已经打开的工作簿对象
+    for wb in app.books:
+        # 获取路径的文件名
+        excel_name = os.path.basename(sub_auxiliary_food_excel_file_path)
+        if wb.name == excel_name:
+            workbook = wb
+            break
 
     if __main__.ADD_DAY_SUMMARY:
         for product_name in sheets_to_add:
@@ -2482,6 +2503,8 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
     """
     print("\nNotice: ", "开始添加福利表日计\月计\页计\合计")
 
+    workbook = None
+
     #主表：各种杂项需要做日计月计, "日计"放"序号"--金额
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
         #事实上这个和主表可以共用一个函数
@@ -2489,7 +2512,13 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
     else:
         return 
     
-    workbook = app.books.open(welfare_excel_file_path)
+    # 继承之前已经打开的工作簿对象
+    for wb in app.books:
+        # 获取路径的文件名
+        excel_name = os.path.basename(welfare_excel_file_path)
+        if wb.name == excel_name:
+            workbook = wb
+            break
 
     if __main__.ADD_DAY_SUMMARY:
         for product_name in sheets_to_add:
