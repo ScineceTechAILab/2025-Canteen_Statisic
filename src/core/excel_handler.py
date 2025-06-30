@@ -247,27 +247,34 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             print(f"Error: 获取暂存表表头出错,可能 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 表格为空 {e}")
             return
 
+        "判断表是否为空"
+        if read_temp_storage_workbook.sheet_by_index(0).nrows == 1:
+            print(f"Warning: 暂存表 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 为空,请先添加数据")
+            # 弹窗提示暂存表为空
+            self.worker.signal3.emit()
+            return
+        
         
         if __main__.ONLY_WELFARE_TABLE == False:
-            "在更新主表、子表信息"
+            "更新主表、子表信息"
             try:
-                    
-                    # 在主表中更新信息
-                    update_main_table(self,app,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-                    # 在子表中更新信息
-                    update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-                    #等所有表格都更新完了才日计和月计
-                    add_counter(self,app ,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
-            
+                # 在主表中更新信息
+                update_main_table(self,app,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+                # 在子表中更新信息
+                update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+                #等所有表格都更新完了才日计和月计
+                add_counter(self,app ,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+        
             except Exception as e:
                 __main__.SAVE_OK_SIGNAL = False
                 print(f"Error: 更新主表/副表/日记月计数据出错 {e}")
 
             self.pushButton_5.setText("提交数据")
             self.pushButton_9.setText("提交数据")
-            
+        
+        
         else:
-            "只登记福利表"
+            "更新福利表"
             try:
                 # 在福利表中更新信息
                 update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)

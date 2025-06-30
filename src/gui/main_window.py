@@ -124,6 +124,8 @@ class Worker(QObject):
 
     done2 = Signal()  
 
+    signal3 = Signal()  
+
     def show(self, message):
         """
         这个用来判断是哪个信号
@@ -162,7 +164,16 @@ class Worker(QObject):
         :param: self
         :return: None
         """
-        self.reply = QMessageBox.information(None, "提示", "本次提交没有更新日计、月计、页计、累计数据", QMessageBox.Ok | QMessageBox.Cancel)
+        QMessageBox.warning(None, "提示", "本次提交没有更新日计、月计、页计、累计数据")
+
+    def commit_data_with_blank_input(self):
+        """
+        提交表格时暂存表为空的提醒
+        :param: self
+        :return: None
+        """
+        QMessageBox.warning(None, "提示", "暂存表为空,确保输入暂存了数据")
+
 
 
 
@@ -171,10 +182,10 @@ class Ui_Form(object):
 
     def setupUi(self, Form):
         self.worker = Worker()
+        
         self.worker.done.connect(self.worker.show)  # 当信号发出时，执行 show_message()
-
         self.worker.done2.connect(self.worker.tables_updated_filed) # 接收 done2信号,执行 tables_updated_filed 方法
-
+        self.worker.signal3.connect(self.worker.commit_data_with_blank_input) # 接收 signal3信号,执行 commit_data_with_blank_input 方法
 
         if not Form.objectName():
             Form.setObjectName(u"Form")
