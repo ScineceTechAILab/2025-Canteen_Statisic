@@ -786,7 +786,9 @@ class Ui_Form(object):
         :return: None
         """
         global MODE
-        if self.pushButton_5.text() == "正在提交":
+        if self.pushButton_5.text() == "正在提交": # 读取 .text() 方法来判断按钮文本是否为 "正在提交"
+            print("Notice:正在提交数据，请勿重复点击")
+            QMessageBox.information(Form, "警告", "正在提交数据，请勿重复点击")
             return
         self.pushButton_5.setText("正在提交")
         

@@ -247,14 +247,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             print(f"Error: 获取暂存表表头出错,可能 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 表格为空 {e}")
             return
 
-        "判断表是否为空"
-        if read_temp_storage_workbook.sheet_by_index(0).nrows == 1:
-            print(f"Warning: 暂存表 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 为空,请先添加数据")
-            # 弹窗提示暂存表为空
-            self.worker.signal3.emit()
-            return
-        
-        
+  
         if __main__.ONLY_WELFARE_TABLE == False:
             "更新主表、子表信息"
             try:
