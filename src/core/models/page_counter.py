@@ -301,13 +301,13 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
         
 
     
-def get_first_blank_row_index(page_counter_signal:bool,excel_type:str,work_book,work_sheet):
+def get_first_blank_row_index(work_sheet):
     """
     定位在表中出现的第一个有效空行(在某页内出现的第一个空行不包括页与页间的),返回该空行的行索引(1索引格式)
     
     Parameters:
         work_sheet: 要进行检测的 xlwings sheet 对象
-    
+
     Returns:
         effective_row_index:有效空行索引(1索引格式)
     """

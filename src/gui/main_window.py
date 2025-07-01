@@ -160,11 +160,11 @@ class Worker(QObject):
 
     def tables_updated_filed(self):
         """
-        表格更新失败提醒
+        表格没有勾选日记、月计、页计、累计提醒
         :param: self
         :return: None
         """
-        QMessageBox.warning(None, "提示", "本次提交没有更新日计、月计、页计、累计数据")
+        QMessageBox.information(Form, "提示", "本次提交没有更新日计、月计、页计、累计数据")
 
     def commit_data_with_blank_input(self):
         """
@@ -172,7 +172,7 @@ class Worker(QObject):
         :param: self
         :return: None
         """
-        QMessageBox.warning(None, "提示", "暂存表为空,确保输入暂存了数据")
+        QMessageBox.warning(Form, "提示", "暂存表为空,确保输入暂存了数据")
 
 
 
@@ -244,7 +244,7 @@ class Ui_Form(object):
         self.setting.setObjectName("settingLabel")
         self.setting.setAlignment(Qt.AlignRight | Qt.AlignTop)  # type: ignore # Align to the top-right corner
         self.setting.setFixedSize(30, 30)  # Increase the size of the label
-        self.setting.setText("⚙️+")  # Use a gear emoji as a placeholder
+        self.setting.setText("⚙️")  # Use a gear emoji as a placeholder
         self.setting.setStyleSheet("font-size: 25px;")  # Make the gear emoji larger
         self.gridLayout_3.addWidget(self.setting, 0, 0, Qt.AlignRight | Qt.AlignTop)  # type: ignore # Add to the top-right corner of the main layout
         self.setting.mousePressEvent = lambda event: self.show_settings()  # Connect the click event to a function
@@ -787,7 +787,7 @@ class Ui_Form(object):
         """
         global MODE
         if self.pushButton_5.text() == "正在提交": # 读取 .text() 方法来判断按钮文本是否为 "正在提交"
-            print("Notice:正在提交数据，请勿重复点击")
+            print("Warning:正在提交数据，请勿重复点击")
             QMessageBox.information(Form, "警告", "正在提交数据，请勿重复点击")
             return
         self.pushButton_5.setText("正在提交")
