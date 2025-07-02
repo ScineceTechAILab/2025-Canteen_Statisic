@@ -60,15 +60,15 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
         
             if work_sheet.name == "食堂物品收发存库存表":
 
-                print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+                print(f"Notice: 开始为 {excel_type} {work_sheet.name} 页执行页计功能")
 
                 "设定一页的行数"
-                sheet_ratio = 26                                    # 主表中 食堂物品收发存库存表 表为26行一页
+                sheet_ratio = 25                                    # 主表中 食堂物品收发存库存表 表为25行一页
 
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet) 
-                page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 26) = 0 但是是第一页，所以要加1  
-                print("Notice: 当前页码为: {page_index}".format(page_index=page_index))
+                page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 25) = 0 但是是第一页，所以要加1  
+                print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
 
                 "统计该页范围内除了 日记、页计等的行"
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
@@ -96,7 +96,7 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet)
                 page_index = int(blank_row_index / sheet_ratio) + 1 
-                print("Notice: 当前页码为: {page_index}".format(page_index=page_index))
+                print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
 
                 "统计该页范围内除了 日记、页计等的行"
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)

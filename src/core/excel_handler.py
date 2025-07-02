@@ -1376,7 +1376,6 @@ def update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, r
                     # 获取行中单名称列单元中单名数据
                     single_name = row_data[header_index["单名"]]  
                 except Exception as e:
-                    app.quit()
                     __main__.SAVE_OK_SIGNAL = False
                     print(f"Error: 将暂存表数据提交到子表副食表(出库)时拆解数据出错 {e}")
 
