@@ -41,6 +41,7 @@ import xlwings as xw
 import re
 import __main__
 
+from core.models.total_counter import counting_total_value
 from src.gui.data_save_dialog import data_save_success
 from src.core.excel_handler_utils import (
     is_single_punctuation,
@@ -255,7 +256,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                 update_main_table(self,app,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
                 # 在子表中更新信息
                 update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-                #等所有表格都更新完了才日计和月计
+                #等所有表格都更新完了才日计、月计、页计、总计
                 add_counter(self,app ,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
         
             except Exception as e:
@@ -271,7 +272,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             try:
                 # 在福利表中更新信息
                 update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
-                #等所有表格都更新完了才日计和月计
+                #等所有表格都更新完了才日计、月计、页计、总计
                 add_counter(self, app,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
             except Exception as e:
                 __main__.SAVE_OK_SIGNAL = False
@@ -2135,6 +2136,31 @@ def note_main_table(self, app ,  main_excel_file_path):
                 continue
            
         print("Notice: ", "主表页计全部添加完成")
+
+    "添加合计"
+    if __main__.ADD_TOTAL_SUMMARY:
+        print("Notice: ", "开始添加主表合计")
+
+        for sheet_name in sheets_to_add:
+            # 获取 workbook 对象中所有表的表名
+            sheet_names = [s.name for s in workbook.sheets]
+            # 检查 sheet_name 是否在 sheet_names 中
+            for name in sheet_names:
+                # 去除空格
+                if sheet_name == re.sub(r'\s+', '', name):
+                    sheet_name = name
+                    break
+
+            try:
+                work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+                counting_total_value("主表",workbook,work_sheet)
+            except Exception as e:  
+                print(f"Error:为主表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
+                __main__.SAVE_OK_SIGNAL = False 
+                continue
+
+        print("Notice: ", "主表合计全部添加完成")
+    
     
     workbook.save()  # 保存工作簿
     workbook.close()  # 关闭工作簿
@@ -2322,6 +2348,29 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
 
             print("Notice: ", "子表主食表页计全部添加完成")   
 
+    if __main__.ADD_TOTAL_SUMMARY:
+        print("Notice: ", "开始添加子表主食表合计")
+
+        for sheet_name in sheets_to_add:
+            # 获取 workbook 对象中所有表的表名
+            sheet_names = [s.name for s in workbook.sheets]
+            # 检查 sheet_name 是否在 sheet_names 中
+            for name in sheet_names:
+                # 去除空格
+                if sheet_name == re.sub(r'\s+', '', name):
+                    sheet_name = name
+                    break
+
+            try:
+                work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+                counting_total_value("子表主食表",workbook,work_sheet)
+            except Exception as e:  
+                print(f"Error:为子表主食表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
+                __main__.SAVE_OK_SIGNAL = False 
+                continue
+
+        print("Notice: ", "子表主食表合计全部添加完成")
+
     workbook.save()  # 保存工作簿
     workbook.close()  # 关闭工作簿
     print("Notice: ", "添加子表主食表日计\月计\页计\合计完成")
@@ -2478,10 +2527,39 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
 
             print("Notice: ", "子表副食表页计全部添加完成")   
 
+    if __main__.ADD_TOTAL_SUMMARY:
+        
+        print("Notice: ", "开始添加子表副食表合计")
+
+        for product_name in sheets_to_add:
+
+            sheet_names = [s.name for s in workbook.sheets]
+            # 筛选包含product_name的sheet名字
+            matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
+            print(matching_sheets)
+            # 取大于product_name长度且长度最小的sheet_name
+            if matching_sheets:
+                sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
+                if sheet_name:
+                    sheet = workbook.sheets[sheet_name]
+                else:
+                    print(f"未找到合适的sheet匹配品名 {product_name}")
+                    return
+            else:
+                print(f"Warning: 未找到品名为 {product_name} 的sheet")
+                return
+            #然后开始写入总计
+            try:
+                work_sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
+                counting_total_value("子表副食表",workbook,work_sheet)
+            except Exception as e:  
+                print(f"Error:为子表副食表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
+                __main__.SAVE_OK_SIGNAL = False 
+                continue
 
     workbook.save()  # 保存工作簿
     workbook.close()  # 关闭工作簿
-    print("Notice: ", "添加子表副食表日计\月计\页计\总计完成")
+    print("Notice: ", "添加子表副食表日计\月计\页计\合计完成")
 
 
 
@@ -2594,7 +2672,30 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
             counting_page_value("福利表",workbook,sheet,sheet_name)
 
         print("Notice: ", "福利表页计全部添加完成")   
+
+    "添加合计"
+    if __main__.ADD_TOTAL_SUMMARY:
+        
+        print("Notice: ", "开始添加福利表合计")
+        
+        for product_name in sheets_to_add:
+            sheet_names = [s.name for s in workbook.sheets]
+            for sheet_name in sheet_names:
+                if sheet_name == product_name:
+                    break
+            sheet = workbook.sheets[sheet_name]
+            print(f"待匹配{product_name}", f"匹配到{sheet_name}")
+            try:
+                work_sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
+                counting_total_value("福利表",workbook,work_sheet)
+            except Exception as e:  
+                print(f"Error:为福利表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
+                __main__.SAVE_OK_SIGNAL = False 
+                continue
+
+        print("Notice: ", "福利表合计全部添加完成")
     
+
     workbook.save()  # 保存工作簿
     workbook.close()  # 关闭工作簿
     print("Notice: ", "添加福利表日计\月计\页计\合计完成")
