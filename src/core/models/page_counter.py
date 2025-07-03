@@ -87,7 +87,7 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 work_sheet.range((page_index * sheet_ratio - 2, 10)).value = page_item_sum
                 print("Notice: 已将页计行 J 列的新值设置为: {page_item_sum}".format(page_item_sum=page_item_sum))
 
-            elif work_sheet.name in ["自购主食入库","食堂副食入库","食堂副食入库 ","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
+            elif work_sheet.name in ["自购主食入库等","食堂副食入库","食堂副食入库 ","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
                 
                 print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(excel_type=excel_type, sheet_name=work_sheet.name))
 
@@ -351,7 +351,7 @@ def get_page_item_indexes(work_sheet,page_index:int,sheet_ratio:int):
     Parameters:
         work_sheet: 要进行统计的 xlwings sheet 对象
         page_index: 当前页的页码(1索引格式)
-        sheet_ratio: 相应 Sheet 中每页的行数(1索引格式)，例如主表中自购主食入库每页33行，福利表中每页32行
+        sheet_ratio: 相应 Sheet 中每页的行数(1索引格式)，例如主表中自购主食入库等每页33行，福利表中每页32行
 
     Returns:
         page_item_indexes: 当前页的条目索引列表(1索引格式)
