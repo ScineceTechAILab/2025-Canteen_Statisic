@@ -148,7 +148,7 @@ class Worker(QObject):
         :param: self
         :return: None
         """
-        self.reply = QMessageBox.information(None, "提示", "表格更新失败,本次提交取消，请重新进行输入检查", QMessageBox.Ok | QMessageBox.Cancel)
+        self.reply = QMessageBox.information(None, "错误", "程序出现错误,为保护原始数据,本次提交取消", QMessageBox.Ok | QMessageBox.Cancel)
 
 
 

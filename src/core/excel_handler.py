@@ -41,7 +41,7 @@ import xlwings as xw
 import re
 import __main__
 
-from core.models.total_counter import counting_total_value
+from src.core.models.total_counter import counting_total_value
 from src.gui.data_save_dialog import data_save_success
 from src.core.excel_handler_utils import (
     is_single_punctuation,
@@ -2150,14 +2150,13 @@ def note_main_table(self, app ,  main_excel_file_path):
                 if sheet_name == re.sub(r'\s+', '', name):
                     sheet_name = name
                     break
-
             try:
                 work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
                 counting_total_value("主表",workbook,work_sheet)
             except Exception as e:  
                 print(f"Error:为主表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
                 __main__.SAVE_OK_SIGNAL = False 
-                continue
+                break
 
         print("Notice: ", "主表合计全部添加完成")
     
@@ -2344,7 +2343,7 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
                 except Exception as e:  
                     print(f"Error:为子表主食表 {sheet_name} sheet 添加页计时报错，错误信息: {e}")
                     __main__.SAVE_OK_SIGNAL = False 
-                    continue
+                    break
 
             print("Notice: ", "子表主食表页计全部添加完成")   
 
@@ -2367,7 +2366,7 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
             except Exception as e:  
                 print(f"Error:为子表主食表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
                 __main__.SAVE_OK_SIGNAL = False 
-                continue
+                break
 
         print("Notice: ", "子表主食表合计全部添加完成")
 
@@ -2555,7 +2554,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             except Exception as e:  
                 print(f"Error:为子表副食表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
                 __main__.SAVE_OK_SIGNAL = False 
-                continue
+                break
 
     workbook.save()  # 保存工作簿
     workbook.close()  # 关闭工作簿
@@ -2691,7 +2690,7 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
             except Exception as e:  
                 print(f"Error:为福利表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
                 __main__.SAVE_OK_SIGNAL = False 
-                continue
+                break
 
         print("Notice: ", "福利表合计全部添加完成")
     

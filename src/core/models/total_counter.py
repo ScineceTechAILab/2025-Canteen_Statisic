@@ -39,7 +39,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
       work_sheet: 要修改的 Excel 传入worksheet对象
     """
         
-    "判断哪个表需要页计"
+    "判断哪个表需要合计"
     if excel_type == "主表":
 
         if work_sheet.name in [s.name for s in work_book.sheets]:
