@@ -160,11 +160,11 @@ class Worker(QObject):
 
     def tables_updated_filed(self):
         """
-        表格没有勾选日记、月计、页计、累计提醒
+        数据更新失败提醒
         :param: self
         :return: None
         """
-        QMessageBox.information(Form, "提示", "本次提交没有更新日计、月计、页计、累计数据")
+        QMessageBox.information(Form, "提示", "本次提交失败,已复原数据,请检查日志")
 
     def commit_data_with_blank_input(self):
         """

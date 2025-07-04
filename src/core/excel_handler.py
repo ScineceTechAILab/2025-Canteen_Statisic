@@ -54,7 +54,7 @@ from src.core.excel_handler_utils import (
     find_the_first_empty_line_in_sub_main_excel,
     find_the_first_empty_line_in_sub_auxiliary_excel,
     get_all_sheets_todo_for_main_table,
-    get_all_sheets_todo_for_sub_table
+    sheets_of_sub_table
 )
 
 
@@ -284,44 +284,47 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             # 调用弹窗显示保存完成信息，终端同步显示信息
             print(f"Notice: 文件读取保存工作完成")
 
-        if  __main__.SAVE_OK_SIGNAL:
+    if  __main__.SAVE_OK_SIGNAL:
 
-            # 调用弹窗显示保存完成信息，终端同步显示信息
-            print(f"Notice: 主子表文件读取保存工作完成")
-            self.worker.done.emit("tables_updated")  # 比如写完数据后调用
-        
-        else:
-            print(f"Error: 主子表文件读取保存工作失败，有条目未识别")
+        # 调用弹窗显示保存完成信息，终端同步显示信息
+        print(f"Notice: 主子表文件读取保存工作完成")
+        self.worker.done.emit("tables_updated")  # 比如写完数据后调用
+    
+    else:
+        print(f"Error: 主子表文件读取保存工作失败，有条目未识别")
 
-            "依次复原 main、work 目录下的文件"
-            # 遍历src\data\storage\backup下的文件夹，找到备份时间最新的一份
-            backup_dir = os.path.join('src', 'data', 'storage', 'backup')
-            backup_folders = [f for f in glob(os.path.join(backup_dir, '*')) if os.path.isdir(f)]
-            backup_folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-            if backup_folders:
-                backup_path = backup_folders[0]
-                print(f"Notice: 尝试将最新备份备份 {backup_path} 还原至 main 目录")
-            # 还原 backup 目录中的文件到 main、work 目录
-            try:
-                # 检测是否还存在未关闭的 Excel 进程，若存在则强制关闭防止因为文件被占用而无法删除
-                if sys.platform == "win32":
-                    # Windows 系统
-                    subprocess.call(["taskkill", "/F", "/IM", "EXCEL.EXE"])
+        "依次复原 main、work 目录下的文件"
+        print("\nNotice: 由于主表文件读取保存工作失败，正在将最新备份还原到 main、work 目录")
+        # 遍历src\data\storage\backup下的文件夹，找到备份时间最新的一份
+        backup_dir = os.path.join('src', 'data', 'storage', 'backup')
+        backup_folders = [f for f in glob(os.path.join(backup_dir, '*')) if os.path.isdir(f)]
+        backup_folders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+        if backup_folders:
+            backup_path = backup_folders[0]
+            print(f"Notice: 尝试将最新备份备份 {backup_path} 还原至 main 目录")
+        # 还原 backup 目录中的文件到 main、work 目录
+        try:
+            # 检测是否还存在未关闭的 Excel 进程，若存在则强制关闭防止因为文件被占用而无法删除
+            if sys.platform == "win32":
+                # Windows 系统
+                subprocess.call(["taskkill", "/F", "/IM", "EXCEL.EXE"])
 
-                time.sleep(1)  # 等待一秒钟，确保 Excel 进程被关闭
+            time.sleep(1)  # 等待一秒钟，确保 Excel 进程被关闭
 
-                shutil.rmtree("./src/data/storage/main")      # 删除 main 目录
-                shutil.copytree(backup_path, "./src/data/storage/main",dirs_exist_ok=True) # 复制备份目录到 main 目录
-                print(f"Notice:文件已从{backup_path}还原到 ./src/data/storage/main 目录")
-                
-                shutil.rmtree("./src/data/storage/work")      # 删除 work 目录
-                shutil.copytree(backup_path, "./src/data/storage/work",dirs_exist_ok=True) # 复制备份目录到 work 目录
-                print(f"Notice: 文件已从{backup_path}还原到 ./src/data/storage/work 目录")
+            shutil.rmtree("./src/data/storage/main")      # 删除 main 目录
+            shutil.copytree(backup_path, "./src/data/storage/main",dirs_exist_ok=True) # 复制备份目录到 main 目录
+            print(f"Notice:文件已从{backup_path}还原到 ./src/data/storage/main 目录")
             
-            except Exception as e:
-                print(f"Error: 将主表文件复制到 work 目录出错,错误信息为: {e}")            
-            # 弹出入库失败通知
-            self.worker.done.emit("tables_updated_filed")  
+            shutil.rmtree("./src/data/storage/work")      # 删除 work 目录
+            shutil.copytree(backup_path, "./src/data/storage/work",dirs_exist_ok=True) # 复制备份目录到 work 目录
+            print(f"Notice: 文件已从{backup_path}还原到 ./src/data/storage/work 目录")
+
+            print("Notice: 完成将最新备份还原到 main、work 目录")
+        except Exception as e:
+            print(f"Error: 将主表文件复制到 work 目录出错,错误信息为: {e}")            
+        
+        # 弹出入库失败通知
+        self.worker.done.emit("tables_updated_filed")  
 
 
 def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
@@ -471,7 +474,7 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
             new_value_chinese = convert_number_to_chinese(new_value)  # 转换为中文大写金额
             print("Notice: 当前值", current_value, "新值", new_value_chinese)
             sheet.range("L8").value = new_value_chinese
-            print(f"Notice: 在公司名为 {company_name} 的sheet中更新金额数据成功, 新值为 {new_value_chinese}")
+            print(f"Notice: 在公司名为 {company_name} 的表中更新金额数据成功, 新值为 {new_value_chinese}")
         except Exception as e:
             print(f"Error: 更新公司 Sheet 金额数据中写入新值步骤出错 {e}，已跳过公司金额数据的写入")
         
@@ -2139,26 +2142,29 @@ def note_main_table(self, app ,  main_excel_file_path):
 
     "添加合计"
     if __main__.ADD_TOTAL_SUMMARY:
-        print("Notice: ", "开始添加主表合计")
 
-        for sheet_name in sheets_to_add:
-            # 获取 workbook 对象中所有表的表名
-            sheet_names = [s.name for s in workbook.sheets]
-            # 检查 sheet_name 是否在 sheet_names 中
-            for name in sheet_names:
-                # 去除空格
-                if sheet_name == re.sub(r'\s+', '', name):
-                    sheet_name = name
-                    break
-            try:
+        try:
+            print("Notice: ", "开始添加主表合计")
+
+            for sheet_name in sheets_to_add:
+                # 获取 workbook 对象中所有表的表名
+                sheet_names = [s.name for s in workbook.sheets]
+                # 检查 sheet_name 是否在 sheet_names 中
+                for name in sheet_names:
+                    # 去除空格
+                    if sheet_name == re.sub(r'\s+', '', name):
+                        sheet_name = name
+                        break
+                
                 work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
                 counting_total_value("主表",workbook,work_sheet)
-            except Exception as e:  
-                print(f"Error:为主表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
-                __main__.SAVE_OK_SIGNAL = False 
-                break
+            
+            print("Notice: ", "主表合计全部添加完成")
 
-        print("Notice: ", "主表合计全部添加完成")
+        except Exception as e:  
+            print(f"Error: 为主表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
+            __main__.SAVE_OK_SIGNAL = False 
+
     
     
     workbook.save()  # 保存工作簿
@@ -2186,7 +2192,7 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
     workbook = None
     #在暂存的表里面查找第二列"品名", 将其作为sheet名查找对应sheet
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
-        sheets_to_add = get_all_sheets_todo_for_sub_table(app,model)
+        sheets_to_add = sheets_of_sub_table(app,model)
     else:
         return 
     
@@ -2341,34 +2347,47 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
                     counting_page_value("子表主食表",workbook,work_sheet)
 
                 except Exception as e:  
-                    print(f"Error:为子表主食表 {sheet_name} sheet 添加页计时报错，错误信息: {e}")
+                    print(f"Error:为子表主食表 {sheet_name} 添加页计时报错，错误信息: {e}")
                     __main__.SAVE_OK_SIGNAL = False 
                     break
 
             print("Notice: ", "子表主食表页计全部添加完成")   
 
+    "添加合计"
     if __main__.ADD_TOTAL_SUMMARY:
+        
         print("Notice: ", "开始添加子表主食表合计")
 
-        for sheet_name in sheets_to_add:
-            # 获取 workbook 对象中所有表的表名
-            sheet_names = [s.name for s in workbook.sheets]
-            # 检查 sheet_name 是否在 sheet_names 中
-            for name in sheet_names:
-                # 去除空格
-                if sheet_name == re.sub(r'\s+', '', name):
-                    sheet_name = name
-                    break
+        try:
+            for sheet_name in sheets_to_add:
+                # 获取 workbook 对象中所有表的表名
+                sheet_names = [s.name for s in workbook.sheets]
 
-            try:
+                exist_sign = False
+                
+                # 检查 sheet_name 是否在 sheet_names 中
+                for name in sheet_names:
+                    # 去除空格
+                    if sheet_name == re.sub(r'\s+', '', name):
+                        sheet_name = name
+                        exist_sign = True
+                        break
+                
+                if exist_sign == False:
+                    print(f"Warning: 未找到子表主食表中名为 {sheet_name} 的表,可能不存在,已跳过")
+                    continue
+
                 work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
                 counting_total_value("子表主食表",workbook,work_sheet)
-            except Exception as e:  
-                print(f"Error:为子表主食表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
-                __main__.SAVE_OK_SIGNAL = False 
-                break
+                
+            print("Notice: ", "子表主食表合计全部添加完成")
+        
+        except Exception as e:  
+            print(f"Error:为 子表主食表 {sheet_name} 添加合计时报错，错误信息: {e}")
+            __main__.SAVE_OK_SIGNAL = False 
 
-        print("Notice: ", "子表主食表合计全部添加完成")
+
+        
 
     workbook.save()  # 保存工作簿
     workbook.close()  # 关闭工作簿
@@ -2393,7 +2412,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
     workbook = None
     #在暂存的表里面查找"品名", 将其作为sheet名查找对应sheet
     if __main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY:
-        sheets_to_add = get_all_sheets_todo_for_sub_table(app,model)
+        sheets_to_add = sheets_of_sub_table(app,model)
     else:
         return 
     
@@ -2526,35 +2545,38 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
 
             print("Notice: ", "子表副食表页计全部添加完成")   
 
+    "添加合计"
     if __main__.ADD_TOTAL_SUMMARY:
         
         print("Notice: ", "开始添加子表副食表合计")
 
-        for product_name in sheets_to_add:
+        try:
+            for sheet_name in sheets_to_add:
+                # 获取 workbook 对象中所有表的表名
+                sheet_names = [s.name for s in workbook.sheets]
 
-            sheet_names = [s.name for s in workbook.sheets]
-            # 筛选包含product_name的sheet名字
-            matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-            print(matching_sheets)
-            # 取大于product_name长度且长度最小的sheet_name
-            if matching_sheets:
-                sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
-                if sheet_name:
-                    sheet = workbook.sheets[sheet_name]
-                else:
-                    print(f"未找到合适的sheet匹配品名 {product_name}")
-                    return
-            else:
-                print(f"Warning: 未找到品名为 {product_name} 的sheet")
-                return
-            #然后开始写入总计
-            try:
-                work_sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
+                exist_sign = False
+                
+                # 检查 sheet_name 是否在 sheet_names 中
+                for name in sheet_names:
+                    # 去除空格
+                    if sheet_name == re.sub(r'\s+', '', name):
+                        sheet_name = name
+                        exist_sign = True
+                        break
+                
+                if exist_sign == False:
+                    print(f"Warning: 未找到子表副食表中名为 {sheet_name} 的表,可能不存在,已跳过")
+                    continue
+
+                work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
                 counting_total_value("子表副食表",workbook,work_sheet)
-            except Exception as e:  
-                print(f"Error:为子表副食表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
-                __main__.SAVE_OK_SIGNAL = False 
-                break
+                
+            print("Notice: ", "子表副食表合计全部添加完成")
+        
+        except Exception as e:  
+            print(f"Error:为 子表副食表 {sheet_name} 添加合计时报错，错误信息: {e}")
+            __main__.SAVE_OK_SIGNAL = False
 
     workbook.save()  # 保存工作簿
     workbook.close()  # 关闭工作簿

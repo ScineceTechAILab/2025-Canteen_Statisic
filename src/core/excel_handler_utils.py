@@ -321,11 +321,14 @@ def get_all_sheets_todo_for_main_table():
     return list(sheets_to_add)
 
 
-def get_all_sheets_todo_for_sub_table(app,model):
+def sheets_of_sub_table(app,model):
     """
-    在手动模式和图片模式的临时表中查找所有需要添加的sheet名
-    Parameters
-      app: xlwings应用实例
+    在手动模式和图片模式的临时表中查找条目对对应的sheet名，并返回一个包含所有需要添加的sheet名的列表。
+    Parameters:
+        app: xlwings应用实例
+        model: 模式名,manual或photo
+    Returns:
+        list: 包含所有需要添加的sheet名的列表
     """
     # 使用集合来存储唯一的sheet名
     sheets_to_add = set()
@@ -336,16 +339,17 @@ def get_all_sheets_todo_for_sub_table(app,model):
     try:
 
         if model == "manual":
+
+            # 打开手动模式的临时表
             manual_workbook = app.books.open(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-            
             manual_sheet = manual_workbook.sheets[0]
             
             # 检测第二行是否为空
-            if manual_sheet.range("B2").value is None:
+            if manual_sheet.range("C2").value is None:
                 print("Warning: 手动模式临时表的第二行为空，可能没有数据。")
                 return []
             
-            values = manual_sheet.range("B2:B" + str(manual_sheet.used_range.rows.count)).value
+            values = manual_sheet.range("C2:C" + str(manual_sheet.used_range.rows.count)).value
             if not isinstance(values, list):
                 values = [values]
             sheets_to_add.update(filter(None, values))
@@ -354,10 +358,10 @@ def get_all_sheets_todo_for_sub_table(app,model):
             photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
             photo_sheet = photo_workbook.sheets[0]
             # 检测第二行是否为空
-            if photo_sheet.range("B2").value is None:
+            if photo_sheet.range("C2").value is None:
                 print("Warning: 图片模式临时表的第二行为空，可能没有数据。")
                 return []
-            values = photo_sheet.range("B2:B" + str(photo_sheet.used_range.rows.count)).value
+            values = photo_sheet.range("C2:C" + str(photo_sheet.used_range.rows.count)).value
             if not isinstance(values, list):
                 values = [values]
             sheets_to_add.update(filter(None, values))

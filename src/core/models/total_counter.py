@@ -60,27 +60,49 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 for i in range(1,page_index+1):
                     
                     # 若每一页倒数第二行为页计行
-                    if work_sheet.range((i * sheet_ratio - 1, 1)).value.replace(" ","") == "页计":
+                    page_line_name = str(work_sheet.range((i * sheet_ratio - 1, 1)).value).replace(" ","")
+                    if page_line_name == "页计":
                         continue
+
+                    # 若每一页倒数第二行为空行
+                    elif page_line_name == "" or page_line_name == "None":
+                        print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行是空行,终止本次提交")
+                        __main__.SAVE_OK_SIGNAL = False
+                        raise Exception
                     
                     # 若每一页倒数第二行存在非页计行
                     else:
                         print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行不是页计行,终止本次提交")
                         __main__.SAVE_OK_SIGNAL = False
-                        return
+                        raise Exception
                 
                 "累加本页以及前页所有页计行的值"
                 page_item_sum = {"F":0,"G":0,"H":0,"I":0,"J":0,"K":0,"L":0,"M":0,"N":0}
                 for item in page_item_sum:
                     for i in range(1,page_index+1):
-                    # 分别累加本页及之前页的页计行的F~N列的值
-                        page_item_sum[item] += work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("F") + 6)).value
+                        # 分别累加本页及之前页的页计行的J列的值
+                        if work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value is None:
+                            print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为None,终止本次提交")
+                            __main__.SAVE_OK_SIGNAL = False
+                            raise Exception
+
+                        elif work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value == "":
+                            print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为空,终止本次提交")
+                            __main__.SAVE_OK_SIGNAL = False
+                            raise Exception
+                        
+                        print(f"Notice: {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的当前值为{work_sheet.range((i * sheet_ratio - 1, ord(item) - ord('A') + 1)).value}")
+                        page_item_sum[item] += float(work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value)
+
 
                 "将这些值设为总计行的F~N列的值,放置于从前往后的第一行空行"
                 work_sheet.range((blank_row_index, 1)).value = "总计"
                 for item in page_item_sum:
+                        
+                    print(f"Notice: {excel_type} {work_sheet.name} 中更新前的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
                     work_sheet.range((blank_row_index, ord(item) - ord("A") + 1)).value = page_item_sum[item]
-
+                    print(f"Notice: {excel_type} {work_sheet.name} 中更新后的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
+                
                 print(f"Notice: 结束为 {excel_type} 中 {work_sheet.name} 进行总计")
                 
             elif work_sheet.name in ["自购主食入库等","食堂副食入库","食堂副食入库 ","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
@@ -99,32 +121,57 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 for i in range(1,page_index+1):
                     
                     # 若每一页倒数第二行为页计行
-                    if work_sheet.range((i * sheet_ratio - 1, 1)).value.replace(" ","") == "页计":
+                    page_line_name = str(work_sheet.range((i * sheet_ratio - 1, 1)).value).replace(" ","")
+                    if page_line_name == "页计":
                         continue
                     
+                    # 若每一页倒数第二行为空行
+                    elif page_line_name == "" or page_line_name == "None":
+                        print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行是空行,终止本次提交")
+                        __main__.SAVE_OK_SIGNAL = False
+                        raise Exception
+
                     # 若每一页倒数第二行存在非页计行
                     else:
                         print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行不是页计行,终止本次提交")
                         __main__.SAVE_OK_SIGNAL = False
-                        return
-                
+                        raise Exception
+        
                 "累加本页以及前页所有页计行的值"
-                page_item_sum = {"I":0,"J":0}
+                page_item_sum = {"J":0}
+
                 for item in page_item_sum:
                     for i in range(1,page_index+1):
-                    # 分别累加本页及之前页的页计行的I~J列的值
-                        page_item_sum[item] += work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("I") + 9)).value
+                        
+                        # 分别累加本页及之前页的页计行的J列的值
+                        if work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value is None:
+                            print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为None,终止本次提交")
+                            __main__.SAVE_OK_SIGNAL = False
+                            raise Exception
 
-                "将这些值设为总计行的I~J列的值,放置于从前往后的第一行空行"
+                        elif work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value == "":
+                            print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为空,终止本次提交")
+                            __main__.SAVE_OK_SIGNAL = False
+                            raise Exception
+
+                        print(f"Notice: {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的当前值为{work_sheet.range((i * sheet_ratio - 1, ord(item) - ord('A') + 1)).value}")
+                        page_item_sum[item] += float(work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value)
+                        
+                
+                "将这些值设为总计行的J列的值,放置于从前往后的第一行空行"
                 work_sheet.range((blank_row_index, 1)).value = "总计"
                 for item in page_item_sum:
+
+                    print(f"Notice: {excel_type} {work_sheet.name} 中更新前的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
                     work_sheet.range((blank_row_index, ord(item) - ord("A") + 1)).value = page_item_sum[item]
+                    print(f"Notice: {excel_type} {work_sheet.name} 中更新后的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
 
                 print(f"Notice: 结束为 {excel_type} 中 {work_sheet.name} 进行总计")
 
         else:
             print(f"Error: {excel_type} 中 {work_sheet.name} 页不存在,跳过执行页计功能")
             __main__.SAVE_OK_SIGNAL = False
+
             return
             
     elif excel_type == "福利表":
@@ -145,33 +192,55 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
             for i in range(1,page_index+1):
                 
                 # 若每一页倒数第二行为页计行
-                if work_sheet.range((i * sheet_ratio - 1, 1)).value.replace(" ","") == "页计":
+                page_line_name = str(work_sheet.range((i * sheet_ratio - 1, 1)).value).replace(" ","")
+                if page_line_name == "页计"  :
                     continue
-                
+
+                # 若每一页倒数第二行为空行
+                elif page_line_name == "" or page_line_name == "None":
+                    print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行是空行,终止本次提交")
+                    __main__.SAVE_OK_SIGNAL = False
+                    raise Exception                
+
                 # 若每一页倒数第二行存在非页计行
                 else:
                     print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行不是页计行,终止本次提交")
                     __main__.SAVE_OK_SIGNAL = False
-                    return
+                    raise Exception
             
             "累加本页以及前页所有页计行的值"
             page_item_sum = {"J":0}
             for item in page_item_sum:
                 for i in range(1,page_index+1):
-                # 分别累加本页及之前页的页计行的J列的值
-                    page_item_sum[item] += work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value
+                    # 分别累加本页及之前页的页计行的J列的值
+                    if work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value is None:
+                        print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为None,终止本次提交")
+                        __main__.SAVE_OK_SIGNAL = False
+                        raise Exception
 
+                    elif work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value == "":
+                        print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为空,终止本次提交")
+                        __main__.SAVE_OK_SIGNAL = False
+                        raise Exception
+                    
+                    print(f"Notice: {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列更新前的值为{work_sheet.range((i * sheet_ratio - 1, ord(item) - ord('A') + 1)).value}")
+                    page_item_sum[item] += float(work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value)
+                    
+            
             "将这些值设为总计行的J列的值,放置于从前往后的第一行空行"
             work_sheet.range((blank_row_index, 1)).value = "总计"
             for item in page_item_sum:
+                    
+                print(f"Notice: {excel_type} {work_sheet.name} 中更新前的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
                 work_sheet.range((blank_row_index, ord(item) - ord("A") + 1)).value = page_item_sum[item]
-
+                print(f"Notice: {excel_type} {work_sheet.name} 中更新后的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
+            
             print(f"Notice: 结束为 {excel_type} 中 {work_sheet.name} 进行总计")
 
         else:
             print(f"Error: {excel_type} 中 {work_sheet.name} 页不存在,跳过执行页计功能")
             __main__.SAVE_OK_SIGNAL = False
-            return
+            raise Exception
 
     elif excel_type == "子表主食表":
     
@@ -191,33 +260,54 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
             for i in range(1,page_index+1):
                 
                 # 若每一页倒数第二行为页计行
-                if work_sheet.range((i * sheet_ratio - 1, 1)).value.replace(" ","") == "页计":
+                page_line_name = str(work_sheet.range((i * sheet_ratio - 1, 1)).value).replace(" ","")
+                if page_line_name == "页计":
                     continue
                 
+                # 若每一页倒数第二行为空行
+                elif page_line_name == "" or page_line_name == "None":
+                    print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行是空行,终止本次提交")
+                    __main__.SAVE_OK_SIGNAL = False
+                    raise Exception
+
                 # 若每一页倒数第二行存在非页计行
                 else:
                     print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行不是页计行,终止本次提交")
                     __main__.SAVE_OK_SIGNAL = False
-                    return
+                    raise Exception
             
             "累加本页以及前页所有页计行的值"
             page_item_sum = {"F":0,"G":0,"H":0,"I":0,"J":0,"K":0}
             for item in page_item_sum:
                 for i in range(1,page_index+1):
-                # 分别累加本页及之前页的页计行的F~K列的值
-                    page_item_sum[item] += work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value
+                    # 分别累加本页及之前页的页计行的J列的值
+                    if work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value is None:
+                        print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为None,终止本次提交")
+                        __main__.SAVE_OK_SIGNAL = False
+                        raise Exception
+
+                    elif work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value == "":
+                        print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为空,终止本次提交")
+                        __main__.SAVE_OK_SIGNAL = False
+                        raise Exception
+                    
+                    print(f"Notice: {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列更新前的值为{work_sheet.range((i * sheet_ratio - 1, ord(item) - ord('A') + 1)).value}")
+                    page_item_sum[item] += float(work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value)
 
             "将这些值设为总计行的F~K列的值,放置于从前往后的第一行空行"
             work_sheet.range((blank_row_index, 1)).value = "总计"
             for item in page_item_sum:
+                    
+                print(f"Notice: {excel_type} {work_sheet.name} 中更新前的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
                 work_sheet.range((blank_row_index, ord(item) - ord("A") + 1)).value = page_item_sum[item]
-
+                print(f"Notice: {excel_type} {work_sheet.name} 中更新后的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
+            
             print(f"Notice: 结束为 {excel_type} 中 {work_sheet.name} 进行总计")
 
         else:
             print(f"Error: {excel_type} 中 {work_sheet.name} 页不存在,跳过执行页计功能")
             __main__.SAVE_OK_SIGNAL = False
-            return
+            raise Exception
 
     elif excel_type == "子表副食表":
 
@@ -237,33 +327,54 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
             for i in range(1,page_index+1):
                 
                 # 若每一页倒数第二行为页计行
-                if work_sheet.range((i * sheet_ratio - 1, 1)).value.replace(" ","") == "页计":
+                page_line_name = str(work_sheet.range((i * sheet_ratio - 1, 1)).value).replace(" ","")
+                if page_line_name == "页计":
                     continue
-                
+
+                # 若每一页倒数第二行为空行
+                elif page_line_name == "" or page_line_name == "None":
+                    print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行是空行,终止本次提交")
+                    __main__.SAVE_OK_SIGNAL = False
+                    raise Exception
+
                 # 若每一页倒数第二行存在非页计行
                 else:
                     print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行不是页计行,终止本次提交")
                     __main__.SAVE_OK_SIGNAL = False
-                    return
+                    raise Exception
             
             "累加本页以及前页所有页计行的值"
             page_item_sum = {"F":0,"G":0,"H":0,"I":0,"J":0,"K":0}
             for item in page_item_sum:
                 for i in range(1,page_index+1):
-                # 分别累加本页及之前页的页计行的F~K列的值
-                    page_item_sum[item] += work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value
+                    # 分别累加本页及之前页的页计行的J列的值
+                    if work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value is None:
+                        print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为None,终止本次提交")
+                        __main__.SAVE_OK_SIGNAL = False
+                        raise Exception
+
+                    elif work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value == "":
+                        print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列的值为空,终止本次提交")
+                        __main__.SAVE_OK_SIGNAL = False
+                        raise Exception
+                    
+                    print(f"Notice: {excel_type} {work_sheet.name} 中第 {i} 页的页计行的{item}列更新前的值为{work_sheet.range((i * sheet_ratio - 1, ord(item) - ord('A') + 1)).value}")
+                    page_item_sum[item] += float(work_sheet.range((i * sheet_ratio - 1, ord(item) - ord("A") + 1)).value)
 
             "将这些值设为总计行的F~K列的值,放置于从前往后的第一行空行"
             work_sheet.range((blank_row_index, 1)).value = "总计"
             for item in page_item_sum:
+                    
+                print(f"Notice: {excel_type} {work_sheet.name} 中更新前的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
                 work_sheet.range((blank_row_index, ord(item) - ord("A") + 1)).value = page_item_sum[item]
-
+                print(f"Notice: {excel_type} {work_sheet.name} 中更新后的总计值为{work_sheet.range((blank_row_index, ord(item) - ord('A') + 1)).value}")
+            
             print(f"Notice: 结束为 {excel_type} 中 {work_sheet.name} 进行总计")
 
         else:
             print(f"Error: {excel_type} 中 {work_sheet.name} 页不存在,跳过执行页计功能")
             __main__.SAVE_OK_SIGNAL = False
-            return
+            raise Exception
 
 
 def get_first_blank_row_index(work_sheet):
