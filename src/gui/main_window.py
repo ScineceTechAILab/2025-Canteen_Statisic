@@ -81,13 +81,15 @@ PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "man
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
-MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\主表\\" # 主工作表格路径
-Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\子表\\"  # 子工作表格路径
-WELFARE_WORK_EXCEL_PATH = ".\\src\\data\\storage\\work\\福利表\\" # 福利工作表格路径
+MAIN_WORK_EXCEL_FOLDER = ".\\src\\data\\storage\\work\\主表\\" # 主工作表格路径
+SUB_WORK_EXCEL_FOLDER = ".\\src\\data\\storage\\work\\子表\\"  # 子工作表格路径
+WELFARE_EXCEL_FOLDER = ".\\src\\data\\storage\\work\\福利表\\" # 福利工作表格路径
+ITEM_EXCEL_FOLDER = ".\\src\\data\\storage\\work\\条目表\\"      # 物品条目表路径
 
-MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
-Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
-WELFARE_WORK_EXCEL_PATH = os.path.join(project_root, WELFARE_WORK_EXCEL_PATH)
+MAIN_WORK_EXCEL_FOLDER = os.path.join(project_root, MAIN_WORK_EXCEL_FOLDER) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+SUB_WORK_EXCEL_FOLDER = os.path.join(project_root, SUB_WORK_EXCEL_FOLDER) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+WELFARE_EXCEL_FOLDER = os.path.join(project_root, WELFARE_EXCEL_FOLDER)
+ITEM_EXCEL_FOLDER = os.path.join(project_root, ITEM_EXCEL_FOLDER)
 
 # 这个0/1用来表示是入库出库
 MODE = 0
@@ -812,17 +814,17 @@ class Ui_Form(object):
 
         sub_main_file_paths = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
         
-        main_workbook =MAIN_WORK_EXCEL_PATH +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
+        main_workbook =MAIN_WORK_EXCEL_FOLDER +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
         sub_main_food_workbook = ""
         sub_auxiliary_food_workbook = ""
         # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
         for i in sub_main_file_paths:
             if "主食" in i:
-                sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
+                sub_main_food_workbook = SUB_WORK_EXCEL_FOLDER + i
             elif "副食" in i:
-                sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + i
+                sub_auxiliary_food_workbook = SUB_WORK_EXCEL_FOLDER + i
         
-        welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
+        welfare_food_workbook =WELFARE_EXCEL_FOLDER + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
 
         model = "manual"
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
@@ -996,18 +998,18 @@ class Ui_Form(object):
         WELFARE_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/福利表"
         
         # 获取主表、子表主食表、子表副食表、福利表的文件路径
-        main_workbook =MAIN_WORK_EXCEL_PATH + [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
+        main_workbook =MAIN_WORK_EXCEL_FOLDER + [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
         sub_main_file_path = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
         sub_auxiliary_food_workbook = ""
         sub_main_food_workbook = ""
          # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
         for i in sub_main_file_path:
             if "主食" in i:
-                sub_main_food_workbook = Sub_WORK_EXCEL_PATH + i
+                sub_main_food_workbook = SUB_WORK_EXCEL_FOLDER + i
             elif "副食" in i:
-                sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + i
+                sub_auxiliary_food_workbook = SUB_WORK_EXCEL_FOLDER + i
         
-        welfare_food_workbook =WELFARE_WORK_EXCEL_PATH + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
+        welfare_food_workbook =WELFARE_EXCEL_FOLDER + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
 
         model = 'photo'
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
