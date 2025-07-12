@@ -51,7 +51,7 @@ from src.core.excel_handler_utils import (
     get_all_sheets_todo_for_main_table,
     sheets_of_sub_table
 )
-
+from src.core.models.item_data_operate import item_data_operate
 
 
 
@@ -385,6 +385,8 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
             if not __main__.MODE:
 
                 print(f"\n\nNotice: {product_name}正在入库")
+                # 更新条目表中条目的对应食品的数据
+                item_data_operate("入库", year, month, day, product_name, unit_name, price, quantity, amount, remark, company_name, single_name)
                 # 更新指定公司sheet中的金额数据
                 update_company_sheet(self,main_workbook,product_name ,company_name, amount) # 只在入库的时候用到
                 # 更新入库相关表中的条目信息
@@ -399,15 +401,32 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
             else:
 
                 print(f"\n\nNotice: 品名{product_name}正在出库")
-                # 此函数不带"export"头，没打错
-                export_updata_sheet(main_workbook, product_name, single_name, row_data, header_index, month, day, unit_name)
-                # 更新指定食堂物品收发库存表中数据
-                export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
-                # 更新收发存表皮中的条目信息
-                export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
-                # 更新主副食明细账中的条目信息
-                export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
-        
+                # TODO:reconstruct data input the following functions with "export_data"
+                    # TODO: analysis role of row_data in func export_update_sheet
+                export_data = item_data_operate("出库", year, month, day, product_name, unit_name, price, quantity, amount, remark, company_name, single_name)
+                
+                for item in export_data:
+                    
+                    # 修改单价
+                    row_data[4] = item[1]
+                    price = item[1]
+                    # 修改数量
+                    row_data[5] = item[2]
+                    quantity = item[2]
+                    # 修改金额
+                    row_data[6] = item[3]
+                    amount = item[3]
+
+                    # 此函数不带"export"头，没打错
+                    export_updata_sheet(main_workbook, product_name, single_name, row_data, header_index, month, day, unit_name)
+                    # 更新指定食堂物品收发库存表中数据
+                    export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
+                    # 更新收发存表皮中的条目信息
+                    export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
+                    # 更新主副食明细账中的条目信息
+                    export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
+
+
         main_workbook.save()
 
         "如果开启页计功能，先不关闭主表"
@@ -416,7 +435,7 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
             main_workbook.close()
         
     except Exception as e:
-        print(f"Error: 处理主工作簿更新相关表格信息出错,出错信息{e}")
+        print(f"Error: 处理主工作簿更新相关表格信息出错,出错信息 {e}")
         __main__.SAVE_OK_SIGNAL = False
 
 
@@ -617,7 +636,6 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
 
                         else:
                             # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
-                            #print("正在写入" + cell_attribute + "  " + str(row_data[header_index[cell_attribute]]))
                             if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
                                 row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
                             sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
@@ -1876,8 +1894,7 @@ def export_updata_sheet(self,main_workbook, product_name,single_name, row_data, 
                             # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
                             #print("正在写入" + cell_attribute + "  " + str(row_data[header_index[cell_attribute]]))
                             if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
-                                row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
-                            sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
+                                sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
                             print(f"Notice: 在主表为入/出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
 
                     except KeyError:
