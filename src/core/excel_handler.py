@@ -15,7 +15,9 @@ import shutil
 import time
 import xlwings as xw
 import re
+import xlrd
 
+from xlutils.copy import copy
 from glob import glob 
 from xlwt import Workbook
 from datetime import datetime
@@ -52,6 +54,7 @@ from src.core.excel_handler_utils import (
     sheets_of_sub_table
 )
 from src.core.models.item_data_operate import item_data_operate
+
 
 
 
@@ -241,8 +244,145 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                 raise ValueError("Error: 暂存表头必须是字符串类型")
         except Exception as e:
             print(f"Error: 获取暂存表表头出错,可能 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 表格为空 {e}")
+            __main__.SAVE_OK_SIGNAL = False
             return
 
+        "将数据提交到条目表"
+        try:
+
+            if not __main__.MODE:
+
+                print(f"Notice: 开始将数据提交到条目表(入库)")
+                # 轮询读取暂存表格数据行
+                for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
+                    
+                    "读取行数据"
+                    row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
+                    # 创建一个字典，用于存储列索引和列名的对应关系
+                    header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
+                    
+                    "拆解数据"  
+                    # 将日期分解为月和日
+                    year, month, day = row_data[header_index["日期"]].split("-")
+                    # 获取行中类别列类型单元中的类别名数据
+                    category_name = row_data[header_index["类别"]]
+                    # 获取行中品名列类型单元中的品名名数据
+                    product_name = row_data[header_index["品名"]]
+                    # 获取行中单位列类型单元中的单位名数据
+                    unit_name = row_data[header_index["单位"]]
+                    # 获取行中单价列类型单元中的单价名数据
+                    price = row_data[header_index["单价"]]
+                    # 获取行中数量列类型单元中的数量名数据
+                    quantity = row_data[header_index["数量"]]
+                    # 获取行中金额列单元中金额数据
+                    amount = row_data[header_index["金额"]]
+                    # 获取行中备注列单元中备注数据
+                    remark = row_data[header_index["备注"]]
+                    # 获取行中公司列单元中公司名数据
+                    company_name = row_data[header_index["公司"]]
+                    # 获取行中单名称列单元中单名数据
+                    single_name = row_data[header_index["单名"]]
+                    # 更新条目表中相应的数据
+                    item_data_operate("入库", year, month, day, product_name, unit_name, price, quantity, amount, remark, company_name, single_name)
+
+            else:
+
+                print(f"Notice: 开始将数据提交到条目表(出库)")
+                
+                # 轮询读取暂存表格数据行
+                for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
+                    
+                    "读取行数据"
+                    row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
+                    # 创建一个字典，用于存储列索引和列名的对应关系
+                    header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
+                    
+                    "拆解数据"  
+                    # 将日期分解为月和日
+                    year, month, day = row_data[header_index["日期"]].split("-")
+                    # 获取行中类别列类型单元中的类别名数据
+                    category_name = row_data[header_index["类别"]]
+                    # 获取行中品名列类型单元中的品名名数据
+                    product_name = row_data[header_index["品名"]]
+                    # 获取行中单位列类型单元中的单位名数据
+                    unit_name = row_data[header_index["单位"]]
+                    # 获取行中单价列类型单元中的单价名数据
+                    price = row_data[header_index["单价"]]
+                    # 获取行中数量列类型单元中的数量名数据
+                    quantity = row_data[header_index["数量"]]
+                    # 获取行中金额列单元中金额数据
+                    amount = row_data[header_index["金额"]]
+                    # 获取行中备注列单元中备注数据
+                    remark = row_data[header_index["备注"]]
+                    # 获取行中公司列单元中公司名数据
+                    company_name = row_data[header_index["公司"]]
+                    # 获取行中单名称列单元中单名数据
+                    single_name = row_data[header_index["单名"]]
+
+                    # 获取出库时条目表中的数据
+                    export_data = item_data_operate("出库", year, month, day, product_name, unit_name, price, quantity, amount, remark, company_name, single_name)
+
+                    "将数据覆写至出库暂存表"
+                    # 检测暂存表是否存在
+                    if not os.path.exists(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH2):
+                        # 如果不存在，创建一个新表
+                        wb = Workbook()
+                        # 写入表头
+                        ws = wb.add_sheet("Sheet1")
+                        ws.write(0, 0, "日期")
+                        ws.write(0, 1, "类别")
+                        ws.write(0, 2, "品名")
+                        ws.write(0, 3, "单位")
+                        ws.write(0, 4, "单价")
+                        ws.write(0, 5, "数量")
+                        ws.write(0, 6, "金额")
+                        ws.write(0, 7, "备注")
+                        ws.write(0, 8, "公司")
+                        ws.write(0, 9, "单名")
+                        
+                        wb.save(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH2)
+                    
+                    rb = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH2, formatting_info=True)
+                    wb = copy(rb)
+                    ws = wb.get_sheet(0)
+
+                    # 找到第一个空行
+                    sheet = rb.sheet_by_index(0)
+                    start_row = sheet.nrows
+
+                    # BUG: 
+                    for item in export_data[product_name]:
+
+                        price = item[1]
+                        quantity = item[2]
+                        amount = item[3]
+
+                        row_data_to_write = [
+                            row_data[header_index["日期"]],
+                            category_name,
+                            product_name,
+                            unit_name,
+                            price,
+                            quantity,
+                            amount,
+                            remark,
+                            company_name,
+                            single_name
+                        ]
+
+                        for col, value in enumerate(row_data_to_write):
+                            ws.write(start_row, col, value)
+                        start_row += 1
+
+                    wb.save(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH2)
+                    read_temp_storage_workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH2)
+
+        except Exception as e:
+            print(f"Error: 更新主表、子表信息时将信息登记到条目表出错,错误信息为 {e}")
+            __main__.SAVE_OK_SIGNAL = False
+            return
+
+        
   
         if __main__.ONLY_WELFARE_TABLE == False:
             
@@ -326,9 +466,8 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         
         except Exception as e:
             print(f"Error: 将主表文件复制到 work 目录出错,错误信息为: {e}")            
-        
-        # 弹出入库失败通知
-        self.worker.done.emit("tables_updated_filed")  
+            # 弹出入库失败通知
+            self.worker.done.emit("tables_updated_filed")  
 
 
 def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
@@ -385,8 +524,7 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
             if not __main__.MODE:
 
                 print(f"\n\nNotice: {product_name}正在入库")
-                # 更新条目表中条目的对应食品的数据
-                item_data_operate("入库", year, month, day, product_name, unit_name, price, quantity, amount, remark, company_name, single_name)
+
                 # 更新指定公司sheet中的金额数据
                 update_company_sheet(self,main_workbook,product_name ,company_name, amount) # 只在入库的时候用到
                 # 更新入库相关表中的条目信息
@@ -401,30 +539,15 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
             else:
 
                 print(f"\n\nNotice: 品名{product_name}正在出库")
-                # TODO:reconstruct data input the following functions with "export_data"
-                    # TODO: analysis role of row_data in func export_update_sheet
-                export_data = item_data_operate("出库", year, month, day, product_name, unit_name, price, quantity, amount, remark, company_name, single_name)
-                
-                for item in export_data:
-                    
-                    # 修改单价
-                    row_data[4] = item[1]
-                    price = item[1]
-                    # 修改数量
-                    row_data[5] = item[2]
-                    quantity = item[2]
-                    # 修改金额
-                    row_data[6] = item[3]
-                    amount = item[3]
 
-                    # 此函数不带"export"头，没打错
-                    export_updata_sheet(main_workbook, product_name, single_name, row_data, header_index, month, day, unit_name)
-                    # 更新指定食堂物品收发库存表中数据
-                    export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
-                    # 更新收发存表皮中的条目信息
-                    export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
-                    # 更新主副食明细账中的条目信息
-                    export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
+                # 此函数不带"export"头，没打错
+                export_updata_sheet(main_workbook, product_name, single_name, row_data, header_index, month, day, unit_name)
+                # 更新指定食堂物品收发库存表中数据
+                export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
+                # 更新收发存表皮中的条目信息
+                export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
+                # 更新主副食明细账中的条目信息
+                export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
 
 
         main_workbook.save()
@@ -947,36 +1070,35 @@ def update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
-
-
-
+    # [ ]TODO: temper the logic like func update main_table
     try:
 
         # 打开子表主食表
-        main_workbook = app.books.open(sub_main_food_excel_file_path)
+        sub_main_workbook = app.books.open(sub_main_food_excel_file_path)
         # 打开子表副食表
-        auxiliary_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
+        sub_auxiliary_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
         print(f"Notice: 子表主食表和副食表加载成功，文件路径: {sub_main_food_excel_file_path} 和 {sub_auxiliary_food_excel_file_path}")
         
         print(f"\n\n\nNotice: 入库更新子表")
+        
         # 在子表主食表中更新信息
-        update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+        update_sub_main_food_sheet(sub_main_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers)
         # 在子表副食表中更新信息
-        update_sub_auxiliary_food_sheet(auxiliary_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+        update_sub_auxiliary_food_sheet(sub_auxiliary_workbook, read_temp_storage_workbook, read_temp_storage_workbook_headers)
     
     except Exception as e:
 
         print(f"Error: 更新子表主食表或副食表出错 {e}")
 
-
+    
     # 保存工作簿
-    main_workbook.save()
-    auxiliary_workbook.save()
+    sub_main_workbook.save()
+    sub_auxiliary_workbook.save()
     "后续如果有页计功能，先不关闭页计表格"
     if not __main__.ADD_DAY_SUMMARY and not __main__.ADD_MONTH_SUMMARY and not __main__.ADD_PAGE_SUMMARY and not __main__.ADD_TOTAL_SUMMARY:
         # 关闭工作簿
-        main_workbook.close()
-        auxiliary_workbook.close()
+        sub_main_workbook.close()
+        sub_auxiliary_workbook.close()
 
     print(f"Notice: 子表主食表和副食表更新完成，已保存并关闭工作簿")
 
@@ -1075,9 +1197,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
 
                     
                     # 往该没有内容的行的A列中写入月份、B列中写入日
-                    """
-                    !!!注意！！这里原为sub_row_index+1，改为sub_row_index, 因为上文for循环代码认为sub_row_index行已经是可用的了
-                    """
+
                     try:
                         sheet.range((sub_row_index + 1, 1)).value = month
                         sheet.range((sub_row_index + 1, 2)).value = day
@@ -1085,6 +1205,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                     except Exception as e:
                         print(f"Error: 子表主食表 {product_name} sheet 写入日期失败{e}")
                         return
+                    
                     # 往该没有内容的行的D列中写入出入库摘要
                     try:
                         sheet.range((sub_row_index + 1, 4)).value = "入库"
@@ -1092,6 +1213,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                     except Exception as e:
                         print(f"Error: 子表主食表 {product_name} sheet 写入出入库摘要失败{e}")
                         return
+                    
                     # 往该没有内容的行中的E列写入单价
                     try:
                         sheet.range((sub_row_index + 1, 5)).value = price
@@ -1099,6 +1221,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                     except Exception as e:
                         print(f"Error: 子表主食表 {product_name} sheet 写入单价失败{e}")
                         return
+                    
                     # 往该没有内容的行中的F列写入数量
                     try:
                         sheet.range((sub_row_index + 1, 6)).value = quantity
@@ -1106,6 +1229,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                     except Exception as e:
                         print(f"Error: 子表主食表 {product_name} sheet 写入数量失败{e}")
                         return
+                    
                     # 往该没有内容的行中的G列写入金额
                     try:
                         sheet.range((sub_row_index + 1, 7)).value = amount
@@ -1113,6 +1237,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                     except Exception as e:
                         print(f"Error: 子表主食表 {product_name} sheet 写入金额失败{e}")
                         return
+                
                 else:
                     print(f"Warning: 在子表主食表入库时该食品类别属性不名为 主食 ,实名为 {category_name} 已跳过该菜品子表主食表写入")
                     continue
@@ -1199,7 +1324,8 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
 
                         print(f"Notice: 发现第 {sub_row_index + 1} 行为空行，开始写入数据")
                         break
-
+                
+                
                 
                 # 往该没有内容的行的A列中写入月份、B列中写入日
                 """
@@ -1773,7 +1899,7 @@ def update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_st
     except Exception as e:
             print(f"Error: 更新或添加数据到食堂福利表出错,出错信息{e}")
 
-def export_updata_sheet(self,main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name):
+def export_updata_sheet(main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name):
     """
     将数据写入指定的入库类型sheet中
     
@@ -1807,7 +1933,7 @@ def export_updata_sheet(self,main_workbook, product_name,single_name, row_data, 
             return
 
         
-
+        # BUG: 此处的运行速度过慢
         # 查找第一行空行，记录下空行行标（从表格的第二行开始）
         for row_index in range(0, sheet.used_range.rows.count):
             if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
@@ -2159,7 +2285,6 @@ def add_counter(self, app, modle,main_excel_file_path, sub_main_food_excel_file_
 
     if not (__main__.ADD_DAY_SUMMARY or __main__.ADD_MONTH_SUMMARY or __main__.ADD_PAGE_SUMMARY or __main__.ADD_TOTAL_SUMMARY):    
         print("Warning: 没有添加日计、月计、页计或累计的选项，直接退出")
-        self.worker.done2.emit()
         return
 
     try:

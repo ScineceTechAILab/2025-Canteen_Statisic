@@ -73,7 +73,10 @@ from src.gui.utils.first_start_detect import first_start_detect
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
 global TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+
 TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
+TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join("src", "data", "input", "manual", "temp_manual_input_data2.xls")
+
 
 PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_img_input.xlsx")
 PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "manual", "temp_img_input.xls")
@@ -751,7 +754,7 @@ class Ui_Form(object):
         """
         # 定义输入框的字典
 
-        
+                
         
         
         input_fields = {
@@ -771,7 +774,7 @@ class Ui_Form(object):
         # 调用 manual_temp_storage 函数获取输入框内容
         manual_temp_storage(self,input_fields) # 传入self参数
 
-
+    
     def check_manual_input_data(self): # Learning3:传参参数名与某个全局变量同名，造成全局变量值无法被获取
         """
         弹窗且以EXCEL表格的形式检查手动输入的数据
