@@ -674,27 +674,32 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
             return
 
         
-
+        # BUG: 此处运行过慢
         # 查找第一行空行，记录下空行行标（从表格的第二行开始）
-        for row_index in range(0, sheet.used_range.rows.count):
+        used_rows_count = sheet.used_range.rows.count
+        used_columns_count = sheet.used_range.columns.count
+
+        for row_index in range(0, used_rows_count):
             if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
                 # 检查前一行是否包含“领导”二字
                 if row_index > 0:
-                    previous_row_values = [
-                    str(sheet.range((row_index, col)).value).strip()
-                    for col in range(1, sheet.used_range.columns.count + 1)
-                    if sheet.range((row_index, col)).value is not None
-                    ]
+                    previous_row_values = []
+                    for col in range(1, used_columns_count + 1):
+                        cell_value = sheet.range((row_index, col)).value
+                        if cell_value is not None:
+                            previous_row_values.append(str(cell_value).strip())
+
                     if any("领导" in value for value in previous_row_values):
                         print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
                         continue
 
                 # 检查当前列的前几行是否包含“序号”二字
-                column_values = [
-                    str(sheet.range((row, 1)).value).strip()
-                    for row in range(1, row_index + 1)
-                    if sheet.range((row, 1)).value is not None
-                ]
+                column_values = []
+                for row in range(1, row_index + 1):
+                    cell_value = sheet.range((row, 1)).value
+                    if cell_value is not None:
+                        column_values.append(str(cell_value).strip())
+
                 if not any("序号" in value for value in column_values):
                     print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
                     continue
@@ -1933,7 +1938,7 @@ def export_updata_sheet(main_workbook, product_name,single_name, row_data, heade
             return
 
         
-        # BUG: 此处的运行速度过慢
+        
         # 查找第一行空行，记录下空行行标（从表格的第二行开始）
         for row_index in range(0, sheet.used_range.rows.count):
             if sheet.range((row_index + 1, 1)).value is None and row_index != 0:

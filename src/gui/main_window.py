@@ -752,11 +752,8 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-        # 定义输入框的字典
 
-                
-        
-        
+        # 定义输入框的字典
         input_fields = {
             "日期": self.line1Right.text(),
             "类别": self.line2Right.text(),
