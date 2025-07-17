@@ -1056,6 +1056,8 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
+        # BUG: 导入表时，因没有清空 mian、work 目录导致该两目录同时存在多个时间点的备份拷贝
+
         # 获取操作系统当前的时间，精确到秒
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") # Fixed:Windows操作系统不允许创建文件夹名包含":"符号的目录
 
@@ -1152,7 +1154,18 @@ class Ui_Form(object):
             return
 
         "将刚导进来的最新备份拷贝到 main 目录的主表、子表目录下"
+        # 清空 main 目录
+        print("Notice: 开始清空 main 目录")
+        try:
+            shutil.rmtree("./src/data/storage/main/")
+            print("Notice: main 目录已清空")
+        except Exception:
+            QMessageBox.information(None, "错误", "清空 main 目录失败", QMessageBox.Ok)
+            print("Error: in reimport_excel_data: 清空 main 目录失败")
+            return
+        
         # 将最新时间备份拷贝到  main 目录
+        print("Notice: 开始将最新时间备份拷贝到 main 目录")
         try:
             shutil.copytree(backup_path,"./src/data/storage/main",dirs_exist_ok=True)
             print("Notice:主表备份文件已复制到 src/data/storage/main 目录")
@@ -1160,11 +1173,21 @@ class Ui_Form(object):
         except Exception as e:
             print(f"Error in reimport_excel_data: 将主表备份文件复制到 main 目录出错,错误信息为: {e}")
 
-        # 等待1s,让前面文件复制过程得以完成 
+        "等待1s,让前面文件复制过程得以完成"
         time.sleep(1)
 
-
         "将 main 目录下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 work 目录"
+        # 清空 work 目录
+        print("Notice: 开始清空 work 目录")
+        try:
+            shutil.rmtree("./src/data/storage/work/")
+            print("Notice: work 目录已清空")
+        except Exception:
+            QMessageBox.information(None, "错误", "清空 main 目录失败", QMessageBox.Ok)
+            print("Error: in reimport_excel_data: 清空 work 目录失败")
+
+        # 将 main 目录拷贝到 work 目录
+        print("Notice: 开始将 main 目录下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 work 目录")
         try:
             shutil.copytree("./src/data/storage/main", "./src/data/storage/work",dirs_exist_ok=True)
             print("Notice:主表文件已从 ./src/data/storage/main  复制到 ./src/data/storage/work 目录")
