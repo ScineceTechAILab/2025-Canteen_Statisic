@@ -209,7 +209,8 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         - welfare_food_excel_file_path: 福利食品明细账 Excel 文件路径
     :return: None
     """
-
+    # [x]BUG: 入库-无勾选-单条-鸡蛋测试数据时，发生 'Worksheet 鸡蛋 does not exist.' 
+    # [ ]BUG: 入库-无勾选-单条-鸡蛋测试数据时，发生循环卡死
     "根据触发该函数的是手动还是照片输入模式去读取不同的表格"
     with xw.App(visible=False) as app: # 调用xlwings库将 xlsx 文件转换为 xls 格式（无头模式）
         
@@ -263,7 +264,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                     
                     "拆解数据"  
                     # 将日期分解为月和日
-                    year, month, day = row_data[header_index["日期"]].split("-")
+                    year, month, day = str(row_data[header_index["日期"]]).split("-")
                     # 获取行中类别列类型单元中的类别名数据
                     category_name = row_data[header_index["类别"]]
                     # 获取行中品名列类型单元中的品名名数据
@@ -299,7 +300,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                     
                     "拆解数据"  
                     # 将日期分解为月和日
-                    year, month, day = row_data[header_index["日期"]].split("-")
+                    year, month, day =  str(row_data[header_index["日期"]]).split("-")
                     # 获取行中类别列类型单元中的类别名数据
                     category_name = row_data[header_index["类别"]]
                     # 获取行中品名列类型单元中的品名名数据
@@ -350,7 +351,6 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                     sheet = rb.sheet_by_index(0)
                     start_row = sheet.nrows
 
-                    # BUG: 
                     for item in export_data[product_name]:
 
                         price = item[1]
@@ -382,8 +382,6 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             __main__.SAVE_OK_SIGNAL = False
             return
 
-        
-  
         if __main__.ONLY_WELFARE_TABLE == False:
             
             try:
@@ -478,10 +476,10 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
-
+    
     try:
 
-        main_workbook = app.books.open(excel_file_path)
+        main_workbook = app.books.open(excel_file_path) # Feature: 如果表损坏了，此处会卡住
         print(f"Notice: 主工作表加载成功，文件路径: {excel_file_path}")
 
         # 创建一个字典，用于存储列索引和列名的对应关系
@@ -497,7 +495,7 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
             try:
                 
                 # 将日期分解为月和日
-                year, month, day = row_data[header_index["日期"]].split("-")
+                year, month, day =  str(row_data[header_index["日期"]]).split("-")
                 # 获取行中类别列类型单元中的类别名数据
                 category_name = row_data[header_index["类别"]]
                 # 获取行中品名列类型单元中的品名名数据
@@ -658,6 +656,7 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
         None:
     
     """
+    # [x]BUG: 发现在日记模式下食堂副食入库时日期会被锁定在 5 月 26 日的问题
     print(f"Notice: 正在查询入库类型名为 {single_name} 的sheet页以更新其数据")
     try:
         # 检查目标Sheet名是否存在
@@ -674,11 +673,11 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
             return
 
         
-        # BUG: 此处运行过慢
+        # [ ]BUG: 此处循环运行过慢
         # 查找第一行空行，记录下空行行标（从表格的第二行开始）
         used_rows_count = sheet.used_range.rows.count
         used_columns_count = sheet.used_range.columns.count
-
+        
         for row_index in range(0, used_rows_count):
             if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
                 # 检查前一行是否包含“领导”二字
@@ -707,13 +706,14 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
 
         # 尝试写入一行数据
         try:
+
             # 获取当前列中所有的序号值，排除空值并转换为整数
             existing_numbers = []
             for i in range(row_index):
                 box_value = sheet.range((i + 1, 1)).value
                 try:
-                    # 判断 box_value 是否是"日记"，是则清空已有序号数据
-                    if box_value == '日计':
+                    # 判断 box_value 是否是"日记" 或者日记选项是否开启，是则清空已有序号数据
+                    if box_value == '日计' or __main__.ADD_DAY_SUMMARY:
                         existing_numbers = [0]
                     else:
                         box_value = int(box_value)  # 尝试将值转换为整数
@@ -721,11 +721,13 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
                             existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
                 except:
                     continue
+
             # 计算新的序号值
             new_number = max(existing_numbers) + 1 if existing_numbers else 1
+
             # 写入序号数据
             sheet.range((row_index + 1, 1)).value = new_number
-            print(f"Notice: 在主表为入/出库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
+            print(f"\nNotice: 在主表为入/出库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
 
             # 为B、C列写入月份日期数据
             sheet.range((row_index + 1, 2)).value = month
@@ -767,7 +769,7 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
                             if cell_attribute == "类别" and single_name  in ["自购主食入库等", "自购主食出库"]:
                                 row_data[header_index[cell_attribute]] = row_data[header_index[cell_attribute]] + single_name.strip("等").strip("自购主食")
                             sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
-                            print(f"Notice: 在主表为入/出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+                            print(f"Notice: 在主表为入/出库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功\n")
 
                     except KeyError:
                         print(f"Error: 未在主表入/出库类型 {single_name} 找到名为 {cell_attribute} 的列")
@@ -1075,7 +1077,7 @@ def update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
-    # [ ]TODO: temper the logic like func update main_table
+    # [x]TODO: temper the logic like func update main_table
     try:
 
         # 打开子表主食表
@@ -1134,7 +1136,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                 
                 try:
                     # 将日期分解为月和日
-                    year, month, day = row_data[header_index["日期"]].split("-")
+                    year, month, day =  str(row_data[header_index["日期"]]).split("-")
                     # 获取行中类别列类型单元中的类别名数据
                     category_name = row_data[header_index["类别"]]
                     # 获取行中品名列类型单元中的品名名数据
@@ -1263,7 +1265,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                 
                 try:
                     # 将日期分解为月和日
-                    year, month, day = row_data[header_index["日期"]].split("-")
+                    year, month, day =  str(row_data[header_index["日期"]]).split("-")
                     # 获取行中类别列类型单元中的类别名数据
                     category_name = row_data[header_index["类别"]]
                     # 获取行中品名列类型单元中的品名名数据
@@ -1401,7 +1403,7 @@ def update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, r
                 header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
                 
                 # 将日期分解为月和日
-                year, month, day = row_data[header_index["日期"]].split("-")
+                year, month, day =  str(row_data[header_index["日期"]]).split("-")
                 # 获取行中类别列类型单元中的类别名数据
                 category_name = row_data[header_index["类别"]]
                 # 获取行中品名列类型单元中的品名名数据
@@ -1522,7 +1524,7 @@ def update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, r
                 
                 try:
                     # 将日期分解为月和日
-                    year, month, day = row_data[header_index["日期"]].split("-")
+                    year, month, day =  str(row_data[header_index["日期"]]).split("-")
                     # 获取行中类别列类型单元中的类别名数据
                     category_name = row_data[header_index["类别"]]
                     # 获取行中品名列类型单元中的品名名数据
@@ -1661,7 +1663,7 @@ def update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_st
             header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
             
             # 将日期分解为月和日
-            year, month, day = row_data[header_index["日期"]].split("-")
+            year, month, day =  str(row_data[header_index["日期"]]).split("-")
             # 获取行中类别列类型单元中的类别名数据
             category_name = row_data[header_index["类别"]]
             # 获取行中品名列类型单元中的品名名数据
@@ -2316,6 +2318,8 @@ def note_main_table(self, app ,  main_excel_file_path):
     :param main_excel_file_path 主表路径
     :return None
     """
+
+    # BUG:修复开启日记时，主表没有添加日记的问题
     
     print("\nNotice: ", "开始添加主表日计\月计\页计\合计")
 
@@ -2352,7 +2356,7 @@ def note_main_table(self, app ,  main_excel_file_path):
             try:
                 sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
             except:
-                print("sheet名不存在")
+                print(f"Warning: {sheet_name} 表不存在")
                 continue
             total_amount = 0
             

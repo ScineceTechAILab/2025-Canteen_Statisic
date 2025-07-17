@@ -95,28 +95,25 @@ def item_data_operate(model, year, month, day, product_name, unit_name, price, q
             wb = openpyxl.load_workbook(__main__.ITEM_EXCEL_FOLDER + item)
 
     "检查索引库中是否有此类"
-    for sheet in wb.worksheets:
-        
-        if sheet.title != product_name:
-            continue
-        
-        elif sheet.title == product_name:
-            
-            ws = wb[product_name]
+    try:
 
-            ws["A1"] = "单位"
-            ws["B1"] = "单价"
-            ws["C1"] = "存量"
-            ws["D1"] = "存值"
-            ws["E1"] = "日期"
+        worksheet = wb[str(product_name)]
 
-            # 从D2开始，D列值为C列值与B列值同行相乘的积
-            for row in range(2, ws.max_row + 1):
-                ws[f"D{row}"] = float(ws[f"C{row}"].value)*float(ws[f"B{row}"].value)
-            break
+        ws["A1"] = "单位"
+        ws["B1"] = "单价"
+        ws["C1"] = "存量"
+        ws["D1"] = "存值"
+        ws["E1"] = "日期"
 
-        else:
+        # 从D2开始，D列值为C列值与B列值同行相乘的积
+        for row in range(2, ws.max_row + 1):
+            ws[f"D{row}"] = float(ws[f"C{row}"].value)*float(ws[f"B{row}"].value)
 
+    except KeyError:
+
+        if model == "入库":
+
+            # 创建新Sheet
             wb.create_sheet(product_name)
             ws = wb[product_name]
 
@@ -129,6 +126,10 @@ def item_data_operate(model, year, month, day, product_name, unit_name, price, q
             # 从D2开始，D列值为C列值与B列值同行相乘的积
             for row in range(2, ws.max_row + 1):
                 ws[f"D{row}"] = float(ws[f"C{row}"].value)*float(ws[f"B{row}"].value)
+
+        elif model == "出库":
+            __main__.SAVE_OK_SIGNAL = False
+            print("Error: 条目表中无此条目，请先入库！")
 
     "打开此Sheet"
     ws = wb[product_name]

@@ -181,7 +181,7 @@ class Worker(QObject):
 
 
 
-
+# [ ]BUG：Error:  (-2147352567, 'Exception occurred.', (0, 'Microsoft Excel', 'Office 检测到此文件存 在一个问题。要帮助保护您的计算机，不能打开此文件。', 'xlmain11.chm', 0, -2146827284), None)
 
 class Ui_Form(object):
 
@@ -1067,14 +1067,15 @@ class Ui_Form(object):
         backup_mian_excel_folder_path = backup_path+"\\主表"
         backup_sub_excel_folder_path = backup_path+"\\子表"
         backup_welfare_excel_folder_path = backup_path+"\\福利表"
+        item_excel_folder_path = backup_path + "\\条目表"
         import_state = True
 
-        
         try:
             # 创建拼接主、子表备份文件夹
             os.makedirs(backup_mian_excel_folder_path, exist_ok=True)
             os.makedirs(backup_sub_excel_folder_path, exist_ok=True)
             os.makedirs(backup_welfare_excel_folder_path, exist_ok=True)
+            os.makedirs(item_excel_folder_path, exist_ok=True)
             print(f"Notice:备份文件夹创建成功,主表路径为:{backup_mian_excel_folder_path},子表路径为:{backup_sub_excel_folder_path}\n")
 
         except Exception as e:
@@ -1134,12 +1135,27 @@ class Ui_Form(object):
         # 唤起文件管理器，并选择年福利表文件
         sub_welfare_excel_path = QFileDialog.getOpenFileName(None, "选择年福利表格", "", "Excel Files (*.xls)")[0]
         try:
+            
             shutil.copy(sub_welfare_excel_path, backup_welfare_excel_folder_path)
             QMessageBox.information(None, "提示", "导入年福利文件成功", QMessageBox.Ok)
         
         except Exception as e:
             print(f"Error in reimport_excel_data: 重新导入年福利表格出错 {e}")
             QMessageBox.information(None, "错误", "导入年福利表出错,终止本次导入", QMessageBox.Ok)
+            return
+        
+        "导入条目表"
+        QMessageBox.information(None, "提示", "请导入条目表格", QMessageBox.Ok)
+        # 唤起文件管理器，并选择条目表文件
+        sub_item_excel_path = QFileDialog.getOpenFileName(None, "选择条目表格", "", "Excel Files (*.xlsx)")[0]
+        try:
+           
+            shutil.copy(sub_item_excel_path, item_excel_folder_path) # Mistake: item_excel_folder_path 必须是存在的文件夹路径
+            QMessageBox.information(None, "提示", "导入条目文件成功", QMessageBox.Ok)
+        
+        except Exception as e:
+            print(f"Error in reimport_excel_data: 重新导入条目表格出错 {e}")
+            QMessageBox.information(None, "错误", "导入条目表出错,终止本次导入", QMessageBox.Ok)
             return
 
         "检测所有文件是否完成导入"
@@ -1227,12 +1243,14 @@ class Ui_Form(object):
         backup_mian_excel_folder_path = backup_path+"\\主表"
         backup_sub_excel_folder_path = backup_path+"\\子表"
         backup_welfare_excel_folder_path = backup_path+"\\福利表"
+        item_excel_folder_path = backup_path + "\\条目表"
         
         try:
             # 创建拼接主、子表备份文件夹
             os.makedirs(backup_mian_excel_folder_path, exist_ok=True)
             os.makedirs(backup_sub_excel_folder_path, exist_ok=True)
             os.makedirs(backup_welfare_excel_folder_path, exist_ok=True)
+            os.makedirs(item_excel_folder_path, exist_ok=True)
             print(f"Notice:备份文件夹创建成功,主表路径为:{backup_mian_excel_folder_path},子表路径为:{backup_sub_excel_folder_path}")
 
         except Exception as e:
@@ -1468,8 +1486,66 @@ def delete_backup(self,objectname):
         except Exception as e:
             print(f"删除失败: {e}")
 
+def work_file_init():
+
+    """
+    在进入程序时，自动将最新备份拷贝到 main 目录,并把其从 main 目录拷贝到 work 目录
+    """
+
+    # 动态获取最新备份
+    latest_backup_folder = [folder_name for folder_name in os.listdir(".\\src\\data\\storage\\backup") if os.path.isdir(os.path.join(".\\src\\data\\storage\\backup", folder_name))]
+    latest_backup_folder.sort(key=lambda x: os.path.getmtime(os.path.join(".\\src\\data\\storage\\backup", x)), reverse=True)
+    latest_backup_folder = latest_backup_folder[0]
+    latest_backup_folder = ".\\src\\data\\storage\\backup\\" + latest_backup_folder
+    print(f"Notice:最新备份为: {latest_backup_folder}")
+    
+    "将刚导进来的最新备份拷贝到 main 目录的主表、子表目录下"
+    # 清空 main 目录
+    print("Notice: 开始清空 main 目录")
+    try:
+        if os.path.exists("./src/data/storage/main"):
+            shutil.rmtree("./src/data/storage/main/")
+            print("Notice: main 目录已清空")
+
+    except Exception:
+        print("Error: in reimport_excel_data: 清空 main 目录失败")
+        return
+    
+    # 清空 work 目录
+    print("Notice: 开始清空 work 目录")
+    try:
+        if os.path.exists("./src/data/storage/work/"):
+            shutil.rmtree("./src/data/storage/work/")
+            print("Notice: work 目录已清空")
+    except Exception:
+        print("Error: in reimport_excel_data: 清空 work 目录失败")
+
+    # 将最新时间备份拷贝到  main 目录
+    print("Notice: 开始将最新时间备份拷贝到 main 目录")
+    try:
+        shutil.copytree(latest_backup_folder, "./src/data/storage/main") # Mistake：拷贝目录用 copytree 方法
+        print("Notice:主表备份文件已复制到 src/data/storage/main 目录")
+
+    except Exception as e:
+        print(f"Error in reimport_excel_data: 将主表备份文件复制到 main 目录出错,错误信息为: {e}")
+
+    "等待1s,让前面文件复制过程得以完成"
+    time.sleep(1)
+
+    "将 main 目录下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 work 目录"
+    # 将 main 目录拷贝到 work 目录
+    print("Notice: 开始将 main 目录下的 主表文件夹、子表文件夹、福利表文件夹拷贝到 work 目录")
+    try:
+        shutil.copytree("./src/data/storage/main", "./src/data/storage/work",dirs_exist_ok=True)
+        print("Notice:主表文件已从 ./src/data/storage/main  复制到 ./src/data/storage/work 目录")
+    except Exception as e:
+        print(f"Error in reimport_excel_data: 将主表文件复制到 work 目录出错,错误信息为: {e}")
+
 
 if __name__ == "__main__":
+    
+    # 初始化工作文件夹环境
+    work_file_init()
     # 创建一个QApplication对象
     app = QApplication(sys.argv) 
     # 创建一个QWidget对象
