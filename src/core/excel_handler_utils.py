@@ -91,7 +91,7 @@ def find_matching_month_rows(main_excel_file_path, sheet_name, columns = [2, 3])
             try:
                 sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
             except:
-                print("sheet名不存在")
+                print("Warning: sheet名不存在")
 
             # 查找 B 列中等于本月月数的行数
             month_rows = [
@@ -140,7 +140,7 @@ def find_matching_month_rows(main_excel_file_path, sheet_name, columns = [2, 3])
         print(f"Error: 查找行数时出错: {e}")
         return []
         
-def find_matching_today_rows(main_excel_file_path, sheet_name, columns = [2, 3]):
+def find_matching_today_rows(app,main_excel_file_path, sheet_name, columns = [2, 3]):
     """
     在主表中查找 C 列中等于今天日数的行数和 B 列中等于本月月数的行数，
     并对比两个列表中相同的行数。
@@ -148,53 +148,47 @@ def find_matching_today_rows(main_excel_file_path, sheet_name, columns = [2, 3])
     :param main_excel_file_path: 主表路径
     :return: 相同行数的列表
     """
+
     try:
         # 获取当前日期和月份
         today = datetime.now()
         current_day = today.day
         current_month = today.month
 
-        # 打开 Excel 文件
-        with xw.App(visible=False) as app:
-            workbook = app.books.open(main_excel_file_path)
-            try:
-                sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
-            except:
-                print("sheet名不存在")
+        # 打开工作簿
+        workbook = app.books.open(main_excel_file_path)
+        try:
+            sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+        except:
+            print("Warning: sheet名不存在")
 
-            # for row_index in range(sheet.used_range.rows.count):
-            #     print(sheet.range((row_index + 1, 3)).value, current_day)
+        # 查找 C 列中等于今天日数的行数
+        day_rows = [
+            row_index + 1
+            for row_index in range(sheet.used_range.rows.count)
+            if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[1])).value).lstrip("0")))) == str(current_day).lstrip("0"))
+        ]
 
-            # print(sheet.range((168, 1)).value, sheet.range((168, 2)).value)
-            # 查找 C 列中等于今天日数的行数
-            day_rows = [
-                row_index + 1
-                for row_index in range(sheet.used_range.rows.count)
-                if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[1])).value).lstrip("0")))) == str(current_day).lstrip("0"))
-            ]
+        # 查找 B 列中等于本月月数的行数
+        month_rows = [
+            row_index + 1
+            for row_index in range(sheet.used_range.rows.count)
+            if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
+        ]
 
-            # 查找 B 列中等于本月月数的行数
-            month_rows = [
-                row_index + 1
-                for row_index in range(sheet.used_range.rows.count)
-                if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
-            ]
+        # 找到两个列表中相同的行数
+        matching_rows = list(set(day_rows) & set(month_rows))
 
-            # 找到两个列表中相同的行数
-            matching_rows = list(set(day_rows) & set(month_rows))
+        # 打印结果
+        print(f"相同的行数: {matching_rows}", day_rows, month_rows)
 
-            # 打印结果
-            # print(f"C 列中等于今天日数的行数: {day_rows}")
-            # print(f"B 列中等于本月月数的行数: {month_rows}")
-            print(f"相同的行数: {matching_rows}", day_rows, month_rows)
-
-            # 关闭工作簿
-            workbook.close()
-            return matching_rows
+        # 关闭工作簿
+        workbook.close()
+        return matching_rows
 
     except Exception as e:
         print(f"Error: 查找行数时出错: {e}")
-        return []
+        return None
 
 
 def find_the_first_empty_line_in_main_excel(sheet):

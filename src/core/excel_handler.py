@@ -5,6 +5,9 @@
 # @File    : excel_handler.py
 # @Software: VsCode
 
+# [x]TODO: 补充价钱、单价、金额获取时没有考虑空格处理的问题
+# [ ]TODO：当有一个重要的提交函数失败时，跳过后面所有环节，精简流程
+
 import os
 import subprocess
 import sys
@@ -210,7 +213,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
     :return: None
     """
     # [x]BUG: 入库-无勾选-单条-鸡蛋测试数据时，发生 'Worksheet 鸡蛋 does not exist.' 
-    # [ ]BUG: 入库-无勾选-单条-鸡蛋测试数据时，发生循环卡死
+    # [x]BUG: 入库-无勾选-单条-鸡蛋测试数据时，发生循环卡死（主表异常体积问题）
     "根据触发该函数的是手动还是照片输入模式去读取不同的表格"
     with xw.App(visible=False) as app: # 调用xlwings库将 xlsx 文件转换为 xls 格式（无头模式）
         
@@ -308,11 +311,11 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                     # 获取行中单位列类型单元中的单位名数据
                     unit_name = row_data[header_index["单位"]]
                     # 获取行中单价列类型单元中的单价名数据
-                    price = row_data[header_index["单价"]]
+                    price = str(row_data[header_index["单价"]]).replace(" ", "")        
                     # 获取行中数量列类型单元中的数量名数据
-                    quantity = row_data[header_index["数量"]]
+                    quantity = str(row_data[header_index["数量"]]).replace(" ","")
                     # 获取行中金额列单元中金额数据
-                    amount = row_data[header_index["金额"]]
+                    amount = str(row_data[header_index["金额"]]).replace(" ","")
                     # 获取行中备注列单元中备注数据
                     remark = row_data[header_index["备注"]]
                     # 获取行中公司列单元中公司名数据
@@ -465,7 +468,9 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         except Exception as e:
             print(f"Error: 将主表文件复制到 work 目录出错,错误信息为: {e}")            
             # 弹出入库失败通知
-            self.worker.done.emit("tables_updated_filed")  
+
+        # [x] BUG：修复失败时不弹窗的问题
+        self.worker.done.emit("tables_updated_filed")  
 
 
 def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
@@ -503,11 +508,11 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
                 # 获取行中单位列类型单元中的单位名数据
                 unit_name = row_data[header_index["单位"]]
                 # 获取行中单价列类型单元中的单价名数据
-                price = row_data[header_index["单价"]]
+                price = str(row_data[header_index["单价"]]).replace(" ", "")        
                 # 获取行中数量列类型单元中的数量名数据
-                quantity = row_data[header_index["数量"]]
+                quantity = str(row_data[header_index["数量"]]).replace(" ","")
                 # 获取行中金额列单元中金额数据
-                amount = row_data[header_index["金额"]]
+                amount = str(row_data[header_index["金额"]]).replace(" ","")
                 # 获取行中备注列单元中备注数据
                 remark = row_data[header_index["备注"]]
                 # 获取行中公司列单元中公司名数据
@@ -1000,7 +1005,7 @@ def update_main_food_detail_sheet(self,main_workbook,product_name ,single_name, 
         print(f"Error: 打开主副食品明细账 Sheet 时出错 {e}")
         return
 
-    # 提取输入数据的单名信息和类别信息进行行列索引词匹配（）
+    # 提取输入数据的单名信息和类别信息进行行列索引词匹配
     if single_name == "扶贫主食入库":
         row_index_name = "（帮扶食品）主副食"
         column_index_name = "主食购入"
@@ -1026,7 +1031,7 @@ def update_main_food_detail_sheet(self,main_workbook,product_name ,single_name, 
 
     else:
         __main__.SAVE_OK_SIGNAL = False
-        print(f"Error: 更新主副食品明细账时未在主表找名为 `{single_name}` 的sheet,可能存在空字符")
+        print(f"Error: 更新主副食品明细账时未在主表找名为 `{single_name}` 的表，请确认是否存在")
         return
 
     # 调用Excel API 进行行索引名匹配
@@ -1144,11 +1149,11 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                     # 获取行中单位列类型单元中的单位名数据
                     unit_name = row_data[header_index["单位"]]
                     # 获取行中单价列类型单元中的单价名数据
-                    price = row_data[header_index["单价"]]
+                    price = str(row_data[header_index["单价"]]).replace(" ", "")        
                     # 获取行中数量列类型单元中的数量名数据
-                    quantity = row_data[header_index["数量"]]
+                    quantity = str(row_data[header_index["数量"]]).replace(" ","")
                     # 获取行中金额列单元中金额数据
-                    amount = row_data[header_index["金额"]]
+                    amount = str(row_data[header_index["金额"]]).replace(" ","")
                     # 获取行中备注列单元中备注数据
                     remark = row_data[header_index["备注"]]
                     # 获取行中公司列单元中公司名数据
@@ -1273,11 +1278,11 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                     # 获取行中单位列类型单元中的单位名数据
                     unit_name = row_data[header_index["单位"]]
                     # 获取行中单价列类型单元中的单价名数据
-                    price = row_data[header_index["单价"]]
+                    price = str(row_data[header_index["单价"]]).replace(" ", "")        
                     # 获取行中数量列类型单元中的数量名数据
-                    quantity = row_data[header_index["数量"]]
+                    quantity = str(row_data[header_index["数量"]]).replace(" ","")
                     # 获取行中金额列单元中金额数据
-                    amount = row_data[header_index["金额"]]
+                    amount = str(row_data[header_index["金额"]]).replace(" ","")
                     # 获取行中备注列单元中备注数据
                     remark = row_data[header_index["备注"]]
                     # 获取行中公司列单元中公司名数据
@@ -1411,11 +1416,11 @@ def update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, r
                 # 获取行中单位列类型单元中的单位名数据
                 unit_name = row_data[header_index["单位"]]
                 # 获取行中单价列类型单元中的单价名数据
-                price = row_data[header_index["单价"]]
+                price = str(row_data[header_index["单价"]]).replace(" ", "")        
                 # 获取行中数量列类型单元中的数量名数据
-                quantity = row_data[header_index["数量"]]
+                quantity = str(row_data[header_index["数量"]]).replace(" ","")
                 # 获取行中金额列单元中金额数据
-                amount = row_data[header_index["金额"]]
+                amount = str(row_data[header_index["金额"]]).replace(" ","")
                 # 获取行中备注列单元中备注数据
                 remark = row_data[header_index["备注"]]
                 # 获取行中公司列单元中公司名数据
@@ -1532,11 +1537,11 @@ def update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, r
                     # 获取行中单位列类型单元中的单位名数据
                     unit_name = row_data[header_index["单位"]]
                     # 获取行中单价列类型单元中的单价名数据
-                    price = row_data[header_index["单价"]]
+                    price = str(row_data[header_index["单价"]]).replace(" ", "")        
                     # 获取行中数量列类型单元中的数量名数据
-                    quantity = row_data[header_index["数量"]]
+                    quantity = str(row_data[header_index["数量"]]).replace(" ","")
                     # 获取行中金额列单元中金额数据
-                    amount = row_data[header_index["金额"]]
+                    amount = str(row_data[header_index["金额"]]).replace(" ","")
                     # 获取行中备注列单元中备注数据
                     remark = row_data[header_index["备注"]]
                     # 获取行中公司列单元中公司名数据
@@ -1671,11 +1676,11 @@ def update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_st
             # 获取行中单位列类型单元中的单位名数据
             unit_name = row_data[header_index["单位"]]
             # 获取行中单价列类型单元中的单价名数据
-            price = row_data[header_index["单价"]]
+            price = str(row_data[header_index["单价"]]).replace(" ", "")        
             # 获取行中数量列类型单元中的数量名数据
-            quantity = row_data[header_index["数量"]]
+            quantity = str(row_data[header_index["数量"]]).replace(" ","")
             # 获取行中金额列单元中金额数据
-            amount = row_data[header_index["金额"]]
+            amount = str(row_data[header_index["金额"]]).replace(" ","")
             # 获取行中备注列单元中备注数据
             remark = row_data[header_index["备注"]]
             # 获取行中公司列单元中公司名数据
@@ -2350,9 +2355,9 @@ def note_main_table(self, app ,  main_excel_file_path):
         for sheet_name in sheets_to_add:
             
             # 寻找月份和日期都匹配的行数matching_rows
-            matching_rows = find_matching_today_rows(main_excel_file_path, sheet_name=sheet_name)
+            matching_rows = find_matching_today_rows(app,main_excel_file_path, sheet_name=sheet_name)
             print("Notice: 重复行", matching_rows)
-            print(sheet_name)
+
             try:
                 sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
             except:
@@ -2393,7 +2398,7 @@ def note_main_table(self, app ,  main_excel_file_path):
             try:
                 sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
             except:
-                print("Warning:sheet名不存在")
+                print("Warning: sheet名不存在")
                 continue
             total_amount = 0
             for row in matching_rows:
@@ -2522,7 +2527,7 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
                     try:
                         sheet = workbook.sheets[sheet_name]
                     except:
-                        print("sheet名不存在")
+                        print("Warning: sheet名不存在")
                         continue
                 else:
                     print(f"未找到合适的sheet匹配品名 {product_name}")
@@ -2531,12 +2536,12 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
                 print(f"Warning: 未找到品名为 {product_name} 的sheet")
                 return
             #然后开始写入日计/月计
-            matching_rows = find_matching_today_rows(sub_main_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
+            matching_rows = find_matching_today_rows(app,sub_main_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
             print("重复行", matching_rows)
             try:
                 sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
-                print("sheet名不存在")
+                print("Warning: sheet名不存在")
                 continue
             in_quantity = 0
             in_amount = 0
@@ -2596,7 +2601,7 @@ def note_sub_main_table(self, app,model,sub_main_food_excel_file_path):
             try:
                 sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
-                print("sheet名不存在")
+                print("Warning: sheet名不存在")
                 continue
             in_quantity = 0
             in_amount = 0
@@ -2745,12 +2750,12 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
                 print(f"Warning: 未找到品名为 {product_name} 的sheet")
                 return
             #然后开始写入日计/月计
-            matching_rows = find_matching_today_rows(sub_auxiliary_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
+            matching_rows = find_matching_today_rows(app,sub_auxiliary_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
             print("重复行", matching_rows)
             try:
                 sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
-                print("sheet名不存在")
+                print("Warning: sheet名不存在")
                 continue
             in_quantity = 0
             in_amount = 0
@@ -2806,7 +2811,7 @@ def note_sub_auxiliary_table(self,app, model,sub_auxiliary_food_excel_file_path)
             try:
                 sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
-                print("sheet名不存在")
+                print("Warning: sheet名不存在")
                 continue
             in_quantity = 0
             in_amount = 0
@@ -2924,7 +2929,7 @@ def note_welfare_table(self, app,modle,welfare_excel_file_path):
             sheet = workbook.sheets[sheet_name]
             print(f"待匹配{product_name}", f"匹配到{sheet_name}")
             
-            matching_rows = find_matching_today_rows(welfare_excel_file_path, sheet_name=sheet_name, columns=[2, 3])
+            matching_rows = find_matching_today_rows(app,welfare_excel_file_path, sheet_name=sheet_name, columns=[2, 3])
             print("重复行", matching_rows)
             try:
                 sheet = workbook.sheets[sheet]  # 使用指定的工作表名称

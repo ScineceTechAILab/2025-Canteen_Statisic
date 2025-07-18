@@ -84,10 +84,10 @@ PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "man
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
-MAIN_WORK_EXCEL_FOLDER = ".\\src\\data\\storage\\work\\主表\\" # 主工作表格路径
-SUB_WORK_EXCEL_FOLDER = ".\\src\\data\\storage\\work\\子表\\"  # 子工作表格路径
-WELFARE_EXCEL_FOLDER = ".\\src\\data\\storage\\work\\福利表\\" # 福利工作表格路径
-ITEM_EXCEL_FOLDER = ".\\src\\data\\storage\\work\\条目表\\"      # 物品条目表路径
+MAIN_WORK_EXCEL_FOLDER = "src\\data\\storage\\work\\主表\\" # 主工作表格路径
+SUB_WORK_EXCEL_FOLDER = "src\\data\\storage\\work\\子表\\"  # 子工作表格路径
+WELFARE_EXCEL_FOLDER = "src\\data\\storage\\work\\福利表\\" # 福利工作表格路径
+ITEM_EXCEL_FOLDER = "src\\data\\storage\\work\\条目表\\"      # 物品条目表路径
 
 MAIN_WORK_EXCEL_FOLDER = os.path.join(project_root, MAIN_WORK_EXCEL_FOLDER) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 SUB_WORK_EXCEL_FOLDER = os.path.join(project_root, SUB_WORK_EXCEL_FOLDER) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -181,7 +181,7 @@ class Worker(QObject):
 
 
 
-# [ ]BUG：Error:  (-2147352567, 'Exception occurred.', (0, 'Microsoft Excel', 'Office 检测到此文件存 在一个问题。要帮助保护您的计算机，不能打开此文件。', 'xlmain11.chm', 0, -2146827284), None)
+# [x]BUG：Error:  (-2147352567, 'Exception occurred.', (0, 'Microsoft Excel', 'Office 检测到此文件存 在一个问题。要帮助保护您的计算机，不能打开此文件。', 'xlmain11.chm', 0, -2146827284), None)
 
 class Ui_Form(object):
 
@@ -806,9 +806,9 @@ class Ui_Form(object):
             MODE = 0
 
         # 动态获取主表、子表、福利表的相对文件路径
-        MIAN_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/主表"
-        SUB_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/子表"
-        WELFARE_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/福利表"
+        MIAN_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/主表"
+        SUB_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/子表"
+        WELFARE_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/福利表"
         
         # 获取主表、子表主食表、子表副食表、福利表的文件路径
 
@@ -988,14 +988,15 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
+        
         global MODE
         print("Notice:当前模式代码(0:入库/1:出库)", str(MODE))
         
         # 动态获取main目录下主食表、子表主食表、子表副食表、福利表文件夹相对地址
         
-        MIAN_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/主表"
-        SUB_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/子表"
-        WELFARE_EXCEL_STORAGEED_FOLDER = "./src/data/storage/main/福利表"
+        MIAN_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/主表"
+        SUB_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/子表"
+        WELFARE_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/福利表"
         
         # 获取主表、子表主食表、子表副食表、福利表的文件路径
         main_workbook =MAIN_WORK_EXCEL_FOLDER + [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
@@ -1492,6 +1493,9 @@ def work_file_init():
     在进入程序时，自动将最新备份拷贝到 main 目录,并把其从 main 目录拷贝到 work 目录
     """
 
+    # 杀掉未终结的 EXCEL 进程
+    os.system("taskkill /F /IM EXCEL.EXE")
+
     # 动态获取最新备份
     latest_backup_folder = [folder_name for folder_name in os.listdir(".\\src\\data\\storage\\backup") if os.path.isdir(os.path.join(".\\src\\data\\storage\\backup", folder_name))]
     latest_backup_folder.sort(key=lambda x: os.path.getmtime(os.path.join(".\\src\\data\\storage\\backup", x)), reverse=True)
@@ -1543,7 +1547,7 @@ def work_file_init():
 
 
 if __name__ == "__main__":
-    
+
     # 初始化工作文件夹环境
     work_file_init()
     # 创建一个QApplication对象
