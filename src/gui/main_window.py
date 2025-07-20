@@ -1227,7 +1227,6 @@ class Ui_Form(object):
         except Exception as e:
             print(f"Error in export_excel_data: 将主表文件复制到桌面出错,错误信息为: {e}")
             QMessageBox.information(None, "错误", "数据导出到桌面失败", QMessageBox.Ok)
-    
     def back_up_excel_data(self):
         """
         备份 main 目录下的数据到 backup 目录
