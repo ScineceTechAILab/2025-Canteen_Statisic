@@ -89,7 +89,6 @@ def find_matching_month_rows(self,app,year,month,day,main_excel_file_path, sheet
     
     """
     try:
-        # [x]BUG: 此处运行过慢(通过传参复用 app 对象)；此处当前月份获取有误(修改为传参获取)；表头获取逻辑无法识别空格(空字符处理)
 
         current_month = month
 
@@ -116,16 +115,16 @@ def find_matching_month_rows(self,app,year,month,day,main_excel_file_path, sheet
         month_rows = [
             row_index + 1
             for row_index in range(sheet.used_range.rows.count)
-            if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
+            if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(int(current_month)).lstrip("0"))
         ]
         print(f"Notice: B 列中等于本月月数的行数: {month_rows}")
         
-        # [ ]BUG:解决 row_index = 5 时候抛出的 ·unsupported operand type(s) for -: 'str' and 'int'· 问题
+        # [x]BUG:解决 row_index = 5 时候抛出的 ·unsupported operand type(s) for -: 'str' and 'int'· 问题
         # 查找 B 列中等于上月月数的行数
         last_month_rows = [
             row_index + 1
             for row_index in range(sheet.used_range.rows.count)
-            if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month - 1).lstrip("0"))
+            if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(int(current_month) - 1).lstrip("0"))
         ]
         print(f"Notice: B 列中等于上月月数的行数: {last_month_rows}")
         
@@ -193,7 +192,6 @@ def find_matching_today_rows(app,year,month,day,main_excel_file_path, sheet_name
         # 打开工作簿
         workbook = app.books.open(main_excel_file_path)
 
-        # [x]BUG:修复 sheet_name 为食堂副食出库时的报错
         try:
 
             signal = False
@@ -216,7 +214,7 @@ def find_matching_today_rows(app,year,month,day,main_excel_file_path, sheet_name
         day_rows = [
             row_index + 1
             for row_index in range(sheet.used_range.rows.count)
-            if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[1])).value).lstrip("0")))) == str(current_day).lstrip("0"))
+            if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(sheet.range((row_index + 1, columns[1])).value).lstrip("0") == str(int(current_day)).lstrip("0"))
         ]
 
         # 如果返回值为空，则
@@ -226,7 +224,7 @@ def find_matching_today_rows(app,year,month,day,main_excel_file_path, sheet_name
         month_rows = [
             row_index + 1
             for row_index in range(sheet.used_range.rows.count)
-            if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
+            if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(int(current_day)).lstrip("0"))
         ]
         print(f"Notice: B 列中等于本月月数的行数: {month_rows}")
 

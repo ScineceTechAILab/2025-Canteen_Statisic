@@ -5,7 +5,7 @@
 # @File    : excel_handler.py
 # @Software: VsCode
 
-# [x]TODO: 补充价钱、单价、金额获取时没有考虑空格处理的问题
+
 # [ ]TODO：当有一个重要的提交函数失败时，跳过后面所有环节，精简流程
 
 import os
@@ -212,8 +212,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
         - welfare_food_excel_file_path: 福利食品明细账 Excel 文件路径
     :return: None
     """
-    # [x]BUG: 入库-无勾选-单条-鸡蛋测试数据时，发生 'Worksheet 鸡蛋 does not exist.' 
-    # [x]BUG: 入库-无勾选-单条-鸡蛋测试数据时，发生循环卡死（主表异常体积问题）
+
     "根据触发该函数的是手动还是照片输入模式去读取不同的表格"
     with xw.App(visible=False) as app: # 调用xlwings库将 xlsx 文件转换为 xls 格式（无头模式）
         
@@ -469,7 +468,6 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             print(f"Error: 将主表文件复制到 work 目录出错,错误信息为: {e}")            
             # 弹出入库失败通知
 
-        # [x] BUG：修复失败时不弹窗的问题
         self.worker.done.emit("tables_updated_filed")  
 
 
@@ -531,7 +529,7 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
                 # 更新指定公司sheet中的金额数据
                 update_company_sheet(self,main_workbook,product_name ,company_name, amount) # 只在入库的时候用到
                 # 更新入库相关表中的条目信息
-                updata_import_sheet(self,main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name) #TODO:优化耗时
+                updata_import_sheet(self,main_workbook, product_name,single_name, row_data, header_index, month, day, unit_name) 
                 # 更新食品收发库存表中的条目信息
                 update_inventory_sheet(self,main_workbook, product_name, unit_name, quantity, price, amount, remark)
                 # 更新收发存表皮中的条目信息
@@ -661,7 +659,7 @@ def updata_import_sheet(self,main_workbook, product_name,single_name, row_data, 
         None:
     
     """
-    # [x]BUG: 发现在日记模式下食堂副食入库时日期会被锁定在 5 月 26 日的问题
+
     print(f"Notice: 正在查询入库类型名为 {single_name} 的sheet页以更新其数据")
     try:
         # 检查目标Sheet名是否存在
@@ -1081,7 +1079,7 @@ def update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
-    # [x]TODO: temper the logic like func update main_table
+
     try:
 
         # 打开子表主食表
@@ -2337,7 +2335,6 @@ def note_main_table( self , app ,year,month,day ,model, main_excel_file_path):
 
     """
 
-    # BUG:修复开启日记时，主表没有添加日记的问题
     
     print("\nNotice: ", "开始添加主表日计\月计\页计\合计")
 
@@ -2365,7 +2362,6 @@ def note_main_table( self , app ,year,month,day ,model, main_excel_file_path):
         
         print("Notice: ", "开始添加主表日计")
 
-        # [x] BUG:修复 sheet_name 为食堂副食出库时的报错的问题
         for sheet_name in sheets_to_add:
             
             # 寻找月份和日期都匹配的行数matching_rows
@@ -3108,25 +3104,3 @@ def img_excel_after_process(self,img_to_excel_file_path:str = os.path.abspath(".
 # 2. 代码操作Excel打开的表时候会出现权限遭拒错误
 # 3. xlrd&xlwd 和 xlrd&xlutils 两种库的搭配对于 Excel xls的表格操作容易触发兼容性问题
 # 4. 
-# TODO:
-# - [x] 修复数据存储到Excel文件中的报错:ValueError: If using all scalar values, you must pass an index
-# - [X] 实现以相对路径的方式存储表格到指定目录
-# - [x] 2025.4.30 实现追加写入表格的行逻辑
-# - [ ] 2025.5.1 实现数据提交到主表、副表Excel文件的功能
-#   - [x] 修复Error: openpyxl does not support the old .xls file format, please use xlrd to read this file, or convert it to the more recent .xlsx file format.
-#   - [x] 修复NameError: name 'input_data' is not defined
-#   - [x] 实现提交条目数据到主表中
-#      - [x] 将openpyxl替换为xlwd，实现Excel以xls文件保存，减少与原表格的数据格式冲突
-#      - [x] 修复： [Errno 13] Permission denied: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'
-#      - [x] 修复表单访问方法错用的问题
-#      - [x] 修复Error: 'Worksheet' object has no attribute 'cell'
-#      - [x] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
-#      - [x] 实现提交数据条目到主表物品相应的入库类型sheet表中
-#      - [x] 实现提交数据条目到食堂物品收发存表中
-#      - [x] 2025.5.3. 实现提交数据条目到主副食明细账中
-#      - [x] 2025.5.3. 实现提交数据条目到收发表存皮重
-#   - [x] 2025.5.3. 实现提交数据到子表中
-#      - [x] 实现提交数据到主食表入库中
-#      - [x] 实现提交数据到副食表入库中 
-# - [x] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
-# - [x] 2025.5.2 解决store_single_entry_to_temple_excel函数表格不存在时[Errno 2] No such file or directory: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'的问题

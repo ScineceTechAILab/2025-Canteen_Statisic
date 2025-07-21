@@ -45,5 +45,3 @@ df = pd.DataFrame(table)
 df.to_excel(output_path, index=False, header=False)
 print("全部识别文本已分组导出，人工后处理即可")
 
-# TODO:
-# [x] 2025.5.4:修复因为后续条目没有编号造成的错位现象
