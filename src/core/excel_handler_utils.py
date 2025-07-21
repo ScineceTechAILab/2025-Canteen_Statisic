@@ -73,94 +73,143 @@ def convert_number_to_chinese(num):
         result = ''+int_tmp+'圆' 
     return result
 
-def find_matching_month_rows(main_excel_file_path, sheet_name, columns = [2, 3]):
+def find_matching_month_rows(self,app,year,month,day,main_excel_file_path, sheet_name, columns = [2, 3]):
     """
-    :param columns 月和日所在的列数, 主表为2、3列, 子表为1、2列
-    :param main_excel_file_path: 主表路径
-    :param sheet_name: 工作表名称
-    :return: 本月行数的列表
+    查找匹配的行数
+
+    Parameters:
+        self: 类实例
+        app: xlwings 的 App 对象
+        year: 年份
+        month: 月份
+        day: 日
+        main_excel_file_path: 主 Excel 文件路径
+        sheet_name: 工作表名称
+        columns: 列索引列表
+    
     """
     try:
-        # 获取当前月份
-        today = datetime.now()
-        current_month = today.month
+        # [ ]BUG: 此处运行过慢(通过传参复用 app 对象)；此处当前月份获取有误(修改为传参获取)；表头获取逻辑无法识别空格(空字符处理)
 
-        # 打开 Excel 文件
-        with xw.App(visible=False) as app:
-            workbook = app.books.open(main_excel_file_path)
-            try:
-                sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
-            except:
-                print("Warning: sheet名不存在")
+        current_month = month
 
-            # 查找 B 列中等于本月月数的行数
-            month_rows = [
-                row_index + 1
-                for row_index in range(sheet.used_range.rows.count)
-                if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
-            ]
-            # 查找 B 列中等于上月月数的行数
-            last_month_rows = [
-                row_index + 1
-                for row_index in range(sheet.used_range.rows.count)
-                if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month - 1).lstrip("0"))
-            ]
+        workbook = app.books.open(main_excel_file_path)
+        try:
+
+            signal = False
+            for i in workbook.sheets:
+                title = re.sub(r'\s+', '' ,i.name)  # 修正中文标题中的空格i)# Mistake: sheet 对象没有叫做 title 的方法
+                if title == sheet_name:
+                    sheet = workbook.sheets[i]  # 使用指定的工作表名称
+                    signal = True
+                    break
             
-            # 上月处理
-            new_last_month_rows = []
-            for i in last_month_rows:
-                day = int(sheet.range((i, columns[1])).value)
-                if day > 20:
-                    new_last_month_rows.append(i)
-                else:
-                    print(f"去除上月 {i} 行(日)")
-            last_month_rows = new_last_month_rows
+            if not signal:
+                print(f"Error: 表 `{sheet_name}` 不存在")
+                return
 
-            # 本月处理
-            new_month_rows = []
-            for j in month_rows:
-                day = int(sheet.range((j, columns[1])).value)
-                if day <= 20:
-                    new_month_rows.append(j)
-                else:
-                    print(f"去除本月 {j} (行)日")
-            month_rows = new_month_rows
+        except Exception as e:
+            print(f"Error: 在主表中查找 C 列中等于今天日数的行数和 B 列中等于本月月数的行数时出错, 错误信息 {e}")
+            return None
+
+        # 查找 B 列中等于本月月数的行数
+        month_rows = [
+            row_index + 1
+            for row_index in range(sheet.used_range.rows.count)
+            if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
+        ]
+        print(f"Notice: B 列中等于本月月数的行数: {month_rows}")
+        
+        # 查找 B 列中等于上月月数的行数
+        last_month_rows = [
+            row_index + 1
+            for row_index in range(sheet.used_range.rows.count)
+            if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month - 1).lstrip("0"))
+        ]
+        print(f"Notice: B 列中等于上月月数的行数: {last_month_rows}")
+        
+        # 上月处理
+        new_last_month_rows = []
+        for i in last_month_rows:
+            day = int(sheet.range((i, columns[1])).value)
+            if day > 20:
+                new_last_month_rows.append(i)
+            else:
+                print(f"Notice: 去除上月 {i} 行(日)")
+        last_month_rows = new_last_month_rows
+
+        # 本月处理
+        new_month_rows = []
+        for j in month_rows:
+
+            day = int(sheet.range((j, columns[1])).value)
+            if day <= 20:
+                new_month_rows.append(j)
+            else:
+                print(f"Notice: 去除本月 {j} (行)日")
+        month_rows = new_month_rows
 
 
-            #上月末加本月20天为一个月
-            month_rows += last_month_rows
-            # 打印结果
-            print(f"B 列中等于本月月数的行数: {month_rows}")
+        #上月末加本月20天为一个月
+        month_rows += last_month_rows
+        # 打印结果
+        print(f"B 列中等于本月月数的行数: {month_rows}")
 
-            # 关闭工作簿
-            workbook.close()
-            return month_rows
+        # 关闭工作簿
+        workbook.save()
+        return month_rows
 
     except Exception as e:
-        print(f"Error: 查找行数时出错: {e}")
+        print(f"Error: 查找行数时出错,错误信息 {e}")
+        __main__.SAVE_OK_SIGNAL = False
         return []
         
-def find_matching_today_rows(app,main_excel_file_path, sheet_name, columns = [2, 3]):
+def find_matching_today_rows(app,year,month,day,main_excel_file_path, sheet_name, columns = [2, 3]):
+    
     """
     在主表中查找 C 列中等于今天日数的行数和 B 列中等于本月月数的行数，
     并对比两个列表中相同的行数。
-    :param columns 月和日所在的列数, 主表为2、3列, 子表为1、2列
-    :param main_excel_file_path: 主表路径
-    :return: 相同行数的列表
+
+    Parameters:
+      app: xw.App 对象，用于打开 Excel 文件
+      year: int，年
+      month: int，月
+      day: int，日
+      main_excel_file_path: str，主表路径
+      sheet_name: str，工作表名称
+      columns: list，月和日所在的列数, 主表为2、3列, 子表为1、2列
+
+    Returns:
+
+
     """
 
     try:
-        # 获取当前日期和月份
-        today = datetime.now()
-        current_day = today.day
-        current_month = today.month
 
+        current_month = month
+        current_day = day
+        
         # 打开工作簿
         workbook = app.books.open(main_excel_file_path)
+
+        # [x]BUG:修复 sheet_name 为食堂副食出库时的报错
         try:
-            sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
-        except:
-            print("Warning: sheet名不存在")
+
+            signal = False
+            for i in workbook.sheets:
+                title = re.sub(r'\s+', '' ,i.name)  # 修正中文标题中的空格i)# Mistake: sheet 对象没有叫做 title 的方法
+                if title == sheet_name:
+                    sheet = workbook.sheets[i]  # 使用指定的工作表名称
+                    signal = True
+                    break
+            
+            if not signal:
+                print(f"Error: 表 `{sheet_name}` 不存在")
+                return
+
+        except Exception as e:
+            print(f"Error: 在主表中查找 C 列中等于今天日数的行数和 B 列中等于本月月数的行数时出错, 错误信息 {e}")
+            return None
 
         # 查找 C 列中等于今天日数的行数
         day_rows = [
@@ -169,25 +218,27 @@ def find_matching_today_rows(app,main_excel_file_path, sheet_name, columns = [2,
             if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[1])).value).lstrip("0")))) == str(current_day).lstrip("0"))
         ]
 
+        # 如果返回值为空，则
+        print(f"Notice: C 列中等于今天日数的行数: {day_rows}")
+
         # 查找 B 列中等于本月月数的行数
         month_rows = [
             row_index + 1
             for row_index in range(sheet.used_range.rows.count)
             if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(int(float(str(sheet.range((row_index + 1, columns[0])).value).lstrip("0")))) == str(current_month).lstrip("0"))
         ]
+        print(f"Notice: B 列中等于本月月数的行数: {month_rows}")
 
         # 找到两个列表中相同的行数
         matching_rows = list(set(day_rows) & set(month_rows))
+        print(f"Notice:相同的行数: {matching_rows}", day_rows, month_rows)
 
-        # 打印结果
-        print(f"相同的行数: {matching_rows}", day_rows, month_rows)
-
-        # 关闭工作簿
-        workbook.close()
+        # 保存工作簿
+        workbook.save() # Mistake: workbook 错误调用 close 方法导致对象提前退出
         return matching_rows
 
     except Exception as e:
-        print(f"Error: 查找行数时出错: {e}")
+        print(f"Error: 查找行数时出错,错误信息 {e}")
         return None
 
 
@@ -286,31 +337,53 @@ def find_the_first_empty_line_in_sub_auxiliary_excel(sheet):
             break
     return sub_row_index + 1
 
-def get_all_sheets_todo_for_main_table():
+def get_all_sheets_todo_for_main_table(app,model):
+    """
+    Retrieves all sheet names to be processed for the main table from both manual and photo mode Excel files.
+    
+    This function reads sheet names from column J of the first sheet in two Excel files:
+    1. Manual mode file (TEMP_SINGLE_STORAGE_EXCEL_PATH)
+    2. Photo mode file (PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
+    
+    Returns:
+        list: A deduplicated list of non-empty sheet names found in both files.
+        
+    Note:
+        - Empty values are filtered out from the results.
+        - Errors during file reading are caught and printed, but don't stop execution.
+    """
     sheets_to_add = set()
 
-    try:
-        with xw.App(visible=False) as app:
+    ""
+    if model == "manual":
+        try:
             manual_workbook = app.books.open(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
             manual_sheet = manual_workbook.sheets[0]
+            
+            # 动态获取暂存表中每一行条目所要提交到的表中
             values = manual_sheet.range("J2:J" + str(manual_sheet.used_range.rows.count)).value
             if not isinstance(values, list):
                 values = [values]
+            
             sheets_to_add.update(filter(None, values))
-    except Exception as e:
-        print(f"Error: 无法读取手动模式: {e}")
 
-    try:
-        #wjwcj: 2025/05/20 这个在调试时我还疑惑"单名"在图片导入暂存表中的哪列，其实根本就不需要在图片暂存表里面找
-        with xw.App(visible=False) as app:
+        except Exception as e:
+            print(f"Error: 无法读取手动模式: {e}")
+
+    elif model == "photo":
+        try:
+
             photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
             photo_sheet = photo_workbook.sheets[0]
             values = photo_sheet.range("J2:J" + str(photo_sheet.used_range.rows.count)).value
+            
             if not isinstance(values, list):
                 values = [values]
+            
             sheets_to_add.update(filter(None, values))
-    except Exception as e:
-        print(f"Error: 无法读取图片模式: {e}")
+
+        except Exception as e:
+            print(f"Error: 无法读取图片模式: {e}")
 
     return list(sheets_to_add)
 

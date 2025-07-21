@@ -114,7 +114,7 @@ DEBUG_SIGN = True
 DRAG_PHOTO_DIR = []
 TEMP_IMAGE_DIR = os.path.join(".", "src", "data", "input", "img") 
 
-#这个用来测试,wjwcj 0507 12:54, 13:08测试完毕
+
 from PySide6.QtCore import QObject, Signal
 
 
