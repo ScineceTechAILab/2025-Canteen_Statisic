@@ -89,7 +89,7 @@ def find_matching_month_rows(self,app,year,month,day,main_excel_file_path, sheet
     
     """
     try:
-        # [ ]BUG: 此处运行过慢(通过传参复用 app 对象)；此处当前月份获取有误(修改为传参获取)；表头获取逻辑无法识别空格(空字符处理)
+        # [x]BUG: 此处运行过慢(通过传参复用 app 对象)；此处当前月份获取有误(修改为传参获取)；表头获取逻辑无法识别空格(空字符处理)
 
         current_month = month
 
@@ -120,6 +120,7 @@ def find_matching_month_rows(self,app,year,month,day,main_excel_file_path, sheet
         ]
         print(f"Notice: B 列中等于本月月数的行数: {month_rows}")
         
+        # [ ]BUG:解决 row_index = 5 时候抛出的 ·unsupported operand type(s) for -: 'str' and 'int'· 问题
         # 查找 B 列中等于上月月数的行数
         last_month_rows = [
             row_index + 1
