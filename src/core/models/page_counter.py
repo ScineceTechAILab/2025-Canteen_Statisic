@@ -43,7 +43,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, Q
     QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
 
 
-def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
+def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet,sheet_name:str):
     """
     在将条目添加到表之后,为该页面加上页计行(v1.1 逻辑流版本)
     
@@ -60,7 +60,7 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
         
             if work_sheet.name == "食堂物品收发存库存表":
 
-                print(f"Notice: 开始为 {excel_type} {work_sheet.name} 页执行页计功能")
+                print(f"\nNotice: 开始为 `{excel_type}` `{work_sheet.name}` 页执行页计功能")
 
                 "设定一页的行数"
                 sheet_ratio = 25                                    # 主表中 食堂物品收发存库存表 表为25行一页
@@ -68,7 +68,7 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet) 
                 page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 25) = 0 但是是第一页，所以要加1  
-                print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
+                print(f"Notice: 发现 {excel_type} `{work_sheet.name}` 中第 `{page_index}` 页存在空行")
 
                 "统计该页范围内除了 日记、页计等的行"
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
@@ -89,14 +89,14 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
 
             elif work_sheet.name in ["自购主食入库等","食堂副食入库","食堂副食入库 ","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
                 
-                print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(excel_type=excel_type, sheet_name=work_sheet.name))
+                print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
 
                 "设定一页的行数"
                 sheet_ratio = 33                                    # 主表中 其他主食表 皆为 33 行一页
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet)
                 page_index = int(blank_row_index / sheet_ratio) + 1 
-                print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
+                print(f"Notice: 发现 {excel_type} `{work_sheet.name}` 中第 `{page_index}` 页存在空行")
 
                 "统计该页范围内除了 日记、页计等的行"
                 page_item_indexes = get_page_item_indexes(work_sheet,page_index,sheet_ratio)
@@ -123,7 +123,7 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
 
         if  work_sheet.name in [s.name for s in work_book.sheets]:
             
-            print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+            print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
 
             "设定一页的行数"
             sheet_ratio = 32                                    # 福利表中该表为32行一页
@@ -153,7 +153,7 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
     
         if  work_sheet.name in [s.name for s in work_book.sheets]:
 
-            print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+            print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
             
             "设定一页的行数"
             sheet_ratio = 33                                    # 子表主食表中该表为33行一页
@@ -225,8 +225,9 @@ def counting_page_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
     elif excel_type == "子表副食表":
 
         if  work_sheet.name in [s.name for s in work_book.sheets]:
+            
 
-            print("Notice: 开始为 {excel_type} {sheet_name} 页执行页计功能".format(sheet_name=work_sheet.name))
+            print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
             
             "设定一页的行数"
             sheet_ratio = 32                                    # 子表副食表中该表为32行一页

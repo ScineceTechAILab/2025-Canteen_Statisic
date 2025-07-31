@@ -153,7 +153,7 @@ def find_matching_month_rows(self,app,year,month,day,main_excel_file_path, sheet
         #上月末加本月20天为一个月
         month_rows += last_month_rows
         # 打印结果
-        print(f"B 列中等于本月月数的行数: {month_rows}")
+        print(f"Notice: B 列中等于本月月数的行数: {month_rows}")
 
         # 关闭工作簿
         workbook.save()

@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, Q
     QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
 
 
-def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
+def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet,sheet_name:str):
     """
     入库在将条目添加到表并进行日记、月计之后,为该页面加上页计行(v1.1 逻辑流版本)
     
@@ -37,6 +37,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
       excel_type: 正在处理的表的类型,值为"主表"、"福利表"、"子表主食表"、"子表副食表"
       work_book: 要修改的 Excel 传入workbook对象
       work_sheet: 要修改的 Excel 传入worksheet对象
+      sheet_name: 要修改的 Excel 存储的表名
     """
         
     "判断哪个表需要合计"
@@ -46,7 +47,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
 
             if work_sheet.name == "食堂物品收发存库存表":
 
-                print(f"Notice: 开始为 {excel_type} {work_sheet.name} 页执行页计功能")
+                print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
 
                 "设定一页的行数"
                 sheet_ratio = 25                                    # 主表中 食堂物品收发存库存表 表为26行一页
@@ -54,13 +55,13 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet) 
                 page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 25) = 0 但是是第一页，所以要加1  
-                print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
+                print(f"Notice: 发现 {excel_type} `{work_sheet.name}` 中第 `{page_index}` 页存在空行")
 
                 "所有页的页计行是否在所有页的倒数二行"
                 for i in range(1,page_index+1):
                     
-                    # 若每一页倒数第二行为页计行
                     page_line_name = str(work_sheet.range((i * sheet_ratio - 1, 1)).value).replace(" ","")
+                    # 若每一页倒数第二行为页计行
                     if page_line_name == "页计":
                         continue
 
@@ -107,7 +108,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 
             elif work_sheet.name in ["自购主食入库等","食堂副食入库","食堂副食入库 ","厂调面食入库","扶贫主食入库","扶贫副食入库"]:
                 
-                print(f"Notice: 开始为 {excel_type} {work_sheet.name} 页执行页计功能")
+                print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
 
                 "设定一页的行数"
                 sheet_ratio = 33                                    # 主表中 食堂物品收发存库存表 表为33行一页
@@ -115,7 +116,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                 "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
                 blank_row_index = get_first_blank_row_index(work_sheet) 
                 page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 33) = 0 但是是第一页，所以要加1  
-                print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
+                print(f"Notice: 发现 {excel_type} `{work_sheet.name}` 中第 `{page_index}` 页存在空行")
 
                 "所有页的页计行是否在所有页的倒数二行"
                 for i in range(1,page_index+1):
@@ -178,7 +179,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
                     
         if work_sheet.name == "过年福利入":
 
-            print(f"Notice: 开始为 {excel_type} {work_sheet.name} 页执行页计功能")
+            print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
 
             "设定一页的行数"
             sheet_ratio = 32                                   
@@ -186,7 +187,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
             "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
             blank_row_index = get_first_blank_row_index(work_sheet) 
             page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 32) = 0 但是是第一页，所以要加1  
-            print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
+            print(f"Notice: 发现 {excel_type} `{work_sheet.name}` 中第 `{page_index}` 页存在空行")
 
             "所有页的页计行是否在所有页的倒数二行"
             for i in range(1,page_index+1):
@@ -246,7 +247,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
     
         if work_sheet.name in [s.name for s in work_book.sheets]:
 
-            print(f"Notice: 开始为 {excel_type} {work_sheet.name} 页执行页计功能")
+            print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
 
             "设定一页的行数"
             sheet_ratio = 33                                    
@@ -254,7 +255,7 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
             "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
             blank_row_index = get_first_blank_row_index(work_sheet) 
             page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 32) = 0 但是是第一页，所以要加1  
-            print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
+            print(f"Notice: 发现 {excel_type} `{work_sheet.name}` 中第 `{page_index}` 页存在空行")
 
             "所有页的页计行是否在所有页的倒数二行"
             for i in range(1,page_index+1):
@@ -313,24 +314,25 @@ def counting_total_value(excel_type:str,work_book:xw.Book,work_sheet:xw.Sheet):
 
         if work_sheet.name in [s.name for s in work_book.sheets]:
 
-            print(f"Notice: 开始为 {excel_type} {work_sheet.name} 页执行页计功能")
+            print(f"\nNotice: 开始为 `{excel_type}` `{sheet_name}` 页执行页计功能")
 
             "设定一页的行数"
-            sheet_ratio = 33                                    
+            sheet_ratio = 32 # 子表副食表皆为 32 行一页，类型在第 4 列                                
 
             "跳过已经写好了的表页，定位存有空行的一行，计算出其所在的页码"
             blank_row_index = get_first_blank_row_index(work_sheet) 
             page_index = int(blank_row_index / sheet_ratio) + 1 # int(13 / 32) = 0 但是是第一页，所以要加1  
-            print(f"Notice: 发现 {excel_type} {work_sheet.name} 中第 {page_index} 页存在空行")
+            print(f"Notice: 发现 {excel_type} `{work_sheet.name}` 中第 `{page_index}` 页存在空行")
 
             "所有页的页计行是否在所有页的倒数二行"
             for i in range(1,page_index+1):
                 
                 # 若每一页倒数第二行为页计行
-                page_line_name = str(work_sheet.range((i * sheet_ratio - 1, 1)).value).replace(" ","")
+                page_line_name = str(work_sheet.range((i * sheet_ratio - 1, 4)).value).replace(" ","")
                 if page_line_name == "页计":
                     continue
 
+                # [ ] TODO:按照平板上的甲方 EXCEL 要求重构甲方的 EXCEL ，解决每一页行数不统一；存在无意义行（过次页...）等问题 
                 # 若每一页倒数第二行为空行
                 elif page_line_name == "" or page_line_name == "None":
                     print(f"Error: 发现 {excel_type} {work_sheet.name} 中第 {i} 页倒数第二行是空行,终止本次提交")

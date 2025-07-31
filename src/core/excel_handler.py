@@ -1166,7 +1166,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                     sheet_names = [s.name for s in main_workbook.sheets]
                     # 筛选包含product_name的sheet名字
                     matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-                    print(matching_sheets)
+                     
                     # 取大于product_name长度且长度最小的sheet_name
                     if matching_sheets:
                         sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
@@ -1296,7 +1296,7 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                 sheet_names = [s.name for s in main_workbook.sheets]
                 # 筛选包含product_name的sheet名字
                 matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-                print(matching_sheets)
+                 
                 # 取大于product_name长度且长度最小的sheet_name
                 if matching_sheets:
                     sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
@@ -1430,7 +1430,7 @@ def update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, r
                     sheet_names = [s.name for s in main_workbook.sheets]
                     # 筛选包含product_name的sheet名字
                     matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-                    print(matching_sheets)
+                     
                     # 取大于product_name长度且长度最小的sheet_name
                     if matching_sheets:
                         sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
@@ -1554,7 +1554,7 @@ def update_sub_auxiliary_food_sheet(main_workbook, read_temp_storage_workbook, r
                 sheet_names = [s.name for s in main_workbook.sheets]
                 # 筛选包含product_name的sheet名字
                 matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-                print(matching_sheets)
+                 
                 # 取大于product_name长度且长度最小的sheet_name
                 if matching_sheets:
                     sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
@@ -2316,12 +2316,14 @@ def add_counter(self, app,year,month,day, model,main_excel_file_path, sub_main_f
         else:
             #添加福利表
             note_welfare_table(self, app,year,month,day,model ,welfare_excel_file_path)
-
+    
+    
     except Exception as e:
         __main__.SAVE_OK_SIGNAL = False 
-        print(f"Error:在主表和子表中添加日计、月计、页计、累计,出错信息 {e}")
+        print(f"Error: 在主表和子表中添加日计、月计、页计、累计,出错信息 {e}")
 
 def note_main_table( self , app ,year,month,day ,model, main_excel_file_path):
+    
     """
     在主表中添加日计、月计、页计、合计
 
@@ -2335,7 +2337,6 @@ def note_main_table( self , app ,year,month,day ,model, main_excel_file_path):
 
     """
 
-    
     print("\nNotice: ", "开始添加主表日计\月计\页计\合计")
 
     workbook = None
@@ -2447,12 +2448,12 @@ def note_main_table( self , app ,year,month,day ,model, main_excel_file_path):
                 
             try:
                 work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
-                counting_page_value("主表",workbook,work_sheet)
+                counting_page_value("主表",workbook,work_sheet,sheet_name)
             
             except Exception as e:  
                 print(f"Error:为主表 {sheet_name} sheet 添加页计时报错，错误信息: {e}")
                 __main__.SAVE_OK_SIGNAL = False 
-                continue
+                return
            
         print("Notice: ", "主表页计全部添加完成")
 
@@ -2473,7 +2474,7 @@ def note_main_table( self , app ,year,month,day ,model, main_excel_file_path):
                         break
                 
                 work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
-                counting_total_value("主表",workbook,work_sheet)
+                counting_total_value("主表",workbook,work_sheet,sheet_name)
             
             print("Notice: ", "主表合计全部添加完成")
 
@@ -2481,8 +2482,6 @@ def note_main_table( self , app ,year,month,day ,model, main_excel_file_path):
             print(f"Error: 为主表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
             __main__.SAVE_OK_SIGNAL = False 
 
-    
-    
     workbook.save()  # 保存工作簿
     workbook.close()  # 关闭工作簿
     print("Notice: ", "主表文件保存完成")
@@ -2538,7 +2537,7 @@ def note_sub_main_table(self, app, year,month,day,model,sub_main_food_excel_file
             sheet_names = [s.name for s in workbook.sheets]
             # 筛选包含product_name的sheet名字
             matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-            print(matching_sheets)
+             
             # 取大于product_name长度且长度最小的sheet_name
             if matching_sheets:
                 sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
@@ -2704,7 +2703,7 @@ def note_sub_main_table(self, app, year,month,day,model,sub_main_food_excel_file
                     continue
 
                 work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
-                counting_total_value("子表主食表",workbook,work_sheet)
+                counting_total_value("子表主食表",workbook,work_sheet,sheet_name)
                 
             print("Notice: ", "子表主食表合计全部添加完成")
         
@@ -2754,17 +2753,15 @@ def note_sub_auxiliary_table(self,app,year,month,day, model,sub_auxiliary_food_e
         if wb.name == excel_name:
             workbook = wb
             break
-
+    
+    
     if __main__.ADD_DAY_SUMMARY:
         for product_name in sheets_to_add:
             #这里查找正确的sheet名
             sheet_name = ""
-
-            
             sheet_names = [s.name for s in workbook.sheets]
             # 筛选包含product_name的sheet名字
             matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-            print(matching_sheets)
             # 取大于product_name长度且长度最小的sheet_name
             if matching_sheets:
                 sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
@@ -2776,6 +2773,7 @@ def note_sub_auxiliary_table(self,app,year,month,day, model,sub_auxiliary_food_e
             else:
                 print(f"Warning: 未找到品名为 {product_name} 的sheet")
                 return
+            
             #然后开始写入日计/月计
             matching_rows = find_matching_today_rows(app,year,month,day,sub_auxiliary_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
             print("重复行", matching_rows)
@@ -2807,10 +2805,10 @@ def note_sub_auxiliary_table(self,app,year,month,day, model,sub_auxiliary_food_e
                 sheet.range((row_index, 10)).value = sheet.range((row_index - 1, 10)).value
                 sheet.range((row_index, 11)).value = sheet.range((row_index - 1, 11)).value
       
-                print("Notice: ", f"子表副食表sheet {sheet_name} 日计添加完成")
+                print(f"Notice: 子表副食表sheet {sheet_name} 日计添加完成")
             except Exception as e:
                 print(f"Error: 无法写入日计数据到子表副食表sheet {sheet_name}, 错误信息: {e}")
-            print("NOtice: ", "子表副食表日计全部添加完成")
+            print("Notice: 子表副食表日计全部添加完成")
 
     if __main__.ADD_MONTH_SUMMARY:
         for product_name in sheets_to_add:
@@ -2820,7 +2818,7 @@ def note_sub_auxiliary_table(self,app,year,month,day, model,sub_auxiliary_food_e
             sheet_names = [s.name for s in workbook.sheets]
             # 筛选包含product_name的sheet名字
             matching_sheets = [name for name in sheet_names if product_name in re.sub(r'\d+', '', name)]
-            print(matching_sheets)
+             
             # 取大于product_name长度且长度最小的sheet_name
             if matching_sheets:
                 sheet_name = min((name for name in matching_sheets if len(re.sub(r'\d+', '', name)) >= len(product_name)), key=len, default=None)
@@ -2834,7 +2832,7 @@ def note_sub_auxiliary_table(self,app,year,month,day, model,sub_auxiliary_food_e
                 return
             #然后开始写入月计
             matching_rows = find_matching_month_rows(self,app,year,month,day,sub_auxiliary_food_excel_file_path, sheet_name=sheet_name, columns=[1, 2])
-            print("重复行", matching_rows)
+            print(f"Notice: 重复行 {matching_rows}")
             try:
                 sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
             except:
@@ -2866,20 +2864,21 @@ def note_sub_auxiliary_table(self,app,year,month,day, model,sub_auxiliary_food_e
             except Exception as e:
                 print(f"Error: 无法写入月计数据到子副食表sheet {sheet_name}, 错误信息: {e}")
         print("NOtice: ", "子副食表月计全部添加完成")
-        
-        "添加页计"
-        if __main__.ADD_PAGE_SUMMARY:
-        
-            for sheet_name in sheets_to_add:
-                workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-                counting_page_value("子表副食表",workbook,sheet,sheet_name)
+    
+    
+    "添加页计"
+    if __main__.ADD_PAGE_SUMMARY:
+    
+        for sheet_name in sheets_to_add:
+            workbook = app.books.open(sub_auxiliary_food_excel_file_path)
+            counting_page_value("子表副食表",workbook,sheet,sheet_name)
 
-            print("Notice: ", "子表副食表页计全部添加完成")   
+        print("Notice: ", "子表副食表页计全部添加完成")
 
     "添加合计"
     if __main__.ADD_TOTAL_SUMMARY:
         
-        print("Notice: ", "开始添加子表副食表合计")
+        print("\nNotice: 开始添加子表副食表合计")
 
         try:
             for sheet_name in sheets_to_add:
@@ -2897,16 +2896,17 @@ def note_sub_auxiliary_table(self,app,year,month,day, model,sub_auxiliary_food_e
                         break
                 
                 if exist_sign == False:
-                    print(f"Warning: 未找到子表副食表中名为 {sheet_name} 的表,可能不存在,已跳过")
-                    continue
+                    print(f"Error: 未找到子表副食表中名为 `{sheet_name}` 的表,可能不存在,已跳过")
+                    __main__.SAVE_OK_SIGNAL = False
+                    return
 
                 work_sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
-                counting_total_value("子表副食表",workbook,work_sheet)
+                counting_total_value("子表副食表",workbook,work_sheet,sheet_name)
                 
             print("Notice: ", "子表副食表合计全部添加完成")
         
         except Exception as e:  
-            print(f"Error:为 子表副食表 {sheet_name} 添加合计时报错，错误信息: {e}")
+            print(f"Error:为 子表副食表 `{sheet_name}` 添加合计时报错，错误信息: {e}")
             __main__.SAVE_OK_SIGNAL = False
 
     workbook.save()  # 保存工作簿
@@ -3044,7 +3044,7 @@ def note_welfare_table(self, app,year,month,day,modle,welfare_excel_file_path):
             print(f"待匹配{product_name}", f"匹配到{sheet_name}")
             try:
                 work_sheet = workbook.sheets[sheet]  # 使用指定的工作表名称
-                counting_total_value("福利表",workbook,work_sheet)
+                counting_total_value("福利表",workbook,work_sheet,sheet_name)
             except Exception as e:  
                 print(f"Error:为福利表 {sheet_name} sheet 添加合计时报错，错误信息: {e}")
                 __main__.SAVE_OK_SIGNAL = False 
