@@ -16,23 +16,16 @@ import shutil
 import multiprocessing
 import subprocess
 import time
-import xlwings as xw
 import PySide6
 
-from PySide6.QtWidgets import QMessageBox
-
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt, QEvent)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform, Qt)
-from PySide6.QtWidgets import (QAbstractScrollArea,QApplication, QButtonGroup, QFormLayout, QGridLayout,
+from PySide6.QtCore import (QCoreApplication,QMetaObject, QObject,  QRect,
+    QSize, QTime, Qt, QEvent,QObject, Signal)
+from PySide6.QtGui import (QPixmap,  Qt,QCursor)
+from PySide6.QtWidgets import (QMessageBox,QAbstractScrollArea,QApplication, QButtonGroup, QFormLayout, QGridLayout,
     QGroupBox, QHBoxLayout, QLabel, QLayout,
-    QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
+    QLineEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
-    QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
+    QWidget, QFileDialog, QVBoxLayout, QCheckBox)
 
 # 设置Qt插件路径以确保PySide6正常运行，避免打包到客户平台发生 qt.qpa.plugin: could not find the Qt Platform Plugin "windows" 的报错
 dirname = os.path.dirname(PySide6.__file__)                  # 获取当前文件所在目录
@@ -45,6 +38,7 @@ current_file_path = os.path.abspath(__file__) # Fixed1:将项目包以绝对形�
 project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 # 将项目根目录添加到 sys.path
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+
 
 from src.gui.utils.detail_ui_button_utils import (
     commit_data_to_excel,
@@ -65,9 +59,9 @@ from configparser import ConfigParser
 from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel, clear_temp_image_dir # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
-
 from config.config import FIRST_START
 from src.gui.utils.first_start_detect import first_start_detect
+
 
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
@@ -115,7 +109,7 @@ DRAG_PHOTO_DIR = []
 TEMP_IMAGE_DIR = os.path.join(".", "src", "data", "input", "img") 
 
 
-from PySide6.QtCore import QObject, Signal
+
 
 
 class Worker(QObject):

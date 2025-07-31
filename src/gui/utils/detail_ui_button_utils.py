@@ -568,22 +568,3 @@ def modify_data_in_image_excel(self):
 # 5. 
 # 6. 
 # 7. 明确一个类你是想调用还是想实例化，调用就是直接使用类名加括号，实例化就是以创建一个对象。
-
-# TODO：
-# - [x] 2025.4.46 实现报错弹窗功能 
-#   - [x] 修复报错弹框的闪现问题
-# - [x] 2025.4.27 实现调用check_window.py以展示表格操作弹窗
-#   - [x] 修复 RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
-#   - [x] 修复 Excel 展示弹窗，仅弹窗但是不显示内容的问题——原因见main_window.py的Learning3
-# - [x] 2025.4.29 实现暂存重置输入框功能
-# - [x] 2025.4.30 实当前编辑条目的更新、实现暂存条目数量的更新
-#   - [x] 修复保存条目数量更新时，一直重复更新第一个的问题
-# - [x] 2025.4.30 实现暂存条目回滚功能
-#   - [x] 修复条目回滚箭头引起的条目索引变动与实际存储条目造成的索引变动皆触发索引窗口更新的问题
-#     - [x] 修复Error: local variable 'exsit_tag_number' referenced before assignment
-#     - [x] 修复点击箭头界面无索引更新现象的问题
-#   - [x] 2025.5.1 修复滚动索引列表值不能跳到暂存列表数+1以至无法开始输入下一个条目的问题
-#   - [x] 2025.5.1 修复Error: IndexOutOfRange() takes no arguments的问题
-# - [ ] 2025.4.30 实现自动提交逻辑
-#  - [x] 2025.5.1 实现公司表单金额自动增加
-#  - [ ] 2025.5.2 实现入库类型的条目登记自动增加

@@ -5,6 +5,8 @@ src/data/input/manual/temp_manual_input_data.xls
 .vscode/settings.json
 .venv
 *.pyc
+src/gui/build
+src/gui/dist
 
 .venv/Lib/site-packages/cython.py
 .venv/Lib/site-packages/decorator.py
