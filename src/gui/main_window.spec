@@ -1,19 +1,25 @@
 # -*- mode: python ; coding: utf-8 -*-
-import sys
-sys.setrecursionlimit(10000)  # 必须放在 Analysis 前
 
 a = Analysis(
     ['main_window.py'],
-    pathex=[],
-    binaries=[],
-    datas=[],
-    hiddenimports=[],
+    pathex=['..'],
+    binaries=[
+    ],
+    datas=[('../.paddleocr','paddleocr'),
+        ('../.paddleocr', 'paddleocr'),
+],
+    hiddenimports=[
+        '...src'
+
+    ],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=[
+
+    ],
     excludes=[
         'matplotlib',
-        'torch.utils.tensorboard'
+        'torch'
 
     ],
     noarchive=False,
@@ -25,7 +31,7 @@ exe = EXE(
     pyz,
     a.scripts,
     [],
-    exclude_binaries=True,
+    exclude_binaries=False,
     name='main_window',
     debug=False,
     bootloader_ignore_signals=False,

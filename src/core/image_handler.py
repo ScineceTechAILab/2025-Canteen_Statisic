@@ -1,10 +1,7 @@
 import os
 import threading
-import cv2
 import pandas as pd
-from paddleocr import PaddleOCR
-import numpy as np
-from paddleocr import PaddleOCR, PPStructure
+from paddleocr import PPStructure
 
 def image_to_excel(
     image_path: str,
