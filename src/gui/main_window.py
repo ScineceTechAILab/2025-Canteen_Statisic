@@ -951,7 +951,7 @@ class Ui_Form(object):
                 # img_excel_after_process(self)
                 #修正识别结果数据
                 modify_data_in_image_excel(self)
-                self.worker.done.emit("image_finished","None")  # 比如写完数据后调用
+                self.worker.done.emit("image_finished")  # 比如写完数据后调用
 
         threading.Thread(target=run_in_background, daemon=True).start()
 

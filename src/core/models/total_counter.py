@@ -3,16 +3,7 @@
 
 
 import __main__
-import datetime
-import sys
-import os
-import threading
-import shutil
-import multiprocessing
-import subprocess
-import time
 import xlwings as xw
-import PySide6
 from PySide6.QtWidgets import QMessageBox
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,

@@ -1,24 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-a = Analysis(
-    ['main_window.py'],
-    pathex=['..'],
-    binaries=[
-    ],
-    datas=[('../.paddleocr','paddleocr'),
-        ('../../vendor/torch','torch'),
-        
-],
-    hiddenimports=[
 
-    ],
+a = Analysis(
+    ['scipy_package.py'],
+    pathex=[],
+    binaries=[],
+    datas=[],
+    hiddenimports=['jinjia2'],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[
-
-    ],
-    excludes=[
-    ],
+    runtime_hooks=[],
+    excludes=[],
     noarchive=False,
     optimize=0,
 )
@@ -28,8 +20,8 @@ exe = EXE(
     pyz,
     a.scripts,
     [],
-    exclude_binaries=False,
-    name='main_window',
+    exclude_binaries=True,
+    name='scipy_package',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -48,5 +40,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='main_window',
+    name='scipy_package',
 )

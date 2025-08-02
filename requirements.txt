@@ -2,17 +2,19 @@
 
 # 第三方库
 pyinstaller==6.14.2
-setuptools==65.5.0
+setuptools==80.9.0
 pyinstaller-hooks-contrib==2025.6
-packaging==23.2
+packaging==25.0
 
 PySide6==6.9.1
 
 pandas==2.3.1
-numpy==1.26.2
-torch==2.2.0        -f https://download.pytorch.org/whl/torch_stable.html # CPU 版本
-torchvision==0.17.0 -f https://download.pytorch.org/whl/torch_stable.html # CPU 版本
-torchaudio==2.2.0   -f https://download.pytorch.org/whl/torch_stable.html # CPU 版本
+numpy==2.3.2
+torch==2.7.1    
+torchaudio==2.7.1       
+torchvision==0.22.1 
+sympy==1.13.3
+scipy==1.11.4
 paddlepaddle==2.6.0 # CPU 版本
 paddleocr==2.7.0    # CPU 版本
 
@@ -22,21 +24,22 @@ xlutils==2.0.0
 xlwings==0.33.15
 openpyxl==3.1.5
 
-matplotlib==3.10.3
-scipy==1.15.3
+matplotlib==3.8.0
+jinjia2==3.1.2
 
 expecttest==0.3.0
 tensorboard==2.2.0
 hypothesis==6.136.4
 onnxscript==0.3.2
 scikit-learn==1.7.1 
-protobuf==3.20.2
+protobuf==6.31.1
 
-opencv-python==4.6.0.66 
-opencv-contrib-python==4.6.0.66
+opencv-python==4.12.0.88 
+opencv-contrib-python==4.12.0.88 
 
 Levenshtein==0.27.1
 
 dis==1.0.0
+
 
 
