@@ -4,12 +4,12 @@ src/core/__pycache__/excel_handler.cpython-310.pyc
 src/data/input/manual/temp_manual_input_data.xls
 .vscode/settings.json
 .venv
-*.pyc
+
 src/gui/build
 src/gui/dist
 src/test/build
 src/test/dist
-
+src/core/__pycache__/*.pyc
 .venv/Lib/site-packages/cython.py
 .venv/Lib/site-packages/decorator.py
 .venv/Lib/site-packages/distutils-precedence.pth

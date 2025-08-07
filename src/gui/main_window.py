@@ -1487,10 +1487,16 @@ def work_file_init():
     os.system("taskkill /F /IM EXCEL.EXE")
 
     # 动态获取最新备份
+    if not os.path.exists(".\\src\\data\\storage\\backup"):
+        os.makedirs(".\\src\\data\\storage\\backup")
+        print("Notice: backup 目录不存在，已创建该目录")
+        return
+    
     latest_backup_folder = [folder_name for folder_name in os.listdir(".\\src\\data\\storage\\backup") if os.path.isdir(os.path.join(".\\src\\data\\storage\\backup", folder_name))]
     latest_backup_folder.sort(key=lambda x: os.path.getmtime(os.path.join(".\\src\\data\\storage\\backup", x)), reverse=True)
     latest_backup_folder = latest_backup_folder[0]
     latest_backup_folder = ".\\src\\data\\storage\\backup\\" + latest_backup_folder
+    
     print(f"Notice:最新备份为: {latest_backup_folder}")
     
     "将刚导进来的最新备份拷贝到 main 目录的主表、子表目录下"

@@ -70,7 +70,7 @@ def store_single_entry_to_temple_excel(self,data, file_path):
     :return: None
     """
     print("Notice: 将单条目的数据追加存储到临时excel表格中的路径是", file_path)
-
+    
     if not isinstance(data, dict):
         raise ValueError("数据必须是字典类型")
     
