@@ -19,8 +19,7 @@ import time
 import PySide6
 
 
-from PySide6.QtCore import (QCoreApplication,QMetaObject, QObject,  QRect,
-    QSize, QTime, Qt, QEvent,QObject, Signal)
+from PySide6.QtCore import (QCoreApplication,QMetaObject, QObject,  QRect,QSize, QTime, Qt, QEvent,QObject, Signal)
 from PySide6.QtGui import (QPixmap,  Qt,QCursor)
 from PySide6.QtWidgets import (QMessageBox,QAbstractScrollArea,QApplication, QButtonGroup, QFormLayout, QGridLayout,
     QGroupBox, QHBoxLayout, QLabel, QLayout,
@@ -108,12 +107,13 @@ DEBUG_SIGN = True
 #拖进来的图片目录
 DRAG_PHOTO_DIR = []
 TEMP_IMAGE_DIR = os.path.join(".", "src", "data", "input", "img") 
-
+OCR_MODEL_DIR = os.path.join(".","src", ".paddleocr")
 
 
 
 
 class Worker(QObject):
+
     """
     用于解决存表结束弹窗卡死的问题下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
     此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
@@ -497,7 +497,7 @@ class Ui_Form(object):
         self.pushButton_4 = QPushButton(self.groupBox_4)                        # 创建按钮，设置其父组件为grounpBox_4
         self.pushButton_4.setObjectName(u"pushButton_4")                        # 设置该按钮的ObjectName
         self.pushButton_4.setGeometry(QRect(210, 70, 75, 24))                   # 设置按钮位置
-        self.pushButton_4.clicked.connect(self.temp_store_photo_inputs)         # 绑定槽函数
+        self.pushButton_4.clicked.connect(self.temp_store_photo_inputs)         # Mistake: connect 对象若为需传参函数，需要加入 lambda 关键字
                 
         # 输入检查按钮      
         self.pushButton_8 = QPushButton(self.groupBox_4)                        # 创建按钮，设置其父组件为grounpBox_4
@@ -930,32 +930,52 @@ class Ui_Form(object):
                 layout.addWidget(btn)
             layout.addStretch(1)  # 保证紧凑排列
             
-
+    
     def temp_store_photo_inputs(self):
         """
         将图片导入到临时存储区
-        :param: self
+        
+        Parameters:
+            self: 对象实例
+        
         :return: None
         """
         if self.pushButton_4.text() == "正在扫描":
             return
         self.pushButton_4.setText("正在扫描")
 
-        if hasattr(self, "copied_paths") and self.copied_paths:
-            def run_in_background():
-                pool = multiprocessing.Pool(processes=min(1, len(self.copied_paths)))
-                for path in self.copied_paths:
-                    pool.apply_async(image_to_excel, args=(path,))
-                pool.close()
-                pool.join()
-                # img_excel_after_process(self)
-                #修正识别结果数据
-                modify_data_in_image_excel(self)
-                self.worker.done.emit("image_finished")  # 比如写完数据后调用
+        try:
 
-        threading.Thread(target=run_in_background, daemon=True).start()
+            if hasattr(self, "copied_paths") and self.copied_paths:
 
+                # [x]BUG: 程序运行到此处会直接跳过函数，没有执行到pool.apply_async
+                def run_in_background():
+                    
+                    try:
+                    
+                        pool = multiprocessing.Pool(processes=min(1, len(self.copied_paths)))
+                        for path in self.copied_paths:
+                            pool.apply_async(image_to_excel, args=(path,), kwds={'ocr_model_path': OCR_MODEL_DIR})
+                        
+                        pool.close()
+                        pool.join()
+                        # img_excel_after_process(self)
+                        #修正识别结果数据
+                        #modify_data_in_image_excel(self)
+                        self.worker.done.emit("image_finished")  
+                    
+                    except Exception as e:
+                        print(f"Error: 多进程执行失败，错误信息: {e}")
+                
+                threading.Thread(target=run_in_background, daemon=True).start()
             
+            
+        
+        except Exception as e:
+            print(f"Error: 转录图片至表格失败，错误信息: {e}")
+
+
+
     def check_photo_input_data(self): 
         """
         自动打开照片OCR转录后的数据所在文件夹，并弹窗提示用户手动打开表格检查数据
@@ -1488,13 +1508,20 @@ def work_file_init():
 
     # 动态获取最新备份
     if not os.path.exists(".\\src\\data\\storage\\backup"):
-        os.makedirs(".\\src\\data\\storage\\backup")
-        print("Notice: backup 目录不存在，已创建该目录")
+        print("Notice: backup 目录不存在,请先进行备份操作")
         return
     
     latest_backup_folder = [folder_name for folder_name in os.listdir(".\\src\\data\\storage\\backup") if os.path.isdir(os.path.join(".\\src\\data\\storage\\backup", folder_name))]
     latest_backup_folder.sort(key=lambda x: os.path.getmtime(os.path.join(".\\src\\data\\storage\\backup", x)), reverse=True)
-    latest_backup_folder = latest_backup_folder[0]
+    
+    # 如果没有备份，则返回
+    if not latest_backup_folder:  
+        print("Warning: 没有备份")
+        return
+    
+    else:
+        latest_backup_folder = latest_backup_folder[0]
+    
     latest_backup_folder = ".\\src\\data\\storage\\backup\\" + latest_backup_folder
     
     print(f"Notice:最新备份为: {latest_backup_folder}")
@@ -1569,21 +1596,5 @@ if __name__ == "__main__":
     
     sys.exit(app.exec())
 
-# Summerize:
-# 1. 创建Widget时候的对于该widget的属性设置,包括名称,大小,布局，槽函数等放在一块
-# 2. 代码中的GUI组件代码尽可能取分组，且要放置批注以便后续定位代码-GUI组件的匹配
 
-
-# Learning:
-# 1. 相对导入的情况一共分为四种,只有导入同级别目录和导入子包这两种情况以主脚本模式运行没有问题
-#    但相对导入父包这情况就会遇上问题,所以为此我手动改成了绝对导入模式,此Bug知识点见doc/learning/python 8.4 节
-# 2. 实现点击按钮响应事件的步骤主要有三个：1.创建按钮 2.写槽函数 3. 将按钮信号与槽函数绑定
-#    这个逻辑是基于事件驱动的哲学
-# 3. 对于函数内部来讲，如果产生形参名与实参名撞名的情况，则在函数内访问该变量，实际上实在访问
-#    传入的形参名，如果形参未传入则返回的是布尔值 False
-# 4. Qtcreator 生成的ui代码块默认张这样的格式：
-# 5. 
-# 6. 
-# 7. 
-# 8.
 

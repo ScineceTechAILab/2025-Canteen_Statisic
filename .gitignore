@@ -4,7 +4,8 @@ src/core/__pycache__/excel_handler.cpython-310.pyc
 src/data/input/manual/temp_manual_input_data.xls
 .vscode/settings.json
 .venv
-
+src/gui/__pycache__/*.pyc
+src/gui/utils/__pycache__/*.pyc
 src/gui/build
 src/gui/dist
 src/test/build
@@ -20569,3 +20570,12 @@ src/core/__pycache__/__init__.cpython-310.pyc
 src/__pycache__/__init__.cpython-310.pyc
 src/core/__pycache__/__init__.cpython-310.pyc
 src/data/input/manual/temp_img_input.xlsx
+src/gui/utils/detail_ui_button_utils.py
+src/core/__pycache__/excel_handler_utils.cpython-310.pyc
+src/__pycache__/__init__.cpython-310.pyc
+src/gui/__pycache__/__init__.cpython-310.pyc
+src/gui/__pycache__/check_window.cpython-310.pyc
+src/gui/__pycache__/data_save_dialog.cpython-310.pyc
+src/gui/__pycache__/error_window.cpython-310.pyc
+src/gui/__pycache__/main_window.cpython-310.pyc
+src/gui/__pycache__/photo_preview_dialog.cpython-310.pyc
