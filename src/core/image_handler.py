@@ -1,13 +1,18 @@
 import os
 import threading
+  
+import Levenshtein
+import xlrd
 import pandas as pd
-from paddleocr import PPStructure
-import paddleocr
 
+from openpyxl import load_workbook
+import paddleocr
+from paddleocr import PPStructure
 def image_to_excel(
     image_path: str,
     save_folder: str = "./src/data/input/manual",
-    ocr_model_path: str = None  
+    ocr_model_path: str = None
+    
 ):
     """
     使用PaddleOCR和PPStructure识别图片中的表格并导出为Excel文件（支持追加写入）。
@@ -16,27 +21,28 @@ def image_to_excel(
     :param save_folder: Excel文件保存目录
     :param ocr_model_path: OCR模型路径
     """
-    
+    print(f"Notice: 线程 {threading.current_thread().name}(ID={threading.get_ident()})开始处理 {image_path} 的表格识别。")
     os.makedirs(save_folder, exist_ok=True)
-    file_stem = os.path.splitext(os.path.basename(image_path))[0]
     excel_path = os.path.join(save_folder, f"temp_img_input.xlsx")
 
     # 初始化表格结构识别引擎
     try:
         # 保存原始BASE_DIR值
         original_base_dir = None
-        if ocr_model_path:
+        
+        # 如果提供了OCR模型路径，则设置PaddleOCR的BASE_DIR
+        if ocr_model_path:    
             original_base_dir = paddleocr.BASE_DIR
             paddleocr.BASE_DIR = os.path.abspath(ocr_model_path)
             
-        table_engine = PPStructure()
-        
         # 恢复原始BASE_DIR值
         if original_base_dir:
             paddleocr.BASE_DIR = original_base_dir
-            
+        
+        table_engine = PPStructure()
+        
     except Exception as e:
-        print(f"Error: 线程 {threading.current_thread().name}（ID={threading.get_ident()}）无法初始化表格结构识别引擎。请检查模型路径是否正确。")
+        print(f"Error: 线程 {threading.current_thread().name}（ID={threading.get_ident()}）无法初始化表格结构识别引擎,错误信息: {e}")
         return
 
     # 进行表格结构识别
@@ -68,4 +74,45 @@ def image_to_excel(
 
     # 保存到Excel
     final_df.to_excel(excel_path, index=False)
-    print(f"Notice: 线程 {threading.current_thread().name}（ID={threading.get_ident()}）已完成 {image_path} 的表格识别并追加导出到Excel文件。")
+    print(f"Notice: 线程 {threading.current_thread().name}(ID={threading.get_ident()})已完成 {image_path} 的表格识别并追加导出到Excel文件。")
+
+    # 修正图像识别结果表格数据
+    print("Notice: 开始修正图像识别结果表格数据")
+    
+    xls_files = [os.path.join(".", "src", "data", "storage", "work", "子表", f) for f in os.listdir(os.path.join(".", "src", "data", "storage", "work", "子表")) if f.endswith('.xls')]
+    res = []
+    for file in xls_files:
+        try:
+            workbook = xlrd.open_workbook(file)
+            sheet_names = workbook.sheet_names()
+            res += sheet_names
+            # print(f"{file} 的 sheets: {sheet_names}")
+        except Exception as e:
+            print(f"{file} 打开失败: {e}")
+    
+    products = res
+    
+    # 打开 Excel 文件
+    save_folder = "./src/data/input/manual"
+    excel_path = os.path.join(save_folder, f"temp_img_input.xlsx")
+    wb = load_workbook(excel_path)
+    ws = wb.active# 默认sheet
+    
+    # 遍历第 C 列（即第 3 列）从第 2 行开始
+    for row in ws.iter_rows(min_row=2, min_col=2, max_col=2):
+        cell = row[0]
+        if cell.value is not None and str(cell.value).strip() != "":
+            image_product = cell.value
+            ratios = dict()  # 每个标准名对应一个近似度，取近似度最大的那个名字
+            for product_name in products:
+                ratios[product_name] = Levenshtein.ratio(image_product, product_name)
+            # 取相似度最大的词
+            best_name = max(ratios, key=ratios.get)
+            print(f"{cell.value} -- > {best_name}")
+            ws.cell(row=cell.row, column=2, value=best_name)
+
+    # 保存修正后的 Excel 文件
+    print(f"Notice: 修正后的数据已保存到 {excel_path}")
+    wb.save(excel_path)
+    wb.close()
+    print(f"Notice: 线程 {threading.current_thread().name}(ID={threading.get_ident()})已经完成 {image_path} 的表格识别。")
