@@ -101,7 +101,7 @@ from PyInstaller.building.datastruct import TOC
 tools_src = os.path.join(os.path.dirname(paddleocr.__file__), "tools")
 tools_dst = "paddleocr/tools"
 if os.path.exists(tools_src):
-    datas += [(tools_src, tools_dst)]
+    datas += [(tools_src, "tools")]
 
 # ===== 运行时 Hook：把 paddle.libs 加入 DLL 搜索路径 =====
 _runtime_hook_code = r"""
