@@ -1571,7 +1571,8 @@ def work_file_init():
 
 
 if __name__ == "__main__":
-
+    
+    multiprocessing.freeze_support() # Mistake：打包若缺少此句会导致唤起子线程时候脚本的重新调用
     # 初始化工作文件夹环境
     work_file_init()
     # 创建一个QApplication对象

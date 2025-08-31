@@ -6,13 +6,12 @@ from PyInstaller.utils.hooks import (
     collect_submodules,
     collect_data_files,
 )
-
+import paddleocr
 
 
 # ===== hidden imports（尽量保守，后续可精简）=====
 hidden_imports = list(set(
     [
-        'paddleocr',
         'paddle',
         'cv2',
         'numpy',
@@ -42,7 +41,7 @@ hidden_imports = list(set(
         'paddle.base.libpaddle',
         'paddle.fluid.core_avx',
         'paddle.fluid.libpaddle',
-    ] + collect_submodules('paddleocr')
+    ] 
 ))
 
 # ===== 强制收集 paddle 的 DLL =====
@@ -85,10 +84,15 @@ binaries += auto_paddle_bins
 binaries += opencv_bins
 
 # ===== 数据文件：PaddleOCR缓存 + Cython 资源（关键！）=====
+
+ppocr = os.path.join(os.path.dirname(paddleocr.__file__), 'ppocr')
+
 datas = [
     ('../.paddleocr', 'src/.paddleocr'), # 将 main_window.py 所在目录的上级目录下的 .paddleocr 目录加入输出目录的 src 目录下
-    ('../data', 'src/data'),       # 将 main_window.py 所在目录的上级目录下的 data 目录加入输出目录的 src 目录下
+    ('../data', 'src/data'),             # 将 main_window.py 所在目录的上级目录下的 data 目录加入输出目录的 src 目录下
+    (ppocr,'ppocr')                      # 把 PaddleOCR 的 ppocr 数据加入输出目录的 ppocr 目录下
 ]
+
 # 把 Cython 的资源（尤其是 Utility 模板）全部打进包
 datas += collect_data_files('Cython')  # 若想更小，也可只收 Utility：collect_data_files('Cython', includes=['Utility/*'])
 
