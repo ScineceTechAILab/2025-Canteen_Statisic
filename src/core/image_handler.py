@@ -36,7 +36,7 @@ def image_to_excel(
             paddleocr.BASE_DIR = os.path.abspath(ocr_model_path)
             
         # 恢复原始BASE_DIR值
-        if original_base_dir:
+        else:
             paddleocr.BASE_DIR = original_base_dir
         
         table_engine = PPStructure()

@@ -41,6 +41,14 @@ hidden_imports = list(set(
         'paddle.base.libpaddle',
         'paddle.fluid.core_avx',
         'paddle.fluid.libpaddle',
+        # 添加 sklearn._cyutility 和其他相关模块
+        'sklearn._cyutility',
+        'sklearn.utils._isfinite',
+        'sklearn.utils._param_validation',
+        'sklearn.utils.validation',
+        'sklearn.utils._chunking',
+        'sklearn.utils.validation',
+        'sklearn.utils._param_validation'
     ] 
 ))
 
