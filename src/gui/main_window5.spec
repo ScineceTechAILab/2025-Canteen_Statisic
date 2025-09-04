@@ -34,13 +34,9 @@ hidden_imports = list(set(
         'matplotlib',
         'matplotlib.pyplot',
         'Levenshtein',
-        'albumentations',
         'Cython',  # 导入到 Cython
         # Paddle/PaddleOCR 常见入口
         'paddle.base.core',
-        'paddle.base.libpaddle',
-        'paddle.fluid.core_avx',
-        'paddle.fluid.libpaddle',
         # 添加 sklearn._cyutility 和其他相关模块
         'sklearn._cyutility',
         'sklearn.utils._isfinite',

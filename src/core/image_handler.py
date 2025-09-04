@@ -8,6 +8,7 @@ import pandas as pd
 from openpyxl import load_workbook
 import paddleocr
 from paddleocr import PPStructure
+
 def image_to_excel(
     image_path: str,
     save_folder: str = "./src/data/input/manual",

@@ -398,7 +398,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             except Exception as e:
                 "更新主表、子表信息出错"
                 __main__.SAVE_OK_SIGNAL = False
-                print(f"Error: 更新主表、子表信息出错,错误信息为 {e}")
+                print(f"Error: 更新主表、子表信息出错,错误信息为 {e}") # [ ]BUG:更新主表、子表信息出错,错误信息为 local variable 'sub_main_workbook' referenced before assignment
 
             "调整提交按钮状态"
             self.pushButton_5.setText("提交数据")
@@ -559,7 +559,7 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
             main_workbook.close()
         
     except Exception as e:
-        print(f"Error: 处理主工作簿更新相关表格信息出错,出错信息 {e}")
+        print(f"Error: 处理主工作簿更新相关表格信息出错,出错信息 {e}") # [ ]BUG:No such file: 'C:\Users\Administrator\Documents\CODE\VsCode\python\Canteen_Statisic\src\gui\dist\main_window\src\data\storage\work\主表人工-（ 704）7月.xls'
         __main__.SAVE_OK_SIGNAL = False
 
 
@@ -1097,7 +1097,7 @@ def update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food
     
     except Exception as e:
 
-        print(f"Error: 更新子表主食表或副食表出错 {e}")
+        print(f"Error: 更新子表主食表或副食表出错 {e}") # [ ]BUG: No such file: 'C:\Users\Administrator\Documents\CODE\VsCode\python\Canteen_Statisic\src\gui\dist\main_window\src\data\storage\work\子表人工-2025年主副食-三矿版主食.xls'
 
     
     # 保存工作簿

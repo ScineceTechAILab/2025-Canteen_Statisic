@@ -84,7 +84,7 @@ def item_data_operate(model, year, month, day, product_name, unit_name, price, q
         ws["E1"] = "日期"
 
         # 存为条目表.xlsx 文件
-        wb.save(__main__.ITEM_EXCEL_FOLDER + "条目表.xlsx")
+        wb.save(os.path.join(__main__.ITEM_EXCEL_FOLDER , "条目表.xlsx"))
 
     "打开此索引库"
     item_excel_list = [item for item in os.listdir(__main__.ITEM_EXCEL_FOLDER) if item == "条目表.xlsx"]
@@ -92,7 +92,7 @@ def item_data_operate(model, year, month, day, product_name, unit_name, price, q
         # 若 __main__.ITEM_EXCEL_FOLDER 下 条目表.xlsx 文件存在
         if item == "条目表.xlsx":
             # 打开条目表.xlsx 文件(Mistake: load_workbook 方法采用绝对路径)
-            wb = openpyxl.load_workbook(__main__.ITEM_EXCEL_FOLDER + item)
+            wb = openpyxl.load_workbook(os.path.join(__main__.ITEM_EXCEL_FOLDER , "条目表.xlsx")) # Mistake：
 
     "检查索引库中是否有此类"
     try:

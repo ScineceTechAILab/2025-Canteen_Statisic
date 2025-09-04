@@ -62,32 +62,38 @@ from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
 from config.config import FIRST_START
 from src.gui.utils.first_start_detect import first_start_detect
+import sys
 
 
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
-global TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+# 判断是否为打包后的环境
+def get_base_dir():
+    if getattr(sys, 'frozen', False):
+        # PyInstaller打包后的路径
+        return os.path.dirname(sys.executable)
+    else:
+        # 源码运行时的路径
+        return os.path.abspath(os.getcwd())
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
-TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join("src", "data", "input", "manual", "temp_manual_input_data2.xls")
+BASE_DIR = get_base_dir()
 
+global TEMP_SINGLE_STORAGE_EXCEL_PATH
 
-PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_img_input.xlsx")
-PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "manual", "temp_img_input.xls")
+TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_manual_input_data.xls") # Mistake: join 方法
+TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_manual_input_data2.xls")
 
-TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
-TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_img_input.xlsx")
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_img_input.xls")
 
-MAIN_WORK_EXCEL_FOLDER = "src\\data\\storage\\work\\主表\\" # 主工作表格路径
-SUB_WORK_EXCEL_FOLDER = "src\\data\\storage\\work\\子表\\"  # 子工作表格路径
-WELFARE_EXCEL_FOLDER = "src\\data\\storage\\work\\福利表\\" # 福利工作表格路径
-ITEM_EXCEL_FOLDER = "src\\data\\storage\\work\\条目表\\"      # 物品条目表路径
+TEMP_STORAGED_NUMBER_LISTS = 1
+TEMP_LIST_ROLLBACK_SIGNAL = True
 
-MAIN_WORK_EXCEL_FOLDER = os.path.join(project_root, MAIN_WORK_EXCEL_FOLDER) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
-SUB_WORK_EXCEL_FOLDER = os.path.join(project_root, SUB_WORK_EXCEL_FOLDER) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
-WELFARE_EXCEL_FOLDER = os.path.join(project_root, WELFARE_EXCEL_FOLDER)
-ITEM_EXCEL_FOLDER = os.path.join(project_root, ITEM_EXCEL_FOLDER)
+MAIN_WORK_EXCEL_FOLDER = os.path.join(BASE_DIR, "src", "data", "storage", "work", "主表")
+SUB_WORK_EXCEL_FOLDER = os.path.join(BASE_DIR, "src", "data", "storage", "work", "子表")
+WELFARE_EXCEL_FOLDER = os.path.join(BASE_DIR, "src", "data", "storage", "work", "福利表")
+ITEM_EXCEL_FOLDER = os.path.join(BASE_DIR, "src", "data", "storage", "work", "条目表")
 
 # 这个0/1用来表示是入库出库
 MODE = 0
@@ -109,8 +115,6 @@ DEBUG_SIGN = True
 DRAG_PHOTO_DIR = []
 TEMP_IMAGE_DIR = os.path.join(".", "src", "data", "input", "img") 
 OCR_MODEL_DIR = os.path.join(".","src", ".paddleocr")
-
-
 
 
 class Worker(QObject):
