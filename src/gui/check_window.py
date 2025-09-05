@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QSizePoli
 from src.gui.data_save_dialog import data_save_success
 from xlrd import open_workbook
 from xlutils.copy import copy
-from src.gui.main_window import TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning4:延迟导入
+
 class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写进去
     """
     Excel 数据查看弹窗类
@@ -112,7 +112,7 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
                     column_data.append(item.text() if item else "")
                 data[headers[col]] = column_data
 
-
+            from src.gui.main_window import TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning4:延迟导入，防止导入回环发生
             save_path = TEMP_SINGLE_STORAGE_EXCEL_PATH  # 保存路径
 
             # 打开现有的 xls 文件
