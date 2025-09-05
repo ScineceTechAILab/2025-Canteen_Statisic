@@ -81,5 +81,7 @@
 
 Python 3.10.
 
-
 # 开发环境部署
+
+
+pyinstaller src/gui/main_window5.spec --distpath=./dist --workpath=./build

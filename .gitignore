@@ -32139,3 +32139,96 @@ build/main_window5/localpycs/pyimod02_importers.pyc
 build/main_window5/localpycs/pyimod03_ctypes.pyc
 build/main_window5/localpycs/pyimod04_pywin32.pyc
 build/main_window5/localpycs/struct.pyc
+dist/main_window/numpy/.libs/libopenblas64__v0.3.21-gcc_10_3_0.dll
+dist/main_window/numpy/linalg/lapack_lite.cp310-win_amd64.pyd
+dist/main_window/paddle/libs/mkldnn.dll
+dist/main_window/paddle.libs/mkldnn.dll
+dist/main_window/pandas.libs/msvcp140-0f2ea95580b32bcfc81c235d5751ce78.dll
+dist/main_window/ppocr/__init__.py
+dist/main_window/ppocr/__pycache__/__init__.cpython-310.pyc
+dist/main_window/ppocr/data/latexocr_dataset.py
+dist/main_window/ppocr/data/__pycache__/latexocr_dataset.cpython-310.pyc
+dist/main_window/ppocr/data/imaug/latex_ocr_aug.py
+dist/main_window/ppocr/data/imaug/__pycache__/latex_ocr_aug.cpython-310.pyc
+dist/main_window/ppocr/postprocess/pse_postprocess/pse/pse.pyx
+dist/main_window/ppocr/postprocess/pse_postprocess/pse/README.md
+dist/main_window/ppocr/utils/export_model.py
+dist/main_window/ppocr/utils/__pycache__/export_model.cpython-310.pyc
+dist/main_window/ppocr/utils/dict/bengali_dict.txt
+dist/main_window/ppocr/utils/dict/bm_dict_add.txt
+dist/main_window/ppocr/utils/dict/bm_dict.txt
+dist/main_window/ppocr/utils/dict/bn_dict.txt
+dist/main_window/ppocr/utils/dict/gujarati_dict.txt
+dist/main_window/ppocr/utils/dict/hebrew_dict.txt
+dist/main_window/ppocr/utils/dict/kazakh_dict.txt
+dist/main_window/ppocr/utils/dict/latex_ocr_tokenizer.json
+dist/main_window/ppocr/utils/dict/parseq_dict.txt
+dist/main_window/ppocr/utils/dict/README.md
+dist/main_window/ppocr/utils/dict/samaritan_dict.txt
+dist/main_window/ppocr/utils/dict/syriac_dict.txt
+dist/main_window/ppocr/utils/dict/vi_dict.txt
+dist/main_window/ppocr/utils/formula_utils/math_txt2pkl.py
+dist/main_window/ppocr/utils/formula_utils/__pycache__/math_txt2pkl.cpython-310.pyc
+dist/main_window/scipy/linalg/_flinalg.cp310-win_amd64.pyd
+dist/main_window/scipy/optimize/__nnls.cp310-win_amd64.pyd
+dist/main_window/scipy/sparse/linalg/_isolve/_iterative.cp310-win_amd64.pyd
+dist/main_window/scipy/stats/_statlib.cp310-win_amd64.pyd
+dist/main_window/scipy.libs/libopenblas_v0.3.20-571-g3dec11c6-gcc_10_3_0-c2315440d6b6cef5037bad648efc8c59.dll
+dist/main_window/setuptools/_vendor/importlib_metadata-8.0.0.dist-info/INSTALLER
+dist/main_window/setuptools/_vendor/importlib_metadata-8.0.0.dist-info/LICENSE
+dist/main_window/setuptools/_vendor/importlib_metadata-8.0.0.dist-info/METADATA
+dist/main_window/setuptools/_vendor/importlib_metadata-8.0.0.dist-info/RECORD
+dist/main_window/setuptools/_vendor/importlib_metadata-8.0.0.dist-info/REQUESTED
+dist/main_window/setuptools/_vendor/importlib_metadata-8.0.0.dist-info/top_level.txt
+dist/main_window/setuptools/_vendor/importlib_metadata-8.0.0.dist-info/WHEEL
+dist/main_window/setuptools/_vendor/jaraco/text/Lorem ipsum.txt
+dist/main_window/src/data/storage/backup/2025-09-05 15-18-00/主表/人工-（ 704）7月.xls
+dist/main_window/src/data/storage/backup/2025-09-05 15-18-00/子表/人工-2025年主副食-三矿版主食.xls
+dist/main_window/src/data/storage/backup/2025-09-05 15-18-00/子表/人工-2025年主副食-三矿版副食.xls
+dist/main_window/src/data/storage/backup/2025-09-05 15-18-00/条目表/条目表.xlsx
+dist/main_window/src/data/storage/backup/2025-09-05 15-18-00/福利表/人工-704班2025年福利.xls
+dist/main_window/src/data/storage/backup/2025-09-05 15-40-57/主表/人工-（ 704）7月.xls
+dist/main_window/src/data/storage/backup/2025-09-05 15-40-57/子表/人工-2025年主副食-三矿版主食.xls
+dist/main_window/src/data/storage/backup/2025-09-05 15-40-57/子表/人工-2025年主副食-三矿版副食.xls
+dist/main_window/src/data/storage/backup/2025-09-05 15-40-57/条目表/条目表.xlsx
+dist/main_window/src/data/storage/backup/2025-09-05 15-40-57/福利表/人工-704班2025年福利.xls
+dist/main_window/tools/eval.py
+dist/main_window/tools/export_center.py
+dist/main_window/tools/export_model.py
+dist/main_window/tools/infer_cls.py
+dist/main_window/tools/infer_det.py
+dist/main_window/tools/infer_e2e.py
+dist/main_window/tools/infer_kie_token_ser_re.py
+dist/main_window/tools/infer_kie_token_ser.py
+dist/main_window/tools/infer_kie.py
+dist/main_window/tools/infer_rec.py
+dist/main_window/tools/infer_sr.py
+dist/main_window/tools/infer_table.py
+dist/main_window/tools/naive_sync_bn.py
+dist/main_window/tools/program.py
+dist/main_window/tools/test_hubserving.py
+dist/main_window/tools/train.py
+dist/main_window/tools/__pycache__/eval.cpython-310.pyc
+dist/main_window/tools/__pycache__/export_center.cpython-310.pyc
+dist/main_window/tools/__pycache__/export_model.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_cls.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_det.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_e2e.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_kie_token_ser_re.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_kie_token_ser.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_kie.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_rec.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_sr.cpython-310.pyc
+dist/main_window/tools/__pycache__/infer_table.cpython-310.pyc
+dist/main_window/tools/__pycache__/naive_sync_bn.cpython-310.pyc
+dist/main_window/tools/__pycache__/program.cpython-310.pyc
+dist/main_window/tools/__pycache__/test_hubserving.cpython-310.pyc
+dist/main_window/tools/__pycache__/train.cpython-310.pyc
+dist/main_window/tools/end2end/convert_ppocr_label.py
+dist/main_window/tools/end2end/draw_html.py
+dist/main_window/tools/end2end/eval_end2end.py
+dist/main_window/tools/end2end/readme.md
+dist/main_window/tools/end2end/__pycache__/convert_ppocr_label.cpython-310.pyc
+dist/main_window/tools/end2end/__pycache__/draw_html.cpython-310.pyc
+dist/main_window/tools/end2end/__pycache__/eval_end2end.cpython-310.pyc
+src/__pycache__/__init__.cpython-310.pyc
