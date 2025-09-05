@@ -22,7 +22,9 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QSizePoli
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 from src.gui.data_save_dialog import data_save_success
-
+from xlrd import open_workbook
+from xlutils.copy import copy
+from src.gui.main_window import TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning4:延迟导入
 class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写进去
     """
     Excel 数据查看弹窗类
@@ -110,11 +112,26 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
                     column_data.append(item.text() if item else "")
                 data[headers[col]] = column_data
 
-            # 转换为 DataFrame 并保存到 Excel
-            df = pd.DataFrame(data)
-            from src.gui.main_window import TEMP_SINGLE_STORAGE_EXCEL_PATH # Learning4:延迟导入
+
             save_path = TEMP_SINGLE_STORAGE_EXCEL_PATH  # 保存路径
-            df.to_excel(save_path, index=False)
+
+            # 打开现有的 xls 文件
+            rb = open_workbook(save_path, formatting_info=True)
+            wb = copy(rb)
+            sheet = wb.get_sheet(0)
+
+            # 获取表格数据
+            row_count = self.tableWidget.rowCount()
+            col_count = self.tableWidget.columnCount()
+
+            # 写入数据到 xls 文件
+            for row in range(row_count):
+                for col in range(col_count):
+                    item = self.tableWidget.item(row, col)
+                    sheet.write(row + 1, col, item.text() if item else "")
+
+            # 保存文件
+            wb.save(save_path)
             print(f"Notice:表格数据已成功保存到 {save_path}")
             data_save_success(self)
 
