@@ -90,10 +90,10 @@ PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "i
 TEMP_STORAGED_NUMBER_LISTS = 1
 TEMP_LIST_ROLLBACK_SIGNAL = True
 
-MAIN_WORK_EXCEL_FOLDER = os.path.join(BASE_DIR, "src", "data", "storage", "work", "主表")
-SUB_WORK_EXCEL_FOLDER = os.path.join(BASE_DIR, "src", "data", "storage", "work", "子表")
-WELFARE_EXCEL_FOLDER = os.path.join(BASE_DIR, "src", "data", "storage", "work", "福利表")
-ITEM_EXCEL_FOLDER = os.path.join(BASE_DIR, "src", "data", "storage", "work", "条目表")
+MAIN_WORK_EXCEL_FOLDER = "src/data/storage/work/主表/"
+SUB_WORK_EXCEL_FOLDER = "src/data/storage/work/子表/"
+WELFARE_EXCEL_FOLDER = "src/data/storage/work/福利表/"
+ITEM_EXCEL_FOLDER = "src/data/storage/work/条目表/"
 
 # 这个0/1用来表示是入库出库
 MODE = 0
@@ -803,9 +803,9 @@ class Ui_Form(object):
             MODE = 0
 
         # 动态获取主表、子表、福利表的相对文件路径
-        MIAN_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/主表"
-        SUB_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/子表"
-        WELFARE_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/福利表"
+        MIAN_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/主表/"
+        SUB_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/子表/"
+        WELFARE_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/福利表/"
         
         # 获取主表、子表主食表、子表副食表、福利表的文件路径
 
@@ -1011,9 +1011,9 @@ class Ui_Form(object):
         
         # 动态获取main目录下主食表、子表主食表、子表副食表、福利表文件夹相对地址
         
-        MIAN_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/主表"
-        SUB_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/子表"
-        WELFARE_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/福利表"
+        MIAN_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/主表/"
+        SUB_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/子表/"
+        WELFARE_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/福利表/"
         
         # 获取主表、子表主食表、子表副食表、福利表的文件路径
         main_workbook =MAIN_WORK_EXCEL_FOLDER + [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
