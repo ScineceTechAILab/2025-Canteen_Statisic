@@ -84,8 +84,8 @@ global TEMP_SINGLE_STORAGE_EXCEL_PATH
 TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_manual_input_data.xls") # Mistake: join 方法
 TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_manual_input_data2.xls")
 
-PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_img_input.xlsx")
-PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_img_input.xls")
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(BASE_DIR, "src", "data", "input", "img", "temp_img_input.xlsx")
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "input", "img", "temp_img_input.xls")
 
 TEMP_STORAGED_NUMBER_LISTS = 1
 TEMP_LIST_ROLLBACK_SIGNAL = True
@@ -987,7 +987,7 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-        output_path = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")
+        output_path = os.path.abspath("./src/data/input/img/temp_img_input.xlsx")
         folder_path = os.path.dirname(output_path)
         # 弹窗提示，等待用户确认
         reply = QMessageBox.information(None, "提示", "准备打开扫描结果，请在校核并保存数据后关闭窗口", QMessageBox.Ok | QMessageBox.Cancel)
@@ -1495,12 +1495,12 @@ def delete_backup(self,objectname):
         path = os.path.join(".\\src\\data\\storage\\backup", folder_name)
         try:
             shutil.rmtree(path)
-            print(f"已删除备份: {folder_name}")
+            print(f"Notice:已删除备份: {folder_name}")
             # 可以重新刷新界面或弹窗提示成功
             QMessageBox.information(None, "提示", f"{folder_name} 已被删除", QMessageBox.Ok)
             self.back_up_manager()  # 刷新窗口
         except Exception as e:
-            print(f"删除失败: {e}")
+            print(f"Error:ssss删除失败: {e}")
 
 def work_file_init():
 

@@ -205,7 +205,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
 
     Parameters:
         - self: 当前窗口对象
-        - modle: 输入输出模式切换变量,值为 manual/photo
+        - modle: 输入输出模式切换变量,值为 manual/img
         - main_excel_file_path: 主表 Excel 文件路径
         - sub_main_food_excel_file_path: 主副食明细账 Excel 文件路径
         - sub_auxiliary_food_excel_file_path: 副食品明细账 Excel 文件路径
@@ -2164,9 +2164,9 @@ def export_update_receipt_storage_sheet(main_workbook, single_name, category_nam
         elif category_name == "副食":
             row_index_name = "正常厂主食"
         else:
-            print("Error: 场调面食出库 未找到类别信息，请检查输入数据")
+            print("Error: 厂调面食出库 未找到类别信息，请检查输入数据")
     else:
-        print("Error: 未找到出库类型信息，请检查输入数据")
+        print("Warning: 该条目不属于扶贫主食出库、场调面食出库")
         return
 
     # 调用Excel API用行索引名匹配行索引

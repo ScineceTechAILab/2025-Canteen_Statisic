@@ -199,7 +199,7 @@ def commit_data_to_excel(self,model,main_excel_file_path,sub_main_food_workbook,
 
     Parameters:
      - self: Object    
-     - model: 输入输出模式切换变量,0为入库模式/1为出库模式
+     - model: 手动输入或者照片输入模式,值为 manual/photo
      - excel_file_path: 主表Excel文件路径
      - sub_main_food_workbook: 子食主食表Excel文件路径
      - sub_auxiliary_food_workbook: 子食副食表Excel文件路径
@@ -207,18 +207,6 @@ def commit_data_to_excel(self,model,main_excel_file_path,sub_main_food_workbook,
     
     Return: None
     """
-
-    with xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH) as read_temp_storage_workbook:
-
-        "判断表是否为空"
-        if read_temp_storage_workbook.sheet_by_index(0).nrows == 1:
-            print(f"Warning: 暂存表 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 为空,请先添加数据")
-            # 弹窗提示暂存表为空
-            self.worker.signal3.emit()
-            self.pushButton_5.setText("提交数据")
-            return
-    
-    
 
     commit_data_to_storage_excel(self,model,main_excel_file_path,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)
 
