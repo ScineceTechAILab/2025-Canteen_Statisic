@@ -72,10 +72,10 @@ TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 def get_base_dir():
     if getattr(sys, 'frozen', False):
         # PyInstaller打包后的路径
-        return os.path.dirname(sys.executable)
+        return os.path.join(os.path.dirname(sys.executable),'src')
     else:
         # 源码运行时的路径
-        return os.path.abspath(os.getcwd())
+        return os.path.join(os.path.abspath(os.getcwd()), 'src')
 
 BASE_DIR = get_base_dir()
 
