@@ -73,15 +73,22 @@
     - **`exception.py`**: 异常处理模块。
     - 
 
-# 程序运行说明
+# 开发环境准备
+
+
+
+```
+Python 3.10.
+
+```
+
+
+# 开发环境测试
+
 
 先执行 `main_window.py`，点击UI中的按钮会调用 `ui_utils.py`中的相关功能（目前只做到这里，很多功能模块文件都是空的，放在那占位用的）
 
-# 开发环境说明
 
-Python 3.10.
-
-# 开发环境部署
-
+# 应用程序构建
 
 pyinstaller src/gui/main_window5.spec --distpath=./dist --workpath=./build

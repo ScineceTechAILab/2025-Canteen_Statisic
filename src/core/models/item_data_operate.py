@@ -39,11 +39,9 @@ import __main__
 
 def item_data_operate(model, year, month, day, product_name, unit_name, price, quantity, amount, remark, company_name, sigle_name):
     """
-    This function is the main entry point for the module.
-    It provides a collection of functions for updating and retrieving
-    item information in the inventory index during item check-in and check-out
-    operations.
-
+    
+    在条目表.xlsx中更新或获取条目信息
+    
     Parameters:
         model:入库\出库
         year: 入库出库年份
@@ -59,7 +57,7 @@ def item_data_operate(model, year, month, day, product_name, unit_name, price, q
         sigle_name: 该条目入库出库的简称
 
     Returns:
-        dict:{品名:[单位-单价-数量-数额-日期]}
+        dict:{品名:[单位,单价,数量,数额,日期]}
 
     """
     print(f"\nNotice:条目表 {product_name} 数据信息开始更新！")
@@ -236,10 +234,88 @@ def item_data_operate(model, year, month, day, product_name, unit_name, price, q
     return export_data
 
     
-def index_item_data():
+def reindex_item_data():
+    
     """
-    This function is the main entry point for the module.
-    It provides a collection of functions for updating and retrieving
-    item information in the inventory index during item check-in and check-out
-    operations.
+    提取子表主食表,子表副食表中的信息，重新生成条目表.xlsx
+    
+    Parameters:
+        None
+        
+    Returns:
+        None
     """
+
+    print(f"\nNotice: 条目表 数据信息开始重新生成！")
+
+    "删除\work\条目表\条目表.xlsx"
+    if os.path.exists(os.path.join(__main__.ITEM_EXCEL_FOLDER , "条目表.xlsx")):
+        os.remove(os.path.join(__main__.ITEM_EXCEL_FOLDER , "条目表.xlsx"))
+        print(f"Notice: 条目表 数据信息删除完成！")
+
+    "新建work\条目表\条目表.xlsx"
+    wb = openpyxl.Workbook()
+    ws = wb.active
+
+    "打开食品明细表"
+    xls_files = [os.path.join(__main__.WORK_SUB_FOLDER, f) for f in os.listdir(__main__.WORK_SUB_FOLDER) if f.endswith('.xls')]
+
+    "遍历食品明细表"
+    for file in xls_files:
+        
+        try:
+            
+            workbook = openpyxl.load_workbook(file, data_only=True)
+            sheet_names = workbook.sheetnames
+            print(f"Notice: 打开 {file} 成功，包含 sheets: {sheet_names}")
+        
+            "遍历工作簿"
+            for sheet_name in sheet_names:
+                worksheet = workbook[sheet_name]
+                print(f"Notice: 处理 {file} 中的 sheet: {sheet_name}")
+
+                "从头到尾记录单价组"
+                last_price = None
+                same_price_rows = []
+                
+                for row in range(2, worksheet.max_row + 1):
+                    
+                    current_price = worksheet[f"C{row}"].value
+                    if current_price == last_price:
+                        same_price_rows.append(row)
+                    else:
+                        if len(same_price_rows) > 1:
+                            print(f"Warning: 在 {file} 的 sheet {sheet_name} 中，发现同样价位连续的行: {same_price_rows}，请检查数据完整性。")
+                        same_price_rows = [row]
+                    last_price = current_price
+                
+                if len(same_price_rows) > 1:
+                    print(f"Warning: 在 {file} 的 sheet {sheet_name} 中，发现同样价位连续的行: {same_price_rows}，请检查数据完整性。")
+                
+                "遍历行列"
+                for row in range(2, worksheet.max_row + 1):
+                    product_name = worksheet[f"A{row}"].value
+                    unit_name = worksheet[f"B{row}"].value
+                    price = worksheet[f"C{row}"].value
+                    quantity = worksheet[f"D{row}"].value
+                    amount = worksheet[f"E{row}"].value
+                    date = worksheet[f"F{row}"].value
+                    if product_name and unit_name and price is not None and quantity is not None and amount is not None and date:
+                        year, month, day = map(int, str(date).split('-'))
+                        item_data_operate("入库", year, month, day, product_name, unit_name, price, quantity, amount, "", "", "")
+                    else:
+                        print(f"Warning: 在 {file} 的 sheet {sheet_name} 中，第 {row} 行数据不完整，跳过该行。")
+
+
+   
+
+
+        
+        except Exception as e:
+            print(f"Error: {file} 打开失败: {e}")
+            continue
+
+
+
+
+
