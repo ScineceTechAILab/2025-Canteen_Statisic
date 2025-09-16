@@ -527,7 +527,7 @@ class Ui_Form(object):
         self.tabWidget_2.tabBar().tabBarClicked.connect(self.on_tab_clicked)
 
 
-        "底部 重导表格、导出表格、重建索引、立即备份、备份管理 四个按钮"
+        "底部 重导表格、导出表格、重建条目、立即备份、备份管理 四个按钮"
         # 创建重导表格按钮
         self.pushButton_14 = QPushButton(self.tab)
         self.pushButton_14.setObjectName("reimport_table") 
@@ -536,10 +536,10 @@ class Ui_Form(object):
         self.pushButton_15 = QPushButton(self.tab)
         self.pushButton_15.setObjectName("export_table_button")
         self.pushButton_15.clicked.connect(self.export_excel_data)   # 绑定导出表格函数
-        # 创建重建索引按钮
+        # 创建重建条目按钮
         self.pushButton_13 = QPushButton(self.tab)
         self.pushButton_13.setObjectName("rebuild_index_button")
-        self.pushButton_13.clicked.connect(reindex_item_data)       # 绑定重建索引函数
+        self.pushButton_13.clicked.connect(reindex_item_data)       # 绑定重建条目函数
         # 创建立即备份按钮
         self.pushButton_12 = QPushButton(self.tab)
         self.pushButton_12.setObjectName("backup_button")
@@ -570,7 +570,7 @@ class Ui_Form(object):
 
         self.gridLayout_2.addWidget(self.pushButton_14,1,2,1,1) # 添加重导表格按钮位置
         self.gridLayout_2.addWidget(self.pushButton_15,1,3,1,1) # 添加导出表格按钮位置
-        self.gridLayout_2.addWidget(self.pushButton_13,1,5,1,1) # 设置重建索引按钮位置
+        self.gridLayout_2.addWidget(self.pushButton_13,1,5,1,1) # 设置重建条目按钮位置
         self.gridLayout_2.addWidget(self.pushButton_12,1,7,1,1) # 设置立即备份按钮位置
         self.gridLayout_2.addWidget(self.pushButton_11,1,8,1,1) # 设置备份管理按钮位置
         
@@ -644,7 +644,7 @@ class Ui_Form(object):
         "TAB底部按钮"
         self.pushButton_14.setText(QCoreApplication.translate("Form", "导入表格", None))
         self.pushButton_15.setText(QCoreApplication.translate("Form", "导出表格", None))
-        self.pushButton_13.setText(QCoreApplication.translate("Form", "重建索引", None))
+        self.pushButton_13.setText(QCoreApplication.translate("Form", "重建条目", None))
         self.pushButton_12.setText(QCoreApplication.translate("Form", "立即备份", None))
         self.pushButton_11.setText(QCoreApplication.translate("Form", "备份管理", None))
         
