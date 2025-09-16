@@ -36,6 +36,9 @@ import os
 import sys
 import __main__
 
+import xlrd
+
+
 
 def item_data_operate(model, year, month, day, product_name, unit_name, price, quantity, amount, remark, company_name, sigle_name):
     """
@@ -257,57 +260,86 @@ def reindex_item_data():
     wb = openpyxl.Workbook()
     ws = wb.active
 
-    "打开食品明细表"
-    xls_files = [os.path.join(__main__.WORK_SUB_FOLDER, f) for f in os.listdir(__main__.WORK_SUB_FOLDER) if f.endswith('.xls')]
-
-    "遍历食品明细表"
+    "遍历工作簿"
+    xls_files = [os.path.join(__main__.SUB_WORK_EXCEL_FOLDER, f) for f in os.listdir(__main__.SUB_WORK_EXCEL_FOLDER) if f.endswith('.xls')]
+    
     for file in xls_files:
         
         try:
-            
-            workbook = openpyxl.load_workbook(file, data_only=True)
-            sheet_names = workbook.sheetnames
-            print(f"Notice: 打开 {file} 成功，包含 sheets: {sheet_names}")
-        
-            "遍历工作簿"
+            workbook = xlrd.open_workbook(file)
+            sheet_names = workbook.sheet_names()
+
             for sheet_name in sheet_names:
-                worksheet = workbook[sheet_name]
-                print(f"Notice: 处理 {file} 中的 sheet: {sheet_name}")
-
-                "从头到尾记录单价组"
-                last_price = None
-                same_price_rows = []
                 
-                for row in range(2, worksheet.max_row + 1):
+                worksheet = workbook.sheet_by_name(sheet_name)
+                price_group = []                                # 记录连续价格组的三维数组
+
+                "遍历工作行"
+                for row_idx in range(1, worksheet.nrows):           # 跳过表头，从第二行开始
                     
-                    current_price = worksheet[f"C{row}"].value
-                    if current_price == last_price:
-                        same_price_rows.append(row)
-                    else:
-                        if len(same_price_rows) > 1:
-                            print(f"Warning: 在 {file} 的 sheet {sheet_name} 中，发现同样价位连续的行: {same_price_rows}，请检查数据完整性。")
-                        same_price_rows = [row]
-                    last_price = current_price
+                    row = worksheet.row(row_idx)
+                    try:
+                        
+                        "从头到尾记录有单价的行"            
+                        try:
+                            price = float(row[4].value)             # 单价
+                            print(f"Notice:  {worksheet.name} 工作簿第 {row_idx + 1} 行 单价列值为{price} ")
+                            price_group.append([row_idx + 1, price]) # 记录该 [行号,单价]
+
+                        except ValueError:
+                            print(f"Warning:  {worksheet.name} 工作簿第 {row_idx + 1} 行 单价列值为空或字符值 ")
+                    
+                    except Exception as e:
+                        print(f"Error: 处理文件 {file} 的 {worksheet.name} 工作簿第 {row_idx + 1} 行时出错: {e}")
+                        continue
                 
-                if len(same_price_rows) > 1:
-                    print(f"Warning: 在 {file} 的 sheet {sheet_name} 中，发现同样价位连续的行: {same_price_rows}，请检查数据完整性。")
-                
-                "遍历行列"
-                for row in range(2, worksheet.max_row + 1):
-                    product_name = worksheet[f"A{row}"].value
-                    unit_name = worksheet[f"B{row}"].value
-                    price = worksheet[f"C{row}"].value
-                    quantity = worksheet[f"D{row}"].value
-                    amount = worksheet[f"E{row}"].value
-                    date = worksheet[f"F{row}"].value
-                    if product_name and unit_name and price is not None and quantity is not None and amount is not None and date:
-                        year, month, day = map(int, str(date).split('-'))
-                        item_data_operate("入库", year, month, day, product_name, unit_name, price, quantity, amount, "", "", "")
-                    else:
-                        print(f"Warning: 在 {file} 的 sheet {sheet_name} 中，第 {row} 行数据不完整，跳过该行。")
+                print(f"Notice:  {worksheet.name} 工作簿价格行信息提取完成，信息为 {price_group}")
+
+                "根据是否为连续行对工作簿价格行进行重新分组"
+                if price_group:
+                    grouped_prices = []
+                    current_group = [price_group[0]]
+
+                    for i in range(1, len(price_group)):
+                        if price_group[i][0] == price_group[i-1][0] + 1:  # 检查是否为连续行
+                            current_group.append(price_group[i])
+                        else:
+                            grouped_prices.append(current_group)
+                            current_group = [price_group[i]]
+                    grouped_prices.append(current_group)  # 添加最后一组
+
+                    print(f"Notice:  {worksheet.name} 工作簿价格行信息重新分组完成，信息为 {grouped_prices}")
+
+                    "遍历分组，根据每一组的最后一个价位对应的条目检查其该行数量列是否存在数量"
+                    for group in grouped_prices:
+                        
+                        last_row_idx, last_price = group[-1]
+                        quantity_cell = worksheet.cell(last_row_idx - 1, 3)  # 数量列索引为3
+
+                        try:
+                            quantity = float(quantity_cell.value)
+                            if quantity > 0:
+                                product_name = worksheet.cell(last_row_idx - 1, 1).value  # 食品名列索引为1
+                                unit_name = worksheet.cell(last_row_idx - 1, 2).value     # 单位列索引为2
+                                
+
+                                print(f"Notice:  {worksheet.name} 工作簿第 {last_row_idx} 行 有效数量 {quantity}，准备更新条目表，信息为 品名:{product_name} 单位:{unit_name} 单价:{last_price} 数量:{quantity}")
 
 
-   
+                            else:
+                                print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为零或负数，跳过该行。")
+                        except ValueError:
+                            print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为空或字符值，该价位没有剩余库存。")
+                            
+                        except Exception as e:
+                            print(f"Error: 处理文件 {file} 的 {worksheet.name} 工作簿第 {last_row_idx} 行时出错: {e}")
+                            continue
+
+
+                else:
+                    print(f"Warning: {worksheet.name} 工作簿中未找到任何价格信息，跳过该工作簿。")
+
+
 
 
         
