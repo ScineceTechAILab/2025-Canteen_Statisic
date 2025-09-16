@@ -41,6 +41,7 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 
+from src.core.models.item_data_operate import reindex_item_data
 from src.gui.utils.detail_ui_button_utils import (
     commit_data_to_excel,
     get_current_date,
@@ -526,20 +527,24 @@ class Ui_Form(object):
         self.tabWidget_2.tabBar().tabBarClicked.connect(self.on_tab_clicked)
 
 
-        "底部 重导表格、导出表格、立即备份、备份管理 四个按钮"
-        # # 创建重导表格按钮
+        "底部 重导表格、导出表格、重建索引、立即备份、备份管理 四个按钮"
+        # 创建重导表格按钮
         self.pushButton_14 = QPushButton(self.tab)
         self.pushButton_14.setObjectName("reimport_table") 
         self.pushButton_14.clicked.connect(self.reimport_excel_data) # 绑定导入表格函数
-        # # 创建导出表格按钮
+        # 创建导出表格按钮
         self.pushButton_15 = QPushButton(self.tab)
         self.pushButton_15.setObjectName("export_table_button")
         self.pushButton_15.clicked.connect(self.export_excel_data)   # 绑定导出表格函数
-        # # 创建立即备份按钮
+        # 创建重建索引按钮
+        self.pushButton_13 = QPushButton(self.tab)
+        self.pushButton_13.setObjectName("rebuild_index_button")
+        self.pushButton_13.clicked.connect(reindex_item_data)       # 绑定重建索引函数
+        # 创建立即备份按钮
         self.pushButton_12 = QPushButton(self.tab)
         self.pushButton_12.setObjectName("backup_button")
         self.pushButton_12.clicked.connect(self.back_up_excel_data)  # 绑定备份函数
-        # # 创建备份管理按钮
+        # 创建备份管理按钮
         self.pushButton_11 = QPushButton(self.tab)
         self.pushButton_11.setObjectName("backup_manager_button")
         self.pushButton_11.clicked.connect(self.back_up_manager)     # 绑定备份管理窗口函数
@@ -561,12 +566,13 @@ class Ui_Form(object):
         "TAB内 网格布局排布设置"
 
         self.gridLayout_2.addWidget(self.groupBox_3   ,0,1,1,4) # 手动导入 Box 位置设置
-        self.gridLayout_2.addWidget(self.groupBox_4   ,0,5,1,4) # 图片导入 Box 位置设置
+        self.gridLayout_2.addWidget(self.groupBox_4   ,0,6,1,4) # 图片导入 Box 位置设置
 
         self.gridLayout_2.addWidget(self.pushButton_14,1,2,1,1) # 添加重导表格按钮位置
         self.gridLayout_2.addWidget(self.pushButton_15,1,3,1,1) # 添加导出表格按钮位置
-        self.gridLayout_2.addWidget(self.pushButton_12,1,6,1,1) # 设置立即备份按钮位置
-        self.gridLayout_2.addWidget(self.pushButton_11,1,7,1,1) # 设置备份管理按钮位置
+        self.gridLayout_2.addWidget(self.pushButton_13,1,5,1,1) # 设置重建索引按钮位置
+        self.gridLayout_2.addWidget(self.pushButton_12,1,7,1,1) # 设置立即备份按钮位置
+        self.gridLayout_2.addWidget(self.pushButton_11,1,8,1,1) # 设置备份管理按钮位置
         
         
         
@@ -638,6 +644,7 @@ class Ui_Form(object):
         "TAB底部按钮"
         self.pushButton_14.setText(QCoreApplication.translate("Form", "导入表格", None))
         self.pushButton_15.setText(QCoreApplication.translate("Form", "导出表格", None))
+        self.pushButton_13.setText(QCoreApplication.translate("Form", "重建索引", None))
         self.pushButton_12.setText(QCoreApplication.translate("Form", "立即备份", None))
         self.pushButton_11.setText(QCoreApplication.translate("Form", "备份管理", None))
         
