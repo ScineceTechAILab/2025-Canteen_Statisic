@@ -35,6 +35,7 @@ import openpyxl
 import os
 import sys
 import __main__
+import datetime
 
 import xlrd
 
@@ -249,6 +250,8 @@ def reindex_item_data():
         None
     """
 
+    year=str(datetime.datetime.now().year)
+
     print(f"\nNotice: 条目表 数据信息开始重新生成！")
 
     "删除\work\条目表\条目表.xlsx"
@@ -280,9 +283,11 @@ def reindex_item_data():
                     row = worksheet.row(row_idx)
                     try:       
                         
-                        price = float(row[4].value)             # 单价
+                        price = float(row[4].value)                                 # 单价
+                        month = int(row[0].value) if row[0].value != '' else 0      # 月份
+                        day = int(row[1].value) if row[1].value != '' else 0        # 日期
+                        price_group.append([row_idx + 1, price,month,day])          # 记录该 [行号,单价,月份,日期]
                         print(f"Notice:  {worksheet.name} 工作簿第 {row_idx + 1} 行 单价列值为{price} ")
-                        price_group.append([row_idx + 1, price]) # 记录该 [行号,单价]
 
                     except Exception as e:
                         print(f"Error: 处理文件 {file} 的 {worksheet.name} 工作簿第 {row_idx + 1} 行时出错: {e}")
@@ -308,34 +313,38 @@ def reindex_item_data():
                     "遍历分组，根据每一组的最后一个价位对应的条目检查其该行数量列是否存在数量"
                     for group in grouped_prices:
                         
-                        last_row_idx, last_price = group[-1]
+                        last_row_idx = group[-1][0]  # 获取该组最后一个价位的行号 
+                        last_price = group[-1][1]
                         quantity_cell = worksheet.cell(last_row_idx - 1, 9)  # 数量列索引为3
 
                         product_name = ""
+                        last_price = 0
                         unit_name = ""
 
                         try:
                             quantity = float(quantity_cell.value)
                             if quantity > 0:
-                                product_name = worksheet.cell(last_row_idx - 1, 1).value  # 食品名列索引为1
-                                unit_name = worksheet.cell(last_row_idx - 1, 2).value     # 单位列索引为2
+                                product_name = sheet_name                              # 品名为工作簿名称    
+                                last_price =   group[-1][1]                            # 单价为该组最后一个价位 
+                                month = group[-1][2]                                   # 月份
+                                day = group[-1][3]                                     # 日期                
                                 print(f"Notice:  {worksheet.name} 工作簿第 {last_row_idx} 行 有效数量 {quantity}，准备更新条目表，信息为 品名:{product_name} 单位:{unit_name} 单价:{last_price} 数量:{quantity}")
                                 
                             else:
+                                product_name = sheet_name
+                                last_price =   group[-1][1]
+                                month = group[-1][2]                                   
+                                day = group[-1][3]                                     
+                                quantity = 0
                                 print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为零或负数，跳过该行。")
-                        
-                        except ValueError:
-                            print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为空或字符值")
-
                             
                         except Exception as e:
-                            print(f"Error: 处理文件 {file} 的 {worksheet.name} 工作簿第 {last_row_idx} 行时出错: {e}")
+                            print(f"Warning: 处理文件 {file} 的 {worksheet.name} 工作簿第 {last_row_idx} 行时报警，信息为: {e}")
                             continue
-
 
                         "为单条目不同价位进行入库操作"
                         try:
-                            item_data_operate("入库", "2025", "07", "06", product_name, unit_name, last_price, quantity, float(last_price)*float(quantity), f"由 {worksheet.name} 工作簿第 {last_row_idx} 行 入库", "未知公司", "未知简称")
+                            item_data_operate("入库",year , month, day, product_name, unit_name, last_price, quantity, float(last_price)*float(quantity), f"由 {worksheet.name} 工作簿第 {last_row_idx} 行 入库", "司", "")
                         except Exception as e:
                             print(f"Error: 调用 item_data_operate 方法时出错: {e}")
                             continue
