@@ -188,6 +188,8 @@ class Ui_Form(object):
         self.worker.done2.connect(self.worker.tables_updated_filed) # 接收 done2信号,执行 tables_updated_filed 方法
         self.worker.signal3.connect(self.worker.commit_data_with_blank_input) # 接收 signal3信号,执行 commit_data_with_blank_input 方法
 
+        self.reindex_thread = threading.Thread(target=reindex_item_data, daemon=True) # 用于存储重建条目表的线程对象
+
         if not Form.objectName():
             Form.setObjectName(u"Form")
         Form.resize(779, 533)
@@ -202,8 +204,10 @@ class Ui_Form(object):
         self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
-        self.tabWidget = QTabWidget(Form)
-        self.tabWidget.setObjectName(u"tabWidget")
+        
+        #self.tabWidget = QTabWidget(Form)
+        #self.tabWidget.setObjectName(u"tabWidget")
+        
         self.tab = QWidget()
         self.tab.setObjectName(u"tab")
         self.horizontalLayout_2 = QHBoxLayout(self.tab)
@@ -539,7 +543,7 @@ class Ui_Form(object):
         # 创建重建条目按钮
         self.pushButton_13 = QPushButton(self.tab)
         self.pushButton_13.setObjectName("rebuild_index_button")
-        self.pushButton_13.clicked.connect(reindex_item_data)       # 绑定重建条目函数
+        self.pushButton_13.clicked.connect(lambda:tap_reindex_intem(self))       # 绑定重建条目函数
         # 创建立即备份按钮
         self.pushButton_12 = QPushButton(self.tab)
         self.pushButton_12.setObjectName("backup_button")
@@ -552,7 +556,7 @@ class Ui_Form(object):
 
         self.horizontalLayout_2.addWidget(self.tabWidget_2)
 
-        self.tabWidget.addTab(self.tab, "")
+        #self.tabWidget.addTab(self.tab, "")
 
         self.tab_5 = QWidget()
         self.tab_5.setObjectName(u"tab_5")
@@ -560,7 +564,7 @@ class Ui_Form(object):
         self.tab_6 = QWidget()
         self.tab_6.setObjectName(u"tab_6")
 
-        self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.tabWidget_2, 0, 0, 1, 1)
 
 
         "TAB内 网格布局排布设置"
@@ -581,7 +585,7 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
 
-        self.tabWidget.setCurrentIndex(0)
+        #self.tabWidget.setCurrentIndex(0)
 
         QMetaObject.connectSlotsByName(Form)
     # setupUi
@@ -651,7 +655,7 @@ class Ui_Form(object):
         
         "TAB名称"        
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", "入库模式", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
+        #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
 
 
         #自动填充日期
@@ -1484,6 +1488,7 @@ def restore_backup(self,objectname):
     except Exception as e:
         print(f"Error in reimport_excel_data: 将主表文件复制到 main 目录出错,错误信息为: {e}")
         QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
+    
     # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 work 目录
     try:
         shutil.copytree( path,"./src/data/storage/work", dirs_exist_ok=True)
@@ -1577,6 +1582,31 @@ def work_file_init():
         print("Notice:主表文件已从 ./src/data/storage/main  复制到 ./src/data/storage/work 目录")
     except Exception as e:
         print(f"Error in reimport_excel_data: 将主表文件复制到 work 目录出错,错误信息为: {e}")
+
+
+def tap_reindex_intem(self):
+    """
+    开启子线程重新索引条目表
+
+    Parameters:
+        None
+    
+    Returns:
+
+        None
+    """
+
+    # 将重建条目按钮的文本设置为重建中
+    self.pushButton_13.setText("重建中...")
+    
+    # 检查条目表线程是否执行完毕
+    if self.reindex_thread.is_alive():
+        print("Warning: 条目表仍在重建中，请稍后再试")
+        QMessageBox.information(None, "提示", "条目表仍在重建中，请稍后再试", QMessageBox.Ok)
+        return
+    
+    # 启动新的重建线程
+    self.reindex_thread.start()
 
 
 if __name__ == "__main__":

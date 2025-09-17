@@ -301,6 +301,7 @@ def reindex_item_data():
                         else:
                             grouped_prices.append(current_group)
                             current_group = [price_group[i]]
+
                     grouped_prices.append(current_group)  # 添加最后一组
                     print(f"Notice:  {worksheet.name} 工作簿价格行信息重新分组完成，信息为 {grouped_prices}")
 
@@ -308,7 +309,7 @@ def reindex_item_data():
                     for group in grouped_prices:
                         
                         last_row_idx, last_price = group[-1]
-                        quantity_cell = worksheet.cell(last_row_idx - 1, 3)  # 数量列索引为3
+                        quantity_cell = worksheet.cell(last_row_idx - 1, 9)  # 数量列索引为3
 
                         product_name = ""
                         unit_name = ""
@@ -324,7 +325,8 @@ def reindex_item_data():
                                 print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为零或负数，跳过该行。")
                         
                         except ValueError:
-                            print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为空或字符值，该价位没有剩余库存。")
+                            print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为空或字符值")
+
                             
                         except Exception as e:
                             print(f"Error: 处理文件 {file} 的 {worksheet.name} 工作簿第 {last_row_idx} 行时出错: {e}")
