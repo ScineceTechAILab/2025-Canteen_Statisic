@@ -274,21 +274,16 @@ def reindex_item_data():
                 worksheet = workbook.sheet_by_name(sheet_name)
                 price_group = []                                # 记录连续价格组的三维数组
 
-                "遍历工作行"
+                "从头到尾记录有单价的行"
                 for row_idx in range(1, worksheet.nrows):           # 跳过表头，从第二行开始
                     
                     row = worksheet.row(row_idx)
-                    try:
+                    try:       
                         
-                        "从头到尾记录有单价的行"            
-                        try:
-                            price = float(row[4].value)             # 单价
-                            print(f"Notice:  {worksheet.name} 工作簿第 {row_idx + 1} 行 单价列值为{price} ")
-                            price_group.append([row_idx + 1, price]) # 记录该 [行号,单价]
+                        price = float(row[4].value)             # 单价
+                        print(f"Notice:  {worksheet.name} 工作簿第 {row_idx + 1} 行 单价列值为{price} ")
+                        price_group.append([row_idx + 1, price]) # 记录该 [行号,单价]
 
-                        except ValueError:
-                            print(f"Warning:  {worksheet.name} 工作簿第 {row_idx + 1} 行 单价列值为空或字符值 ")
-                    
                     except Exception as e:
                         print(f"Error: 处理文件 {file} 的 {worksheet.name} 工作簿第 {row_idx + 1} 行时出错: {e}")
                         continue
@@ -307,7 +302,6 @@ def reindex_item_data():
                             grouped_prices.append(current_group)
                             current_group = [price_group[i]]
                     grouped_prices.append(current_group)  # 添加最后一组
-
                     print(f"Notice:  {worksheet.name} 工作簿价格行信息重新分组完成，信息为 {grouped_prices}")
 
                     "遍历分组，根据每一组的最后一个价位对应的条目检查其该行数量列是否存在数量"
@@ -316,18 +310,19 @@ def reindex_item_data():
                         last_row_idx, last_price = group[-1]
                         quantity_cell = worksheet.cell(last_row_idx - 1, 3)  # 数量列索引为3
 
+                        product_name = ""
+                        unit_name = ""
+
                         try:
                             quantity = float(quantity_cell.value)
                             if quantity > 0:
                                 product_name = worksheet.cell(last_row_idx - 1, 1).value  # 食品名列索引为1
                                 unit_name = worksheet.cell(last_row_idx - 1, 2).value     # 单位列索引为2
-                                
-
                                 print(f"Notice:  {worksheet.name} 工作簿第 {last_row_idx} 行 有效数量 {quantity}，准备更新条目表，信息为 品名:{product_name} 单位:{unit_name} 单价:{last_price} 数量:{quantity}")
-
-
+                                
                             else:
                                 print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为零或负数，跳过该行。")
+                        
                         except ValueError:
                             print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为空或字符值，该价位没有剩余库存。")
                             
@@ -336,12 +331,14 @@ def reindex_item_data():
                             continue
 
 
+                        "为单条目不同价位进行入库操作"
+                        try:
+                            item_data_operate("入库", "2025", "07", "06", product_name, unit_name, last_price, quantity, float(last_price)*float(quantity), f"由 {worksheet.name} 工作簿第 {last_row_idx} 行 入库", "未知公司", "未知简称")
+                        except Exception as e:
+                            print(f"Error: 调用 item_data_operate 方法时出错: {e}")
+                            continue
                 else:
                     print(f"Warning: {worksheet.name} 工作簿中未找到任何价格信息，跳过该工作簿。")
-
-
-
-
         
         except Exception as e:
             print(f"Error: {file} 打开失败: {e}")
