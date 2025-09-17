@@ -306,6 +306,7 @@ def reindex_item_data():
                         else:
                             grouped_prices.append(current_group)
                             current_group = [price_group[i]]
+
                     grouped_prices.append(current_group)  # 添加最后一组
 
                     print(f"Notice:  {worksheet.name} 工作簿价格行信息重新分组完成，信息为 {grouped_prices}")
@@ -314,22 +315,32 @@ def reindex_item_data():
                     for group in grouped_prices:
                         
                         last_row_idx, last_price = group[-1]
-                        quantity_cell = worksheet.cell(last_row_idx - 1, 3)  # 数量列索引为3
+                        quantity_cell = worksheet.cell(last_row_idx - 1, 9)  # 数量列索引为3
 
                         try:
                             quantity = float(quantity_cell.value)
                             if quantity > 0:
-                                product_name = worksheet.cell(last_row_idx - 1, 1).value  # 食品名列索引为1
-                                unit_name = worksheet.cell(last_row_idx - 1, 2).value     # 单位列索引为2
                                 
+                                
+                                product_name =  worksheet.name        # 获取工作簿名字  
+                                unit_name = worksheet.cell(last_row_idx - 1, 2).value     # 单位列索引为2                                
 
                                 print(f"Notice:  {worksheet.name} 工作簿第 {last_row_idx} 行 有效数量 {quantity}，准备更新条目表，信息为 品名:{product_name} 单位:{unit_name} 单价:{last_price} 数量:{quantity}")
 
+                                "组合该行信息拼接成能够写入到条目表的形式"
+                                item_data_operate("入库", "2025", "07", "06", product_name, unit_name, last_price, quantity, float(last_price) * float(quantity), f"由 {worksheet.name} 工作簿重新生成", "重新生成", "重新生成")
+
+
 
                             else:
-                                print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为零或负数，跳过该行。")
+                                print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为零或负数，，该价位没有剩余库存。")
+
+                                "组合该行信息拼接成能够写入到条目表的形式"
+                                item_data_operate("入库", "2025", "07", "06", product_name, unit_name, last_price, quantity, float(last_price) * float(quantity), f"由 {worksheet.name} 工作簿重新生成", "重新生成", "重新生成")
+                       
                         except ValueError:
-                            print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为空或字符值，该价位没有剩余库存。")
+                            print(f"Warning: {worksheet.name} 工作簿第 {last_row_idx} 行 数量列值为空或字符值")
+
                             
                         except Exception as e:
                             print(f"Error: 处理文件 {file} 的 {worksheet.name} 工作簿第 {last_row_idx} 行时出错: {e}")
