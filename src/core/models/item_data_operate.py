@@ -36,6 +36,13 @@ import os
 import sys
 import __main__
 import datetime
+from PySide6.QtCore import (QCoreApplication,QMetaObject, QObject,  QRect,QSize, QTime, Qt, QEvent,QObject, Signal)
+from PySide6.QtGui import (QPixmap,  Qt,QCursor)
+from PySide6.QtWidgets import (QMessageBox,QAbstractScrollArea,QApplication, QButtonGroup, QFormLayout, QGridLayout,
+    QGroupBox, QHBoxLayout, QLabel, QLayout,
+    QLineEdit, QPushButton, QScrollArea,
+    QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
+    QWidget, QFileDialog, QVBoxLayout, QCheckBox)
 
 import xlrd
 
@@ -238,7 +245,7 @@ def item_data_operate(model, year, month, day, product_name, unit_name, price, q
     return export_data
 
     
-def reindex_item_data():
+def reindex_item_data(self):
     
     """
     提取子表主食表,子表副食表中的信息，重新生成条目表.xlsx
@@ -354,6 +361,12 @@ def reindex_item_data():
         except Exception as e:
             print(f"Error: {file} 打开失败: {e}")
             continue
+
+
+    print(f"Notice: 条目表 数据信息重新生成完成！")
+    self.worker.reindex_item_signal.emit()  # 发射信号，通知主线程数据写入完成
+    self.pushButton_13.setText("重建条目")
+    
 
 
 

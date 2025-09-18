@@ -130,6 +130,8 @@ class Worker(QObject):
 
     signal3 = Signal()  
 
+    reindex_item_signal = Signal()  
+
     def show(self, message):
         """
         这个用来判断是哪个信号
@@ -144,6 +146,8 @@ class Worker(QObject):
         elif message == "tables_updated_filed":
             #所有表格更新失败
             self.tables_updated_filed()
+
+
 
     def data_writing_finished(self):
         """
@@ -162,6 +166,14 @@ class Worker(QObject):
             else:
                 subprocess.Popen(['xdg-open', folder_path])
 
+    def finishing_reindex_item(self):
+        """
+        显示数据写入完成消息框
+        :param: self
+        :return: None
+        """
+        self.reply = QMessageBox.information(None, "提示", "条目表重建完成！", QMessageBox.Ok)
+
     def tables_updated_filed(self):
         """
         数据更新失败提醒
@@ -178,6 +190,8 @@ class Worker(QObject):
         """
         QMessageBox.warning(Form, "提示", "暂存表为空,确保输入暂存了数据")
 
+    
+
 
 class Ui_Form(object):
 
@@ -187,8 +201,8 @@ class Ui_Form(object):
         self.worker.done.connect(self.worker.show)  # 当信号发出时，执行 show_message()
         self.worker.done2.connect(self.worker.tables_updated_filed) # 接收 done2信号,执行 tables_updated_filed 方法
         self.worker.signal3.connect(self.worker.commit_data_with_blank_input) # 接收 signal3信号,执行 commit_data_with_blank_input 方法
-
-        self.reindex_thread = threading.Thread(target=reindex_item_data, daemon=True) # 用于存储重建条目表的线程对象
+        self.worker.reindex_item_signal.connect(self.worker.finishing_reindex_item) # 接收 reindex_item_signal 信号,执行 finishing_reindex_item 方法
+        
 
         if not Form.objectName():
             Form.setObjectName(u"Form")
@@ -1596,17 +1610,21 @@ def tap_reindex_intem(self):
         None
     """
 
-    # 将重建条目按钮的文本设置为重建中
-    self.pushButton_13.setText("重建中...")
-    
-    # 检查条目表线程是否执行完毕
-    if self.reindex_thread.is_alive():
+    # 检查是否已有重建任务在运行
+    if hasattr(self, 'reindex_thread') and self.reindex_thread and self.reindex_thread.is_alive():
         print("Warning: 条目表仍在重建中，请稍后再试")
         QMessageBox.information(None, "提示", "条目表仍在重建中，请稍后再试", QMessageBox.Ok)
         return
+
+    # 将重建条目按钮的文本设置为重建中
+    self.pushButton_13.setText("重建中...")
     
+    # 定义重建条目表的函数
+    self.reindex_thread = threading.Thread(args=(self,), target=reindex_item_data, daemon=True) 
+
     # 启动新的重建线程
     self.reindex_thread.start()
+
 
 
 if __name__ == "__main__":
