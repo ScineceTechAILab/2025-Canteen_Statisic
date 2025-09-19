@@ -73,8 +73,7 @@ def get_base_dir():
         # PyInstaller打包后的路径
         return os.path.join(os.path.dirname(sys.executable),'src')
     else:
-        # 源码运行时的路径
-        return os.path.join(os.path.abspath(os.getcwd()), 'src')
+        return os.path.join(os.path.abspath(os.getcwd())) # 源码运行时的路径，以项目根目录为基准
 
 BASE_DIR = get_base_dir()
 
@@ -107,6 +106,10 @@ ONLY_WELFARE_TABLE = False # 登记福利表开启指示器
 SAVE_OK_SIGNAL = True
 PAGE_COUNTER_SIGNAL = True # 页计模式开启指示器
 
+ENTERPRISE_SHEET_DECISION = None # 企业工作簿是否重建的决定
+WORKER_THREAD_QUIT_SIGNAL = None # 重建新公司阻塞是否退出的决定
+
+
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
 
@@ -131,6 +134,8 @@ class Worker(QObject):
     signal3 = Signal()  
 
     reindex_item_signal = Signal()  
+
+    commit_data_with_no_enterprise_singnal = Signal(str)
 
     def show(self, message):
         """
@@ -190,6 +195,42 @@ class Worker(QObject):
         """
         QMessageBox.warning(Form, "提示", "暂存表为空,确保输入暂存了数据")
 
+    def commit_data_with_no_enterprise(self,company_name):
+        """
+        提交表格时，表中无符合企业的冲突提示
+        
+        Parameters:
+            company_name (str): 企业名称
+        
+        Returns:
+            None
+        """
+       
+        self.reply = QMessageBox.question(
+            None,
+            "提示",
+            f"入库时名为 {company_name} 公司工作簿可能不存在，请问是否需要重建？",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        global ENTERPRISE_SHEET_DECISION
+        global WORKER_THREAD_QUIT_SIGNAL
+
+        if self.reply == QMessageBox.Yes:
+
+            ENTERPRISE_SHEET_DECISION = True
+            WORKER_THREAD_QUIT_SIGNAL = False
+
+        elif self.reply == QMessageBox.No:
+
+            ENTERPRISE_SHEET_DECISION = True
+            WORKER_THREAD_QUIT_SIGNAL = True
+            
+        
+        
+
+
+
     
 
 
@@ -202,7 +243,7 @@ class Ui_Form(object):
         self.worker.done2.connect(self.worker.tables_updated_filed) # 接收 done2信号,执行 tables_updated_filed 方法
         self.worker.signal3.connect(self.worker.commit_data_with_blank_input) # 接收 signal3信号,执行 commit_data_with_blank_input 方法
         self.worker.reindex_item_signal.connect(self.worker.finishing_reindex_item) # 接收 reindex_item_signal 信号,执行 finishing_reindex_item 方法
-        
+        self.worker.commit_data_with_no_enterprise_singnal.connect(self.worker.commit_data_with_no_enterprise) # 接收 commit_data_with_no_enterprise_singnal 信号,执行 commit_data_with_no_enterprise 方法
 
         if not Form.objectName():
             Form.setObjectName(u"Form")
@@ -830,21 +871,29 @@ class Ui_Form(object):
         SUB_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/子表/"
         WELFARE_EXCEL_STORAGEED_FOLDER = "src/data/storage/main/福利表/"
         
-        # 获取主表、子表主食表、子表副食表、福利表的文件路径
-
-        sub_main_file_paths = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
+        try:
+            
+            # 获取主表的文件路径
+            main_workbook =MAIN_WORK_EXCEL_FOLDER +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
+            # 获取福利表的文件路径
+            welfare_food_workbook =WELFARE_EXCEL_FOLDER + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
+            # 获取子表主食表、子表副食表
+            sub_main_file_paths = [f for f in os.listdir(SUB_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")]
+            sub_main_food_workbook = ""
+            sub_auxiliary_food_workbook = ""
+            # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
+            for i in sub_main_file_paths:
+                if "主食" in i:
+                    sub_main_food_workbook = SUB_WORK_EXCEL_FOLDER + i
+                elif "副食" in i:
+                    sub_auxiliary_food_workbook = SUB_WORK_EXCEL_FOLDER + i
         
-        main_workbook =MAIN_WORK_EXCEL_FOLDER +  [f for f in os.listdir(MIAN_EXCEL_STORAGEED_FOLDER) if f.endswith(".xlsx") or f.endswith(".xls")][0]
-        sub_main_food_workbook = ""
-        sub_auxiliary_food_workbook = ""
-        # 两张副食表一定得要有 "主食"/"副食" 字样作为区分
-        for i in sub_main_file_paths:
-            if "主食" in i:
-                sub_main_food_workbook = SUB_WORK_EXCEL_FOLDER + i
-            elif "副食" in i:
-                sub_auxiliary_food_workbook = SUB_WORK_EXCEL_FOLDER + i
+        except Exception as e:
+            print(f"Error:获取文件失败，请检查main目录下是否有且仅有一份对应的Excel文件,错误信息 {e}")
+            QMessageBox.critical(Form, "错误", "获取文件失败，请检查main目录下是否有且仅有一份对应的Excel文件")
+            self.pushButton_5.setText("提交数据")
+            return
         
-        welfare_food_workbook =WELFARE_EXCEL_FOLDER + [f for f in os.listdir(WELFARE_EXCEL_STORAGEED_FOLDER) if f.endswith(".xls") or f.endswith(".xlsx")][0]
 
         model = "manual"
         threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook,welfare_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
@@ -1411,7 +1460,7 @@ class Ui_Form(object):
             # 创建还原备份按钮
             self.back_up_item_restore_button_dom5 = QPushButton("还原备份", self.name_dom4)
             self.back_up_item_restore_button_dom5.setObjectName(f"{name_dom4}")
-            self.back_up_item_restore_button_dom5.clicked.connect(lambda:restore_backup(self,self.back_up_item_restore_button_dom5.objectName())) # Fixed:修复了 Python 中常见的闭包陷阱问题
+            self.back_up_item_restore_button_dom5.clicked.connect(lambda _, name=name_dom4: restore_backup(self, name)) 
             self.back_up_item_layout_dom4.addWidget(self.back_up_item_restore_button_dom5)             # 加入到布局
   
             # 创建删除备份按钮
@@ -1490,28 +1539,48 @@ def view_backup(self,objectname):
         subprocess.Popen(["xdg-open", path])
 
 def restore_backup(self,objectname):
+    """
+    还原备份
+
+    Parameters:
+        self: 对象实例
+        objectname: 备份文件夹名
+    Returns:
+        None
+    """
+    
     parent_object_name = objectname
     print(f"Notice:还原备份 {parent_object_name} 到 main 目录")
     path = os.path.join(".\\src\\data\\storage\\backup", parent_object_name)
     
-    # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
     try:
+        
+        # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 main 目录
         shutil.copytree( path,"./src/data/storage/main", dirs_exist_ok=True)
         print(f"Notice:备份文件已从 {path}  复制到 main 目录")
-        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
-    except Exception as e:
-        print(f"Error in reimport_excel_data: 将主表文件复制到 main 目录出错,错误信息为: {e}")
-        QMessageBox.information(None, "错误", "数据备份失败", QMessageBox.Ok)
-    
-    # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 work 目录
-    try:
+
+        # 将相应备份目录下的 主表文件夹、子表文件夹拷贝到 work 目录
         shutil.copytree( path,"./src/data/storage/work", dirs_exist_ok=True)
         print(f"Notice:备份文件已从 {path}  复制到 work 目录")
-        QMessageBox.information(None, "提示", "数据已全部备份", QMessageBox.Ok)
+
+        QMessageBox.information(None, "提示", "数据已全部还原", QMessageBox.Ok)
+    
     except Exception as e:
-        print(f"Error in reimport_excel_data: 将主表文件复制到 work 目录出错,错误信息为: {e}")
+        print(f"Error in reimport_excel_data: 将文件还原到 main 目录出错,错误信息为: {e}")
+        QMessageBox.information(None, "错误", "数据还原失败", QMessageBox.Ok)
+    
+   
 
 def delete_backup(self,objectname):
+    """
+    删除备份
+    Parameters:
+        self: 对象实例
+        objectname: 备份文件夹名
+    Returns:
+        None
+    """
+
     folder_name = objectname
     reply = QMessageBox.question(None, "确认删除", f"确定要删除备份 {folder_name} 吗？", 
                                 QMessageBox.Yes | QMessageBox.No)

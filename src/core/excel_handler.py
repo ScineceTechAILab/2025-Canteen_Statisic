@@ -27,7 +27,6 @@ from datetime import datetime
 from openpyxl import load_workbook
 from xlutils.copy import copy
 from xlwt.Style import  XFStyle
-from src.core.models.page_counter import *
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt, QEvent)
@@ -252,6 +251,49 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
 
         "将数据提交到条目表"
         try:
+            
+
+            if __main__.ONLY_WELFARE_TABLE == False:
+            
+                try:
+                    "更新主表、子表信息"
+                    # 在主表中更新信息
+                    update_main_table(self,app,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+                    # 在子表中更新信息
+                    update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+                    #等所有表格都更新完了才日计、月计、页计、总计
+                    add_counter(self,app ,year,month,day,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+            
+                except Exception as e:
+                    "更新主表、子表信息出错"
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 更新主表、子表信息出错,错误信息为 {e}")
+
+                "调整提交按钮状态"
+                self.pushButton_5.setText("提交数据")
+                self.pushButton_9.setText("提交数据")
+        
+            else:
+                
+                try:
+
+                    "更新福利表"
+                    # 在福利表中更新信息
+                    update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
+                    #等所有表格都更新完了才日计、月计、页计、总计
+                    add_counter(self, app,year,month,day,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
+                
+                except Exception as e:
+                    "更新福利表信息出错"
+                    __main__.SAVE_OK_SIGNAL = False
+                    print(f"Error: 福利表文件读取保存工作失败 {e}")
+                
+                "调整提交按钮状态"
+                self.pushButton_5.setText("提交数据")
+                self.pushButton_9.setText("提交数据")
+
+
+            
 
             if not __main__.MODE:
 
@@ -384,45 +426,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
             __main__.SAVE_OK_SIGNAL = False
             return
 
-        if __main__.ONLY_WELFARE_TABLE == False:
-            
-            try:
-                "更新主表、子表信息"
-                # 在主表中更新信息
-                update_main_table(self,app,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-                # 在子表中更新信息
-                update_sub_tables(self,app,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-                #等所有表格都更新完了才日计、月计、页计、总计
-                add_counter(self,app ,year,month,day,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
         
-            except Exception as e:
-                "更新主表、子表信息出错"
-                __main__.SAVE_OK_SIGNAL = False
-                print(f"Error: 更新主表、子表信息出错,错误信息为 {e}") # [ ]BUG:更新主表、子表信息出错,错误信息为 local variable 'sub_main_workbook' referenced before assignment
-
-            "调整提交按钮状态"
-            self.pushButton_5.setText("提交数据")
-            self.pushButton_9.setText("提交数据")
-        
-        
-        else:
-            
-            try:
-
-                "更新福利表"
-                # 在福利表中更新信息
-                update_welfare_food_sheet(self,app,welfare_food_excel_file_path,read_temp_storage_workbook,read_temp_storage_workbook_headers)
-                #等所有表格都更新完了才日计、月计、页计、总计
-                add_counter(self, app,year,month,day,modle,main_excel_file_path, sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path,welfare_food_excel_file_path)
-            
-            except Exception as e:
-                "更新福利表信息出错"
-                __main__.SAVE_OK_SIGNAL = False
-                print(f"Error: 福利表文件读取保存工作失败 {e}")
-            
-            "调整提交按钮状态"
-            self.pushButton_5.setText("提交数据")
-            self.pushButton_9.setText("提交数据")
             
 
     if  __main__.SAVE_OK_SIGNAL:
@@ -473,11 +477,14 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
 
 def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
-    处理主工作簿更新相关表格信息
-    :param excel_file_path: 主工作簿路径
-    :param read_temp_storage_workbook: 暂存表格工作簿对象
-    :param read_temp_storage_workbook_headers: 暂存表格表头
-    :return: None
+    将暂存表数据更新到主表中
+
+    Parameters:
+        excel_file_path: 主工作簿路径
+        read_temp_storage_workbook: 暂存表格工作簿对象
+        read_temp_storage_workbook_headers: 暂存表格表头
+    Returns:
+         None
     """
     
     try:
@@ -581,8 +588,42 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
     
     # 查找对应的公司sheet
     try:
-        sheet = main_workbook.sheets[company_name]
         
+        "判定公司sheet页是否存在"
+        try:
+        
+            sheet = main_workbook.sheets[company_name]
+        
+        except Exception:
+            
+            print(f"Warning: 主表中名为 {company_name} 公司工作簿可能不存在!")
+            
+            "弹窗询问用户是否新建公司sheet"
+            self.worker.commit_data_with_no_enterprise_singnal.emit(company_name) # 触发信号，弹出询问用户是否新建公司sheet的弹窗
+
+            while __main__.ENTERPRISE_SHEET_DECISION is None: # 等待用户选择
+                
+                time.sleep(0.1) # 每0.1秒检查一次，防止CPU占用过高
+
+                if __main__.WORKER_THREAD_QUIT_SIGNAL: # 如果用户选择了退出程序
+                    
+                    print(f"Warning: 用户选择不新建公司Sheet，终止本次入库操作")
+
+                    __main__.ENTERPRISE_SHEET_DECISION = None # 企业工作簿是否重建的决定
+                    __main__.WORKER_THREAD_QUIT_SIGNAL = None # 重建新公司阻塞是否退出的决定
+                    __main__.SAVE_OK_SIGNAL = False
+                    return
+
+                elif __main__.WORKER_THREAD_QUIT_SIGNAL==False:#用户选择了新建公司sheet  
+                    
+                    sheet = main_workbook.sheets.add(company_name)
+                    print(f"Notice: 已新建公司名为 {company_name} 的Sheet")
+                    
+                    __main__.ENTERPRISE_SHEET_DECISION = None # 企业工作簿是否重建的决定
+                    __main__.WORKER_THREAD_QUIT_SIGNAL = None # 重建新公司阻塞是否退出的决定
+                    break
+
+
         "更新阿拉伯数字的值"
         # 获取当前值
         current_value = sheet.range("D8").value  # 一般公司 Sheet 金额单元格是 D8（Excel索引从1开始）
@@ -596,8 +637,8 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
         "检查金额格式"
         try:
             # 去掉金额字符中的空字符，防止出现类似 '10. 56' 的字符造成强制类型转换报错
-            if isinstance(amount, str):  # 确保 amount 是字符串
-                amount = amount.replace(" ", "")  # 去掉字符串首尾的空字符
+            if isinstance(amount, str):             # 确保 amount 是字符串
+                amount = amount.replace(" ", "")    # 空字符修正
             
             amount = float(amount)
         except Exception:
@@ -1179,8 +1220,6 @@ def update_sub_main_food_sheet(main_workbook, read_temp_storage_workbook, read_t
                         print(f"Warning: 未找到品名为 {product_name} 的sheet")
                         return
 
-                    #暂时感觉这个for循环没什么问题
-                    #wjwcj: 2025/05/04 15:31
                     for sub_row_index in range(sheet.used_range.rows.count):
                         # 检查每行的1到11列是否都是空
                         if all(is_visually_empty(sheet.range((sub_row_index + 1, col))) for col in range(1, 12)):
