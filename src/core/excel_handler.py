@@ -56,7 +56,7 @@ from src.core.excel_handler_utils import (
     sheets_of_sub_table
 )
 from src.core.models.item_data_operate import item_data_operate
-
+from src.core.models.page_counter import counting_page_value
 
 
 
@@ -601,7 +601,7 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
             "弹窗询问用户是否新建公司sheet"
             self.worker.commit_data_with_no_enterprise_singnal.emit(company_name) # 触发信号，弹出询问用户是否新建公司sheet的弹窗
 
-            while __main__.ENTERPRISE_SHEET_DECISION is None: # 等待用户选择
+            while __main__.ENTERPRISE_SHEET_DECISION is None: 
                 
                 time.sleep(0.1) # 每0.1秒检查一次，防止CPU占用过高
 
@@ -609,18 +609,18 @@ def update_company_sheet(self,main_workbook, product_name ,company_name, amount)
                     
                     print(f"Warning: 用户选择不新建公司Sheet，终止本次入库操作")
 
-                    __main__.ENTERPRISE_SHEET_DECISION = None # 企业工作簿是否重建的决定
-                    __main__.WORKER_THREAD_QUIT_SIGNAL = None # 重建新公司阻塞是否退出的决定
+                    __main__.ENTERPRISE_SHEET_DECISION = None 
+                    __main__.WORKER_THREAD_QUIT_SIGNAL = None 
                     __main__.SAVE_OK_SIGNAL = False
                     return
 
-                elif __main__.WORKER_THREAD_QUIT_SIGNAL==False:#用户选择了新建公司sheet  
+                elif __main__.WORKER_THREAD_QUIT_SIGNAL==False:
                     
                     sheet = main_workbook.sheets.add(company_name)
                     print(f"Notice: 已新建公司名为 {company_name} 的Sheet")
                     
-                    __main__.ENTERPRISE_SHEET_DECISION = None # 企业工作簿是否重建的决定
-                    __main__.WORKER_THREAD_QUIT_SIGNAL = None # 重建新公司阻塞是否退出的决定
+                    __main__.ENTERPRISE_SHEET_DECISION = None 
+                    __main__.WORKER_THREAD_QUIT_SIGNAL = None 
                     break
 
 
