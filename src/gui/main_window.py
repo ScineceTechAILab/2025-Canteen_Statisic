@@ -73,7 +73,8 @@ def get_base_dir():
         # PyInstaller打包后的路径
         return os.path.join(os.path.dirname(sys.executable),'src')
     else:
-        return os.path.join(os.path.abspath(os.getcwd())) # 源码运行时的路径，以项目根目录为基准
+        print(f"Notice:当前工作目录为{os.getcwd()}")
+        return os.path.join(os.getcwd()) # 源码运行时的路径，以项目根目录为基准
 
 BASE_DIR = get_base_dir()
 
@@ -723,16 +724,16 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        self.line1Right.setText("2025-05-26")      # 日期
-        self.line2Right.setText("副食")            # 类别 只能填写主食/副食
-        self.line3Right.setText("鸡蛋")            # 品名 要匹配子表主食表/子表副食表中的菜品单名
-        self.line4Right.setText("备注")            # 备注
-        self.line5Right.setText("124.41")             # 金额
-        self.line6Right.setText("33")             # 数量
-        self.line7Right.setText("3.77")               # 单价
-        self.line8Right.setText("斤")              # 单位
-        self.line9Right.setText("四季常青")           # 公司 要匹配主表中的公司表单名
-        self.line10Right.setText("食堂副食入库")    # 单名  要匹配主表中相应入库类型单名
+        # self.line1Right.setText("2025-05-26")      # 日期
+        # self.line2Right.setText("副食")            # 类别 只能填写主食/副食
+        # self.line3Right.setText("鸡蛋")            # 品名 要匹配子表主食表/子表副食表中的菜品单名
+        # self.line4Right.setText("备注")            # 备注
+        # self.line5Right.setText("124.41")             # 金额
+        # self.line6Right.setText("33")             # 数量
+        # self.line7Right.setText("3.77")               # 单价
+        # self.line8Right.setText("斤")              # 单位
+        # self.line9Right.setText("四季常青")           # 公司 要匹配主表中的公司表单名
+        # self.line10Right.setText("食堂副食入库")    # 单名  要匹配主表中相应入库类型单名
 
     # retranslateUi
 
@@ -1059,11 +1060,13 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-        output_path = os.path.abspath("./src/data/input/img/temp_img_input.xlsx")
-        folder_path = os.path.dirname(output_path)
+        output_path = os.path.abspath("src/data/input/manual/temp_img_input.xlsx")
+        
         # 弹窗提示，等待用户确认
         reply = QMessageBox.information(None, "提示", "准备打开扫描结果，请在校核并保存数据后关闭窗口", QMessageBox.Ok | QMessageBox.Cancel)
         # 调用系统命令打开目标文件，避免因 xlwings 打开目标表前需要打开一个无关紧要的表
+        
+        # [ ] TODO: 所有涉及到文件操作的地方都需要try和if进行容错考虑，并且要考虑操作的对象文件是否存在这么一个问题，且扫描的文件
         if reply == QMessageBox.Ok:
             try:
                 if sys.platform == "win32":
