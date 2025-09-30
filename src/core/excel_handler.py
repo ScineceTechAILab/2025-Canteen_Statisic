@@ -216,6 +216,28 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
     with xw.App(visible=False) as app: # 调用xlwings库将 xlsx 文件转换为 xls 格式（无头模式）
         
         if modle == "manual":
+            # 检测暂存表格是否存在
+            if not os.path.exists(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH):
+                print(f"Warning: 暂存表格 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 不存在，请先添加数据")
+                # 创建一个新的空表格
+                wb = Workbook()
+                # 写入表头
+                ws = wb.add_sheet("Sheet1")
+                ws.write(0, 0, "日期")
+                ws.write(0, 1, "类别")
+                ws.write(0, 2, "品名")
+                ws.write(0, 3, "单位")
+                ws.write(0, 4, "单价")
+                ws.write(0, 5, "数量")
+                ws.write(0, 6, "金额")
+                ws.write(0, 7, "备注")
+                ws.write(0, 8, "公司")
+                ws.write(0, 9, "单名")
+                wb.save(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+                print(f"Notice: 已创建新的空暂存表格 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH}")
+                
+
+
             # 读取手动模式暂存表格
             try:
                 # 读取暂存工作簿
