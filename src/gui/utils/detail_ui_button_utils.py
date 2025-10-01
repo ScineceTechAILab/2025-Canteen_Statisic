@@ -119,7 +119,7 @@ def manual_temp_storage(self,input_fields):
                 return None
             
             print("Notice: 暂存数据为", temp_storage)
-            
+
             # 调用 store_single_entry_to_excel 函数存储数据到Excel文件,以xls方式存储
             store_single_entry_to_temple_excel(self,temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
             

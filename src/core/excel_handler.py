@@ -82,6 +82,29 @@ def store_single_entry_to_temple_excel(self,data, file_path):
     headers = list(data.keys())      # 获取传入字典的键列
     rows = list(zip(*data.values())) # 将键列解包重新打包成每一行的数据
 
+    # 检查暂存表格文件是否存在
+    if not os.path.exists(file_path):
+        print("Notice: 暂存表格文件不存在，将创建新文件")
+        # 相对创建子文件夹
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        # 创建暂存工作簿
+        workbook = Workbook()
+        # 创建工作表对象
+        sheet = workbook.add_sheet("Sheet1")
+        # 为工作簿添加表头
+        sheet.write(0,0,"日期")
+        sheet.write(0,1,"类别")
+        sheet.write(0,2,"品名")
+        sheet.write(0,3,"单位")
+        sheet.write(0,4,"单价")
+        sheet.write(0,5,"数量")
+        sheet.write(0,6,"金额")
+        sheet.write(0,7,"备注")
+        sheet.write(0,8,"公司")
+        sheet.write(0,9,"单名")
+
+        workbook.save(file_path)
+
     try:
         if os.path.exists(file_path):
             # 打开现有文件
@@ -216,9 +239,12 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
     with xw.App(visible=False) as app: # 调用xlwings库将 xlsx 文件转换为 xls 格式（无头模式）
         
         if modle == "manual":
-            # 检测暂存表格是否存在
+            
+            # 检测暂存表格是否不存在
             if not os.path.exists(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH):
-                print(f"Warning: 暂存表格 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 不存在，请先添加数据")
+                os.makedirs(os.path.dirname(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH), exist_ok=True)
+                
+                print(f"Warning: 暂存表格 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH} 不存在，准备重新建立空表")
                 # 创建一个新的空表格
                 wb = Workbook()
                 # 写入表头
@@ -235,8 +261,6 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                 ws.write(0, 9, "单名")
                 wb.save(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
                 print(f"Notice: 已创建新的空暂存表格 {__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH}")
-                
-
 
             # 读取手动模式暂存表格
             try:
@@ -247,12 +271,35 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
                 return
             
         elif modle == "photo":
+
+            # 判断照片模式暂存表格是否存在
+            if not os.path.exists(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH):
+                os.makedirs(os.path.dirname(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH), exist_ok=True)
+                print(f"Warning: 照片暂存表格 {__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH} 不存在，准备重新建立空表")
+                # 创建一个新的空表格
+                wb = Workbook()
+                # 写入表头
+                ws = wb.add_sheet("Sheet1")
+                ws.write(0, 0, "日期")
+                ws.write(0, 1, "类别")
+                ws.write(0, 2, "品名")
+                ws.write(0, 3, "单位")
+                ws.write(0, 4, "单价")
+                ws.write(0, 5, "数量")
+                ws.write(0, 6, "金额")
+                ws.write(0, 7, "备注")
+                ws.write(0, 8, "公司")
+                ws.write(0, 9, "单名")
+                wb.save(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
+                print(f"Notice: 已创建新的空照片暂存表格 {__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH}")
+
+            book = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            book.save(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH.replace('.xlsx', '.xls'))
+            book.close()
+            
             # 读取照片模式暂存表格
             try:
                 
-                book = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
-                book.save(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH.replace('.xlsx', '.xls'))
-                book.close()
                 # 读取暂存工作簿
                 read_temp_storage_workbook = xlrd.open_workbook(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2)
             
@@ -501,12 +548,15 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
     """
     将暂存表数据更新到主表中
 
-    Parameters:
-        excel_file_path: 主工作簿路径
-        read_temp_storage_workbook: 暂存表格工作簿对象
-        read_temp_storage_workbook_headers: 暂存表格表头
-    Returns:
-         None
+    # Parameters:
+        - excel_file_path: 主工作簿路径
+        - read_temp_storage_workbook: 暂存表格工作簿对象
+        - read_temp_storage_workbook_headers: 暂存表格表头
+    # Returns:
+        -  None
+    # Notice:
+        - 暂存表格中数据必须按照日期、类别、品名、单位、单价、数量、金额、备注、公司、单名顺序排列
+
     """
     
     try:
@@ -526,6 +576,7 @@ def update_main_table(self,app,excel_file_path, read_temp_storage_workbook, read
             "拆解数据"
             try:
                 
+
                 # 将日期分解为月和日
                 year, month, day =  str(row_data[header_index["日期"]]).split("-")
                 # 获取行中类别列类型单元中的类别名数据

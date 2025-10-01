@@ -83,8 +83,8 @@ global TEMP_SINGLE_STORAGE_EXCEL_PATH
 TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_manual_input_data.xls") # Mistake: join 方法
 TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_manual_input_data2.xls")
 
-PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(BASE_DIR, "src", "data", "input", "img", "temp_img_input.xlsx")
-PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "input", "img", "temp_img_input.xls")
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_img_input.xlsx")
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2 = os.path.join(BASE_DIR, "src", "data", "input", "manual", "temp_img_input.xls")
 
 TEMP_STORAGED_NUMBER_LISTS = 1
 TEMP_LIST_ROLLBACK_SIGNAL = True
@@ -724,16 +724,16 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        # self.line1Right.setText("2025-05-26")      # 日期
-        # self.line2Right.setText("副食")            # 类别 只能填写主食/副食
-        # self.line3Right.setText("鸡蛋")            # 品名 要匹配子表主食表/子表副食表中的菜品单名
-        # self.line4Right.setText("备注")            # 备注
-        # self.line5Right.setText("124.41")             # 金额
-        # self.line6Right.setText("33")             # 数量
-        # self.line7Right.setText("3.77")               # 单价
-        # self.line8Right.setText("斤")              # 单位
-        # self.line9Right.setText("四季常青")           # 公司 要匹配主表中的公司表单名
-        # self.line10Right.setText("食堂副食入库")    # 单名  要匹配主表中相应入库类型单名
+        self.line1Right.setText("2025-05-26")      # 日期
+        self.line2Right.setText("副食")            # 类别 只能填写主食/副食
+        self.line3Right.setText("鸡蛋")            # 品名 要匹配子表主食表/子表副食表中的菜品单名
+        self.line4Right.setText("备注")            # 备注
+        self.line5Right.setText("124.41")             # 金额
+        self.line6Right.setText("33")             # 数量
+        self.line7Right.setText("3.77")               # 单价
+        self.line8Right.setText("斤")              # 单位
+        self.line9Right.setText("四季常青")           # 公司 要匹配主表中的公司表单名
+        self.line10Right.setText("食堂副食入库")    # 单名  要匹配主表中相应入库类型单名
 
     # retranslateUi
 
